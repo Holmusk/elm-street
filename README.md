@@ -80,7 +80,7 @@ newtype Size = Size { unSize :: Int }
 **Elm**
 
 ```elm
-type alias Size
+type alias Size =
     { unSize : Int
     }
 ```
