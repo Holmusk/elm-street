@@ -22,11 +22,13 @@ source-repository head
 
 library
   hs-source-dirs:      src
-  exposed-modules:     ElmStreet
-                       
+  exposed-modules:     Elm
+                           Elm.Ast
+
 
   build-depends:       base >= 4.11.1.0 && < 4.13
-                     
+                     , text ^>= 1.2
+
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns
@@ -60,7 +62,7 @@ test-suite elm-street-test
 
   build-depends:       base >= 4.11.1.0 && < 4.13
                      , elm-street
-                     
+
 
   ghc-options:         -Wall
                        -threaded
