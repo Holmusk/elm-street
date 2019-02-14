@@ -3,6 +3,8 @@
 
 module Elm
        ( module Elm.Ast
+       , module Elm.Generic
        ) where
 
 import Elm.Ast
+import Elm.Generic
