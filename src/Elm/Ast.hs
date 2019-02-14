@@ -3,43 +3,44 @@ converted to this AST which later is going to be pretty-printed.
 -}
 
 module Elm.Ast
-       ( Definition (..)
+       ( ElmDefinition (..)
        , ElmAlias (..)
-       , RecordField (..)
+       , ElmRecordField (..)
        , TypeName (..)
        , ElmType (..)
-       , Constructor (..)
+       , ElmConstructor (..)
        ) where
 
 import Data.List.NonEmpty (NonEmpty)
 import Data.Text (Text)
 
 
-data Definition
+data ElmDefinition
     = DefAlias ElmAlias
     | DefType  ElmType
+    deriving (Show)
 
 data ElmAlias = ElmAlias
     { elmAliasName   :: Text  -- ^ Name of the alias
-    , elmAliasFields :: NonEmpty RecordField  -- ^ List of fields
-    }
+    , elmAliasFields :: NonEmpty ElmRecordField  -- ^ List of fields
+    } deriving (Show)
 
-data RecordField = RecordField
-    { recordFieldName :: Text
-    , recordFieldType :: TypeName
-    }
+data ElmRecordField = ElmRecordField
+    { elmRecordFieldType :: TypeName
+    , elmRecordFieldName :: Text
+    } deriving (Show)
 
 newtype TypeName = TypeName
     { unTypeName :: Text
-    }
+    } deriving (Show)
 
 data ElmType = ElmType
     { elmTypeName         :: Text  -- ^ Name of the data type
     , elmTypeVars         :: [Text]  -- ^ List of type variables; currently only phantom variables
-    , elmTypeConstructors :: NonEmpty Constructor  -- ^ List of constructors
-    }
+    , elmTypeConstructors :: NonEmpty ElmConstructor  -- ^ List of constructors
+    } deriving (Show)
 
-data Constructor = Constructor
-    { constructorName   :: Text  -- ^ Name of the constructor
-    , constructorFields :: [TypeName]  -- ^ Fields of the constructor
-    }
+data ElmConstructor = ElmConstructor
+    { elmConstructorName   :: Text  -- ^ Name of the constructor
+    , elmConstructorFields :: [TypeName]  -- ^ Fields of the constructor
+    } deriving (Show)
