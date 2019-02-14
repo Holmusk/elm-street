@@ -59,7 +59,7 @@ instance (Datatype d, GenericElmConstructors f) => GenericElmDefinition (D1 d f)
             Right ctor  -> DefType $ ElmType typeName [] (ctor :| [])
         c :| cs -> case traverse (rightToMaybe . toElmConstructor) (c :| cs) of
             -- TODO: this should be error but dunno what to do here
-            Nothing    -> DefType $ ElmType ("Error" <> typeName) [] (ElmConstructor "Error" [] :| [])
+            Nothing    -> DefType $ ElmType ("ERROR_" <> typeName) [] (ElmConstructor "ERROR" [] :| [])
             Just ctors -> DefType $ ElmType typeName [] ctors
       where
         typeName :: Text
