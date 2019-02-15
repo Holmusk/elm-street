@@ -77,11 +77,12 @@ showStatus x = case x of
     Yoyoyo -> "Yoyoyo"
     Wow -> "Wow"
 
-readStatus : String -> Status
+readStatus : String -> Maybe Status
 readStatus x = case x of
-    "Approved" -> Approved
-    "Yoyoyo" -> Yoyoyo
-    "Wow" -> Wow
+    "Approved" -> Just Approved
+    "Yoyoyo" -> Just Yoyoyo
+    "Wow" -> Just Wow
+    _ -> Nothing
 
 universeStatus : List Status
 universeStatus = [Approved, Yoyoyo, Wow]
@@ -135,20 +136,21 @@ elmEnumShowDoc t@ElmType{..} =
 elmEnumReadDoc :: ElmType -> Doc ann
 elmEnumReadDoc t@ElmType{..} =
     -- function type
-    (readName <+> colon <+> "String" <+> arrow <+> pretty elmTypeName)
+    (readName <+> colon <+> "String" <+> arrow <+> "Maybe" <+> pretty elmTypeName)
     <> line
     -- function body
     <> nest 4
         ( vsep $ (readName <+> "x" <+> equals <+> "case x of")
         -- pattern matching
         : map patternMatch (getConstructorNames t)
+       ++ ["_" <+> arrow <+> "Nothing"]
         )
   where
     readName :: Doc ann
     readName = "read" <> pretty elmTypeName
 
     patternMatch :: Text -> Doc ann
-    patternMatch (pretty -> c) = dquotes c <+> arrow <+> c
+    patternMatch (pretty -> c) = dquotes c <+> arrow <+> "Just" <+> c
 
 elmEnumUniverse :: ElmType -> Doc ann
 elmEnumUniverse t@ElmType{..} = vsep

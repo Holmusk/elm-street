@@ -1,4 +1,5 @@
 :set -XTypeApplications
 import Data.Proxy
 import GHC.Generics
+import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Text as T
