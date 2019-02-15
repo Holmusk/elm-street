@@ -4,14 +4,19 @@ converted to this AST which later is going to be pretty-printed.
 
 module Elm.Ast
        ( ElmDefinition (..)
-       , ElmAlias (..)
-       , ElmRecordField (..)
-       , TypeName (..)
-       , ElmType (..)
-       , ElmConstructor (..)
 
+       , ElmAlias (..)
+       , ElmType (..)
+       , ElmPrim (..)
+
+       , ElmRecordField (..)
+       , ElmConstructor (..)
        , isEnum
        , getConstructorNames
+
+       , TypeName (..)
+       , TypeRef (..)
+       , definitionToRef
        ) where
 
 import Data.List.NonEmpty (NonEmpty, toList)
@@ -21,6 +26,7 @@ import Data.Text (Text)
 data ElmDefinition
     = DefAlias ElmAlias
     | DefType  ElmType
+    | DefPrim  ElmPrim
     deriving (Show)
 
 data ElmAlias = ElmAlias
@@ -29,7 +35,7 @@ data ElmAlias = ElmAlias
     } deriving (Show)
 
 data ElmRecordField = ElmRecordField
-    { elmRecordFieldType :: TypeName
+    { elmRecordFieldType :: TypeRef
     , elmRecordFieldName :: Text
     } deriving (Show)
 
@@ -45,7 +51,7 @@ data ElmType = ElmType
 
 data ElmConstructor = ElmConstructor
     { elmConstructorName   :: Text  -- ^ Name of the constructor
-    , elmConstructorFields :: [TypeName]  -- ^ Fields of the constructor
+    , elmConstructorFields :: [TypeRef]  -- ^ Fields of the constructor
     } deriving (Show)
 
 -- | Checks i the given 'ElmType' is Enum.
@@ -55,3 +61,31 @@ isEnum ElmType{..} = null elmTypeVars && null (foldMap elmConstructorFields elmT
 -- | Gets the list of the constructor names.
 getConstructorNames :: ElmType -> [Text]
 getConstructorNames ElmType{..} = map elmConstructorName $ toList elmTypeConstructors
+
+-- | Primitive elm types; hardcoded by the language
+data ElmPrim
+    = ElmUnit                    -- ^ @()@ type in elm
+    | ElmNever                   -- ^ @Never@ type in elm, analogous to Void in Haskell
+    | ElmBool                    -- ^ @Bool@
+    | ElmChar                    -- ^ @Char@
+    | ElmInt                     -- ^ @Int@
+    | ElmFloat                   -- ^ @Float@
+    | ElmString                  -- ^ @String@
+    | ElmMaybe TypeRef           -- ^ @Maybe T@
+    | ElmResult TypeRef TypeRef  -- ^ @Result A B@ in elm
+    | ElmPair TypeRef TypeRef    -- ^ @(A, B)@ in elm
+    | ElmList TypeRef            -- ^ @List A@ in elm
+    deriving (Show)
+
+-- | Reference to another existing type.
+data TypeRef
+    = RefPrim ElmPrim
+    | RefCustom TypeName
+    deriving (Show)
+
+-- | Extracts reference to the existing data type type from some other type elm defintion.
+definitionToRef :: ElmDefinition -> TypeRef
+definitionToRef = \case
+    DefAlias ElmAlias{..} -> RefCustom $ TypeName elmAliasName
+    DefType ElmType{..} -> RefCustom $ TypeName elmTypeName
+    DefPrim elmPrim -> RefPrim elmPrim

@@ -12,6 +12,7 @@
 module Elm.Generic
        ( -- * Main data type for the user
          Elm (..)
+       , elmRef
 
          -- * Generic utilities
        , GenericElmDefinition (..)
@@ -26,18 +27,21 @@ module Elm.Generic
        ) where
 
 import Data.Char (isLower, toLower)
+import Data.Int (Int16, Int32, Int8)
 import Data.Kind (Type)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Proxy (Proxy (..))
 import Data.Text (Text)
+import Data.Void (Void)
+import Data.Word (Word16, Word32, Word8)
 import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..),
                      Rec0, S1, Selector (..), U1)
-import Type.Reflection (Typeable, typeRep)
 
-import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmRecordField (..),
-                ElmType (..), TypeName (..))
+import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
+                ElmRecordField (..), ElmType (..), TypeName (..), TypeRef, definitionToRef)
 
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as LT (Text)
 import qualified GHC.Generics as Generic (from)
 
 
@@ -52,6 +56,55 @@ class Elm a where
         -> ElmDefinition
     toElmDefinition _ = genericToElmDefinition
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
+
+-- | 'TypeRef' for the existing type.
+elmRef :: forall a . Elm a => TypeRef
+elmRef = definitionToRef $ toElmDefinition (Proxy @a)
+
+----------------------------------------------------------------------------
+-- Primitive instances
+----------------------------------------------------------------------------
+
+instance Elm ()   where toElmDefinition _ = DefPrim ElmUnit
+instance Elm Void where toElmDefinition _ = DefPrim ElmNever
+instance Elm Bool where toElmDefinition _ = DefPrim ElmBool
+instance Elm Char where toElmDefinition _ = DefPrim ElmChar
+
+instance Elm Int    where toElmDefinition _ = DefPrim ElmInt
+instance Elm Int8   where toElmDefinition _ = DefPrim ElmInt
+instance Elm Int16  where toElmDefinition _ = DefPrim ElmInt
+instance Elm Int32  where toElmDefinition _ = DefPrim ElmInt
+instance Elm Word   where toElmDefinition _ = DefPrim ElmInt
+instance Elm Word8  where toElmDefinition _ = DefPrim ElmInt
+instance Elm Word16 where toElmDefinition _ = DefPrim ElmInt
+instance Elm Word32 where toElmDefinition _ = DefPrim ElmInt
+
+instance Elm Float  where toElmDefinition _ = DefPrim ElmFloat
+instance Elm Double where toElmDefinition _ = DefPrim ElmFloat
+
+instance Elm String  where toElmDefinition _ = DefPrim ElmString
+instance Elm Text    where toElmDefinition _ = DefPrim ElmString
+instance Elm LT.Text where toElmDefinition _ = DefPrim ElmString
+
+-- TODO: should it be 'Bytes' from @bytes@ package?
+-- https://package.elm-lang.org/packages/elm/bytes/latest/Bytes
+-- instance Elm B.ByteString  where toElmDefinition _ = DefPrim ElmString
+-- instance Elm LB.ByteString where toElmDefinition _ = DefPrim ElmString
+
+instance Elm a => Elm (Maybe a) where
+    toElmDefinition _ = DefPrim $ ElmMaybe $ elmRef @a
+
+instance (Elm a, Elm b) => Elm (Either a b) where
+    toElmDefinition _ = DefPrim $ ElmResult (elmRef @a) (elmRef @b)
+
+instance (Elm a, Elm b) => Elm (a, b) where
+    toElmDefinition _ = DefPrim $ ElmPair (elmRef @a) (elmRef @b)
+
+instance Elm a => Elm [a] where
+    toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
+
+instance Elm a => Elm (NonEmpty a) where
+    toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
 
 ----------------------------------------------------------------------------
 -- Generic instances
@@ -87,7 +140,7 @@ not have.
 -}
 data GenericConstructor = GenericConstructor
     { genericConstructorName   :: Text
-    , genericConstructorFields :: [(TypeName, Maybe Text)]
+    , genericConstructorFields :: [(TypeRef, Maybe Text)]
     }
 
 {- | Generic constructor can be in one of the three states:
@@ -103,8 +156,8 @@ toElmConstructor GenericConstructor{..} = case genericConstructorFields of
         Nothing     -> Right $ ElmConstructor genericConstructorName $ map fst genericConstructorFields
         Just fields -> Left fields
   where
-    toRecordField :: (TypeName, Maybe Text) -> Maybe ElmRecordField
-    toRecordField (typeName, maybeFieldName) = ElmRecordField typeName <$> maybeFieldName
+    toRecordField :: (TypeRef, Maybe Text) -> Maybe ElmRecordField
+    toRecordField (typeRef, maybeFieldName) = ElmRecordField typeRef <$> maybeFieldName
 
 
 {- | Typeclass to collect all constructors of the Haskell data type generically. -}
@@ -131,7 +184,7 @@ class GenericElmFields (f :: k -> Type) where
     genericToElmFields
         :: TypeName  -- ^ Name of the data type; to be stripped
         -> f a  -- ^ Generic value
-        -> [(TypeName, Maybe Text)]
+        -> [(TypeRef, Maybe Text)]
 
 -- | If multiple fields then just combine all results.
 instance (GenericElmFields f, GenericElmFields g) => GenericElmFields (f :*: g) where
@@ -144,13 +197,10 @@ instance GenericElmFields U1 where
     genericToElmFields _ _ = []
 
 -- | Single constructor field.
-instance (Selector s, Typeable a) => GenericElmFields (S1 s (Rec0 a)) where
+instance (Selector s, Elm a) => GenericElmFields (S1 s (Rec0 a)) where
     genericToElmFields typeName selector = case selName selector of
-        ""   -> [(fieldTypeName, Nothing)]
-        name -> [(fieldTypeName, Just $ stripTypeNamePrefix typeName $ T.pack name)]
-      where
-        fieldTypeName :: TypeName
-        fieldTypeName = TypeName $ T.pack $ show (typeRep @a)
+        ""   -> [(elmRef @a, Nothing)]
+        name -> [(elmRef @a, Just $ stripTypeNamePrefix typeName $ T.pack name)]
 
 {- | Strips name of the type name from field name prefix.
 
