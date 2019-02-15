@@ -8,11 +8,13 @@ module Elm.Print
 
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Text (Text)
-import Data.Text.Prettyprint.Doc (Doc, colon, comma, dquotes, emptyDoc, equals, lbrace, line, nest,
-                                  pipe, pretty, prettyList, rbrace, sep, space, vsep, (<+>))
+import Data.Text.Prettyprint.Doc (Doc, colon, comma, dquotes, emptyDoc, equals, lbrace, line,
+                                  lparen, nest, pipe, pretty, prettyList, rbrace, rparen, sep,
+                                  space, vsep, (<+>))
 
-import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmRecordField (..),
-                ElmType (..), TypeName (..), getConstructorNames, isEnum)
+import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
+                ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), getConstructorNames,
+                isEnum)
 
 import qualified Data.Text as T
 
@@ -28,6 +30,30 @@ elmDoc :: ElmDefinition -> Doc ann
 elmDoc = \case
     DefAlias elmAlias -> elmAliasDoc elmAlias
     DefType elmType -> elmTypeDoc elmType
+    DefPrim _ -> emptyDoc
+
+-- | Pretty printer for type reference.
+elmTypeRefDoc :: TypeRef -> Doc ann
+elmTypeRefDoc = \case
+    RefPrim elmPrim -> elmPrimDoc elmPrim
+    RefCustom (TypeName typeName) -> pretty typeName
+
+{- | Pretty printer for primitive Elm types. This pretty printer is used only to
+display types of fields.
+-}
+elmPrimDoc :: ElmPrim -> Doc ann
+elmPrimDoc = \case
+    ElmUnit -> "()"
+    ElmNever -> "Never"
+    ElmBool -> "Bool"
+    ElmChar -> "Char"
+    ElmInt -> "Int"
+    ElmFloat -> "Float"
+    ElmString -> "String"
+    ElmMaybe ref -> "Maybe" <+> elmTypeRefDoc ref
+    ElmResult refA refB -> "Result" <+> elmTypeRefDoc refA <+> elmTypeRefDoc refB
+    ElmPair refA refB -> lparen <> elmTypeRefDoc refA  <> comma <+> elmTypeRefDoc refB <> rparen
+    ElmList ref -> "List" <+> elmTypeRefDoc ref
 
 {- | Pretty printer for Elm aliases:
 
@@ -53,7 +79,7 @@ elmAliasDoc ElmAlias{..} = nest 4 $
     recordFieldDoc ElmRecordField{..} =
             pretty elmRecordFieldName
         <+> colon
-        <+> pretty (unTypeName elmRecordFieldType)
+        <+> elmTypeRefDoc elmRecordFieldType
 
 {- | Pretty printer for Elm types with one or more constructors:
 
@@ -105,8 +131,8 @@ elmTypeDoc t@ElmType{..} =
         : map ((pipe <+>) . constructorDoc) rest
 
     constructorDoc :: ElmConstructor -> Doc ann
-    constructorDoc ElmConstructor{..} = sep $ map pretty $
-        elmConstructorName : map unTypeName elmConstructorFields
+    constructorDoc ElmConstructor{..} = sep $
+        pretty elmConstructorName : map elmTypeRefDoc elmConstructorFields
 
     enumFuncs :: Doc ann
     enumFuncs =
