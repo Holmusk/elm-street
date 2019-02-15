@@ -8,11 +8,11 @@ module Elm.Print
 
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Text (Text)
-import Data.Text.Prettyprint.Doc (Doc, colon, comma, emptyDoc, equals, lbrace, nest, pipe, pretty,
-                                  rbrace, sep, space, vsep, (<+>))
+import Data.Text.Prettyprint.Doc (Doc, colon, comma, dquotes, emptyDoc, equals, lbrace, line, nest,
+                                  pipe, pretty, prettyList, rbrace, sep, space, vsep, (<+>))
 
 import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmRecordField (..),
-                ElmType (..), TypeName (..))
+                ElmType (..), TypeName (..), getConstructorNames, isEnum)
 
 import qualified Data.Text as T
 
@@ -63,11 +63,35 @@ type Status a
     | Bar a
     | Baz
 @
+
+If the type is Enum this function will add enum specific functions:
+
+type Status
+    = Approved
+    | Yoyoyo
+    | Wow
+
+showStatus : Status -> String
+showStatus x = case x of
+    Approved -> "Approved"
+    Yoyoyo -> "Yoyoyo"
+    Wow -> "Wow"
+
+readStatus : String -> Status
+readStatus x = case x of
+    "Approved" -> Approved
+    "Yoyoyo" -> Yoyoyo
+    "Wow" -> Wow
+
+universeStatus : List Status
+universeStatus = [Approved, Yoyoyo, Wow]
 -}
 elmTypeDoc :: ElmType -> Doc ann
-elmTypeDoc ElmType{..} = nest 4 $
-    vsep $ ("type" <+> pretty elmTypeName <> sepVars)
-         : constructorsDoc elmTypeConstructors
+elmTypeDoc t@ElmType{..} =
+    nest 4 ( vsep $ ("type" <+> pretty elmTypeName <> sepVars)
+                  : constructorsDoc elmTypeConstructors
+           )
+    <> enumFuncs
   where
     sepVars :: Doc ann
     sepVars = case elmTypeVars of
@@ -83,9 +107,67 @@ elmTypeDoc ElmType{..} = nest 4 $
     constructorDoc ElmConstructor{..} = sep $ map pretty $
         elmConstructorName : map unTypeName elmConstructorFields
 
+    enumFuncs :: Doc ann
+    enumFuncs =
+        if isEnum t
+        then vsep $ map (line <>) [elmEnumShowDoc t, elmEnumReadDoc t, elmEnumUniverse t]
+        else emptyDoc
+
+elmEnumShowDoc :: forall ann . ElmType -> Doc ann
+elmEnumShowDoc t@ElmType{..} =
+    line
+    -- function type
+    <> (showName <+> colon <+> pretty elmTypeName <+> arrow <+> "String")
+    <> line
+    -- function body
+    <> nest 4
+        ( vsep $ (showName <+> "x" <+> equals <+> "case x of")
+        -- pattern matching
+        : map patternMatch (getConstructorNames t)
+        )
+  where
+    showName :: Doc ann
+    showName = "show" <> pretty elmTypeName
+
+    patternMatch :: Text -> Doc ann
+    patternMatch (pretty -> c) = c <+> arrow <+> dquotes c
+
+elmEnumReadDoc :: ElmType -> Doc ann
+elmEnumReadDoc t@ElmType{..} =
+    -- function type
+    (readName <+> colon <+> "String" <+> arrow <+> pretty elmTypeName)
+    <> line
+    -- function body
+    <> nest 4
+        ( vsep $ (readName <+> "x" <+> equals <+> "case x of")
+        -- pattern matching
+        : map patternMatch (getConstructorNames t)
+        )
+  where
+    readName :: Doc ann
+    readName = "read" <> pretty elmTypeName
+
+    patternMatch :: Text -> Doc ann
+    patternMatch (pretty -> c) = dquotes c <+> arrow <+> c
+
+elmEnumUniverse :: ElmType -> Doc ann
+elmEnumUniverse t@ElmType{..} = vsep
+    -- function type
+    [ universeName <+> colon <+> "List" <+> pretty elmTypeName
+    , universeName <+> equals <+> prettyList (getConstructorNames t)
+    ]
+  where
+    universeName :: Doc ann
+    universeName = "universe" <> pretty elmTypeName
+
+arrow :: Doc ann
+arrow = "->"
 
 {-
 putStrLn $ T.unpack $ prettyShowDefinition $ DefAlias $ ElmAlias "User" $ (ElmRecordField (TypeName "String") "userHeh") :| [ElmRecordField (TypeName "Int") "userMeh"]
+
+ENUM:
+putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] $ (ElmConstructor "Approved" []) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" []]
 
 putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] $ (ElmConstructor "Approved" [TypeName "String", TypeName "Int"]) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" [TypeName "a"]]
 

@@ -9,9 +9,12 @@ module Elm.Ast
        , TypeName (..)
        , ElmType (..)
        , ElmConstructor (..)
+
+       , isEnum
+       , getConstructorNames
        ) where
 
-import Data.List.NonEmpty (NonEmpty)
+import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text (Text)
 
 
@@ -44,3 +47,11 @@ data ElmConstructor = ElmConstructor
     { elmConstructorName   :: Text  -- ^ Name of the constructor
     , elmConstructorFields :: [TypeName]  -- ^ Fields of the constructor
     } deriving (Show)
+
+-- | Checks i the given 'ElmType' is Enum.
+isEnum :: ElmType -> Bool
+isEnum ElmType{..} = null elmTypeVars && null (foldMap elmConstructorFields elmTypeConstructors)
+
+-- | Gets the list of the constructor names.
+getConstructorNames :: ElmType -> [Text]
+getConstructorNames ElmType{..} = map elmConstructorName $ toList elmTypeConstructors
