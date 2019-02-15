@@ -10,9 +10,22 @@
 -}
 
 module Elm.Generic
-       ( Elm (..)
+       ( -- * Main data type for the user
+         Elm (..)
+
+         -- * Generic utilities
+       , GenericElmDefinition (..)
+       , GenericElmConstructors (..)
+       , GenericElmFields (..)
+
+       , GenericConstructor (..)
+       , toElmConstructor
+
+         -- * Internals
+       , stripTypeNamePrefix
        ) where
 
+import Data.Char (isLower, toLower)
 import Data.Kind (Type)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Proxy (Proxy (..))
@@ -53,7 +66,7 @@ class GenericElmDefinition (f :: k -> Type) where
     genericToElmDefinition :: f a -> ElmDefinition
 
 instance (Datatype d, GenericElmConstructors f) => GenericElmDefinition (D1 d f) where
-    genericToElmDefinition datatype = case genericToElmConstructors (unM1 datatype) of
+    genericToElmDefinition datatype = case genericToElmConstructors (TypeName typeName) (unM1 datatype) of
         c :| [] -> case toElmConstructor c of
             Left fields -> DefAlias $ ElmAlias typeName fields
             Right ctor  -> DefType $ ElmType typeName [] (ctor :| [])
@@ -96,39 +109,67 @@ toElmConstructor GenericConstructor{..} = case genericConstructorFields of
 
 {- | Typeclass to collect all constructors of the Haskell data type generically. -}
 class GenericElmConstructors (f :: k -> Type) where
-    genericToElmConstructors :: f a -> NonEmpty GenericConstructor
+    genericToElmConstructors
+        :: TypeName  -- ^ Name of the data type; to be stripped
+        -> f a  -- ^ Generic value
+        -> NonEmpty GenericConstructor  -- ^ List of the data type constructors
 
 -- | If it's a sum type then just combine constructors
 instance (GenericElmConstructors f, GenericElmConstructors g) => GenericElmConstructors (f :+: g) where
-    genericToElmConstructors _ =
-        genericToElmConstructors (error "'f :+:' is evaluated" :: f p)
-     <> genericToElmConstructors (error "':+: g' is evaluated" :: g p)
+    genericToElmConstructors name _ =
+        genericToElmConstructors name (error "'f :+:' is evaluated" :: f p)
+     <> genericToElmConstructors name (error "':+: g' is evaluated" :: g p)
 
 -- | Create singleton list for case of a one constructor.
 instance (Constructor c, GenericElmFields f) => GenericElmConstructors (C1 c f) where
-    genericToElmConstructors constructor = pure $ GenericConstructor
+    genericToElmConstructors name constructor = pure $ GenericConstructor
         (T.pack $ conName constructor)
-        (genericToElmFields $ unM1 constructor)
+        (genericToElmFields name $ unM1 constructor)
 
 -- | Collect all fields when inside constructor.
 class GenericElmFields (f :: k -> Type) where
-    genericToElmFields :: f a -> [(TypeName, Maybe Text)]
+    genericToElmFields
+        :: TypeName  -- ^ Name of the data type; to be stripped
+        -> f a  -- ^ Generic value
+        -> [(TypeName, Maybe Text)]
 
 -- | If multiple fields then just combine all results.
 instance (GenericElmFields f, GenericElmFields g) => GenericElmFields (f :*: g) where
-    genericToElmFields _ =
-        genericToElmFields (error "'f :*:' is evaluated" :: f p)
-     <> genericToElmFields (error "':*: g' is evaluated" :: g p)
+    genericToElmFields name _ =
+        genericToElmFields name (error "'f :*:' is evaluated" :: f p)
+     <> genericToElmFields name (error "':*: g' is evaluated" :: g p)
 
 -- | Constructor without fields.
 instance GenericElmFields U1 where
-    genericToElmFields _ = []
+    genericToElmFields _ _ = []
 
 -- | Single constructor field.
 instance (Selector s, Typeable a) => GenericElmFields (S1 s (Rec0 a)) where
-    genericToElmFields selector = case selName selector of
+    genericToElmFields typeName selector = case selName selector of
         ""   -> [(fieldTypeName, Nothing)]
-        name -> [(fieldTypeName, Just $ T.pack name)]
+        name -> [(fieldTypeName, Just $ stripTypeNamePrefix typeName $ T.pack name)]
       where
         fieldTypeName :: TypeName
         fieldTypeName = TypeName $ T.pack $ show (typeRep @a)
+
+{- | Strips name of the type name from field name prefix.
+
+>>> stripTypeNamePrefix (TypeName "User") "userName"
+"name"
+
+>>> stripTypeNamePrefix (TypeName "HealthReading") "healthReadingId"
+"id"
+
+>>> stripTypeNamePrefix (TypeName "RecordUpdate") "ruRows"
+"rows"
+-}
+stripTypeNamePrefix :: TypeName -> Text -> Text
+stripTypeNamePrefix (TypeName typeName) fieldName =
+    case T.stripPrefix (headToLower typeName) fieldName of
+        Just rest -> headToLower rest
+        Nothing   -> headToLower $ T.dropWhile isLower fieldName
+  where
+    headToLower :: Text -> Text
+    headToLower t = case T.uncons t of
+        Nothing      -> error "Cannot use 'headToLower' on empty Text"
+        Just (x, xs) -> T.cons (toLower x) xs
