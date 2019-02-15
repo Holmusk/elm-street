@@ -24,7 +24,10 @@ import qualified Data.Text as T
 TODO: more docs later
 -}
 prettyShowDefinition :: ElmDefinition -> Text
-prettyShowDefinition = T.pack . show . elmDoc
+prettyShowDefinition = showDoc . elmDoc
+
+showDoc :: Doc ann -> Text
+showDoc = T.pack . show
 
 elmDoc :: ElmDefinition -> Doc ann
 elmDoc = \case
@@ -50,10 +53,22 @@ elmPrimDoc = \case
     ElmInt -> "Int"
     ElmFloat -> "Float"
     ElmString -> "String"
-    ElmMaybe ref -> "Maybe" <+> elmTypeRefDoc ref
-    ElmResult refA refB -> "Result" <+> elmTypeRefDoc refA <+> elmTypeRefDoc refB
-    ElmPair refA refB -> lparen <> elmTypeRefDoc refA  <> comma <+> elmTypeRefDoc refB <> rparen
-    ElmList ref -> "List" <+> elmTypeRefDoc ref
+    ElmMaybe ref -> "Maybe" <+> elmTypeParenDoc ref
+    ElmResult refA refB -> "Result" <+> elmTypeParenDoc refA <+> elmTypeParenDoc refB
+    ElmPair refA refB -> lparen <> elmTypeRefDoc refA <> comma <+> elmTypeRefDoc refB <> rparen
+    ElmList ref -> "List" <+> elmTypeParenDoc ref
+
+{- | Pretty-printer for types. Adds parens for both sides when needed (when type
+contains of multiple words).
+-}
+elmTypeParenDoc :: TypeRef -> Doc ann
+elmTypeParenDoc = wordsDoc . T.words . showDoc . elmTypeRefDoc
+  where
+    wordsDoc :: [Text] -> Doc ann
+    wordsDoc = \case
+        [] -> ""
+        [x] -> pretty x
+        xs -> lparen <> pretty (T.unwords xs) <> rparen
 
 {- | Pretty printer for Elm aliases:
 
