@@ -1,0 +1,4 @@
+:set -XTypeApplications
+import Data.Proxy
+import GHC.Generics
+import qualified Data.Text as T
