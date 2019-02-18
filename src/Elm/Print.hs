@@ -4,13 +4,20 @@ and exports the function to represent it in the convenient way.
 
 module Elm.Print
        ( prettyShowDefinition
+       , prettyShowEncoder
+
+         -- * Standard missing encoders
+       , encodeMaybe
+       , encodeEither
+       , encodePair
        ) where
 
-import Data.List.NonEmpty (NonEmpty ((:|)))
+import Data.List.NonEmpty (NonEmpty ((:|)), toList)
 import Data.Text (Text)
-import Data.Text.Prettyprint.Doc (Doc, colon, comma, dquotes, emptyDoc, equals, lbrace, line,
-                                  lparen, nest, pipe, pretty, prettyList, rbrace, rparen, sep,
-                                  space, vsep, (<+>))
+import Data.Text.Prettyprint.Doc (Doc, brackets, colon, comma, concatWith, dquotes, emptyDoc,
+                                  equals, lbrace, lbracket, line, lparen, nest, parens, pipe,
+                                  pretty, prettyList, rbrace, rbracket, rparen, sep, space,
+                                  surround, vsep, (<+>))
 
 import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), getConstructorNames,
@@ -206,11 +213,152 @@ elmEnumUniverse t@ElmType{..} = vsep
 arrow :: Doc ann
 arrow = "->"
 
+----------------------------------------------------------------------------
+-- Encode
+----------------------------------------------------------------------------
+
+{- | Returns the encoder for the given type.
+
+
+TODO
+ +-------------------+------------------+-----------------+---------------------+
+ |    Haskell Type   |     Eml Type     |     Encoder     |       JSON          |
+ +===================+==================+=================+=====================+
+ |   'Int'           |      'Int'       | standard encoder |                    |
+ +-------------------+------------------+------------------+--------------------+
+
+-}
+prettyShowEncoder :: ElmDefinition -> Text
+prettyShowEncoder def = showDoc $ case def of
+    DefAlias elmAlias -> aliasEncoderDoc elmAlias
+    DefType elmType   -> typeEncoderDoc elmType
+    DefPrim _         -> emptyDoc
+
+-- | Encoder for 'ElmType' (which is either enum or the Sum type).
+typeEncoderDoc :: ElmType -> Doc ann
+typeEncoderDoc t@ElmType{..} =
+    -- function defenition: @encodeTypeName : TypeName -> Value@.
+       encoderDef elmTypeName elmTypeVars
+    <> line
+    <> if isEnum t
+       -- if this is Enum just using the show instance we wrote.
+       then name <+> equals <+> "E.string << show" <> pretty elmTypeName
+       -- If it sum type then it should look like: @{"tag": "Foo", "contents" : ["string", 1]}@
+       else nest 4 $ vsep $ (name <+> "x" <+> equals <+> "E.object <| case x of")
+            : map mkCase (toList elmTypeConstructors)
+  where
+    -- | Encoder function name
+    name :: Doc ann
+    name = encoderName elmTypeName
+
+    -- | Create case clouse for each of the sum Constructors.
+    mkCase :: ElmConstructor -> Doc ann
+    mkCase ElmConstructor{..} =
+        conName <+> vars <+> arrow
+            <+> brackets (parens ("tag" <> comma <+> dquotes conName) <> contents)
+      where
+        -- | Constructor name
+        conName :: Doc ann
+        conName = pretty elmConstructorName
+
+        -- | Creates variables: @x1@ to @xN@, where N is the number of the constructor fields.
+        fields :: [Doc ann]
+        fields = take (length elmConstructorFields) $
+            map (pretty . mkText "x") [1..]
+
+        contents :: Doc ann
+        contents = "," <+> parens (dquotes "contents" <> comma <+> "E.list" <+> brackets fieldEncs)
+
+        -- | @encoderA x1@
+        fieldEncs :: Doc ann
+        fieldEncs = concatWith (surround ", ") $
+            zipWith (<+>) (map typeRefEncoder elmConstructorFields) fields
+
+        -- | Makes variable like: @x11@ etc.
+        mkText :: Text -> Int -> Text
+        mkText x i = x <> T.pack (show i)
+
+        vars :: Doc ann
+        vars =  concatWith (surround " ") fields
+
+
+aliasEncoderDoc :: ElmAlias -> Doc ann
+aliasEncoderDoc ElmAlias{..} =
+    encoderDef elmAliasName []
+    <> line
+    <> nest 4 (vsep $ (encoderName elmAliasName <+> "x" <+> equals <+> "E.object")
+            : fieldsEncode elmAliasFields)
+  where
+    fieldsEncode :: NonEmpty ElmRecordField -> [Doc ann]
+    fieldsEncode (fstR :| rest) =
+        lbracket <+> recordFieldDoc fstR
+      : map ((comma <+>) . recordFieldDoc) rest
+     ++ [rbracket]
+
+    recordFieldDoc :: ElmRecordField -> Doc ann
+    recordFieldDoc ElmRecordField{..} = parens $
+            dquotes (pretty elmRecordFieldName)
+         <> comma
+        <+> typeRefEncoder elmRecordFieldType
+        <+> "x." <> pretty elmRecordFieldName
+
+-- | The definition of the @encodeTYPENAME@ function.
+encoderDef
+    :: Text  -- ^ Type name
+    -> [Text] -- ^ List of type variables
+    -> Doc ann
+encoderDef typeName vars =
+    encoderName typeName <+> colon <+> pretty typeName <> typeVarsDoc <+> arrow <+> "Value"
+  where
+    typeVarsDoc :: Doc ann
+    typeVarsDoc = concatWith (surround " ") $ map pretty vars
+
+-- | Create the name of the encoder function.
+encoderName :: Text -> Doc ann
+encoderName typeName = "encode" <> pretty typeName
+
+-- | Converts the reference to the existing type to the corresponding encoder.
+typeRefEncoder :: TypeRef -> Doc ann
+typeRefEncoder (RefPrim elmPrim) = case elmPrim of
+    ElmUnit       -> "const E.null"
+    ElmNever      -> "never"
+    ElmBool       -> "E.bool"
+    ElmChar       -> parens "E.string << String.fromChar"
+    ElmInt        -> "E.int"
+    ElmFloat      -> "E.float"
+    ElmString     -> "E.string"
+    ElmMaybe t    -> parens $ "elmStreetEncodeMaybe" <+> typeRefEncoder t
+    ElmResult l r -> parens $ "elmStreetEncodeEither" <+> typeRefEncoder l <+> typeRefEncoder r
+    ElmPair a b   -> parens $ "elmStreetEncodePair" <+> typeRefEncoder a <+> typeRefEncoder b
+    ElmList l     -> "E.list" <+> typeRefEncoder l
+typeRefEncoder (RefCustom TypeName{..}) = "encode" <> pretty unTypeName
+
+encodeMaybe :: Doc ann
+encodeMaybe = vsep
+    [ "elmStreetEncodeMaybe : (a -> Value) -> Maybe a -> Value"
+    , "elmStreetEncodeMaybe enc = Maybe.withDefault E.null << Maybe.map enc"
+    ]
+
+encodeEither :: Doc ann
+encodeEither = vsep
+    [ "elmStreetEncodeEither : (a -> Value) -> (b -> Value) -> Result a b -> Value"
+    , "elmStreetEncodeEither encA encB res = E.object <| case res of"
+    , "    Err a -> [(\"Left\",  encA a)]"
+    , "    Ok b  -> [(\"Right\", encB b)]"
+    ]
+
+encodePair :: Doc ann
+encodePair = vsep
+    [ "lmStreetEncodePair : (a -> Value) -> (b -> Value) -> (a, b) -> Value"
+    , "lmStreetEencodePair encA encB (a, b) = E.list [encA a, encB b]"
+    ]
+
 {-
 putStrLn $ T.unpack $ prettyShowDefinition $ DefAlias $ ElmAlias "User" $ (ElmRecordField (TypeName "String") "userHeh") :| [ElmRecordField (TypeName "Int") "userMeh"]
 
 ENUM:
 putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] $ (ElmConstructor "Approved" []) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" []]
+putStrLn $ T.unpack $ prettyShowEncoder $ DefType $ ElmType "Status" [] $ (ElmConstructor "Approved" []) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" []]
 
 putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] $ (ElmConstructor "Approved" [TypeName "String", TypeName "Int"]) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" [TypeName "a"]]
 

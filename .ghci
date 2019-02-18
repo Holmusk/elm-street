@@ -1,4 +1,6 @@
 :set -XTypeApplications
+:set -XDerivingStrategies
+:set -XDeriveAnyClass
 import Data.Proxy
 import GHC.Generics
 import Data.List.NonEmpty (NonEmpty (..))
