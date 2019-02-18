@@ -10,6 +10,9 @@ module Elm.Print
        , encodeMaybe
        , encodeEither
        , encodePair
+
+         -- * Internal utils
+       , showDoc
        ) where
 
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
@@ -349,8 +352,8 @@ encodeEither = vsep
 
 encodePair :: Doc ann
 encodePair = vsep
-    [ "lmStreetEncodePair : (a -> Value) -> (b -> Value) -> (a, b) -> Value"
-    , "lmStreetEencodePair encA encB (a, b) = E.list [encA a, encB b]"
+    [ "elmStreetEncodePair : (a -> Value) -> (b -> Value) -> (a, b) -> Value"
+    , "elmStreetEencodePair encA encB (a, b) = E.list [encA a, encB b]"
     ]
 
 {-
