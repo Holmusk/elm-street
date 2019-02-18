@@ -327,30 +327,30 @@ typeRefEncoder (RefPrim elmPrim) = case elmPrim of
     ElmInt        -> "E.int"
     ElmFloat      -> "E.float"
     ElmString     -> "E.string"
-    ElmMaybe t    -> parens $ "encodeMaybe" <+> typeRefEncoder t
-    ElmResult l r -> parens $ "encodeEither" <+> typeRefEncoder l <+> typeRefEncoder r
-    ElmPair a b   -> parens $ "encodePair" <+> typeRefEncoder a <+> typeRefEncoder b
+    ElmMaybe t    -> parens $ "elmStreetEncodeMaybe" <+> typeRefEncoder t
+    ElmResult l r -> parens $ "elmStreetEncodeEither" <+> typeRefEncoder l <+> typeRefEncoder r
+    ElmPair a b   -> parens $ "elmStreetEncodePair" <+> typeRefEncoder a <+> typeRefEncoder b
     ElmList l     -> "E.list" <+> typeRefEncoder l
 typeRefEncoder (RefCustom TypeName{..}) = "encode" <> pretty unTypeName
 
 encodeMaybe :: Doc ann
 encodeMaybe = vsep
-    [ "encodeMaybe : (a -> Value) -> Maybe a -> Value"
-    , "encodeMaybe enc = Maybe.withDefault E.null << Maybe.map enc"
+    [ "elmStreetEncodeMaybe : (a -> Value) -> Maybe a -> Value"
+    , "elmStreetEncodeMaybe enc = Maybe.withDefault E.null << Maybe.map enc"
     ]
 
 encodeEither :: Doc ann
 encodeEither = vsep
-    [ "encodeEither : (a -> Value) -> (b -> Value) -> Result a b -> Value"
-    , "encodeEither encA encB res = E.object <| case res of"
+    [ "elmStreetEncodeEither : (a -> Value) -> (b -> Value) -> Result a b -> Value"
+    , "elmStreetEncodeEither encA encB res = E.object <| case res of"
     , "    Err a -> [(\"Left\",  encA a)]"
     , "    Ok b  -> [(\"Right\", encB b)]"
     ]
 
 encodePair :: Doc ann
 encodePair = vsep
-    [ "encodePair : (a -> Value) -> (b -> Value) -> (a, b) -> Value"
-    , "encodePair encA encB (a, b) = E.list [encA a, encB b]"
+    [ "lmStreetEncodePair : (a -> Value) -> (b -> Value) -> (a, b) -> Value"
+    , "lmStreetEencodePair encA encB (a, b) = E.list [encA a, encB b]"
     ]
 
 {-
