@@ -12,6 +12,8 @@
 module Elm.Generic
        ( -- * Main data type for the user
          Elm (..)
+       , TElm
+       , elmTypeRef
        , elmRef
 
          -- * Generic utilities
@@ -36,9 +38,10 @@ import Data.Void (Void)
 import Data.Word (Word16, Word32, Word8)
 import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..),
                      Rec0, S1, Selector (..), U1)
+import Type.Reflection (Typeable, typeRep)
 
 import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
-                ElmRecordField (..), ElmType (..), TypeName (..), TypeRef, definitionToRef)
+                ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), definitionToRef)
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT (Text)
@@ -58,8 +61,19 @@ class Elm a where
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
 -- | 'TypeRef' for the existing type.
-elmRef :: forall a . Elm a => TypeRef
-elmRef = definitionToRef $ toElmDefinition (Proxy @a)
+elmTypeRef :: forall a . Elm a => TypeRef
+elmTypeRef = definitionToRef $ toElmDefinition (Proxy @a)
+
+{- | Like 'elmTypeRef' but uses type name display from Haskell to display custom
+data types. This is required to show type variables.
+-}
+elmRef :: forall a . TElm a => TypeRef
+elmRef = case elmTypeRef @a of
+    prim@(RefPrim _) -> prim
+    RefCustom _      -> RefCustom $ TypeName $ T.pack $ show $ typeRep @a
+
+-- | Constraint alias for things that have both 'Typeable' and 'Elm' constraints.
+type TElm a = (Typeable a, Elm a)
 
 ----------------------------------------------------------------------------
 -- Primitive instances
@@ -82,7 +96,8 @@ instance Elm Word32 where toElmDefinition _ = DefPrim ElmInt
 instance Elm Float  where toElmDefinition _ = DefPrim ElmFloat
 instance Elm Double where toElmDefinition _ = DefPrim ElmFloat
 
-instance Elm String  where toElmDefinition _ = DefPrim ElmString
+instance {-# OVERLAPPING #-} Elm String where toElmDefinition _ = DefPrim ElmString
+
 instance Elm Text    where toElmDefinition _ = DefPrim ElmString
 instance Elm LT.Text where toElmDefinition _ = DefPrim ElmString
 
@@ -91,19 +106,19 @@ instance Elm LT.Text where toElmDefinition _ = DefPrim ElmString
 -- instance Elm B.ByteString  where toElmDefinition _ = DefPrim ElmString
 -- instance Elm LB.ByteString where toElmDefinition _ = DefPrim ElmString
 
-instance Elm a => Elm (Maybe a) where
+instance TElm a => Elm (Maybe a) where
     toElmDefinition _ = DefPrim $ ElmMaybe $ elmRef @a
 
-instance (Elm a, Elm b) => Elm (Either a b) where
+instance (TElm a, TElm b) => Elm (Either a b) where
     toElmDefinition _ = DefPrim $ ElmResult (elmRef @a) (elmRef @b)
 
-instance (Elm a, Elm b) => Elm (a, b) where
+instance (TElm a, TElm b) => Elm (a, b) where
     toElmDefinition _ = DefPrim $ ElmPair (elmRef @a) (elmRef @b)
 
-instance Elm a => Elm [a] where
+instance TElm a => Elm [a] where
     toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
 
-instance Elm a => Elm (NonEmpty a) where
+instance TElm a => Elm (NonEmpty a) where
     toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
 
 ----------------------------------------------------------------------------
@@ -197,7 +212,7 @@ instance GenericElmFields U1 where
     genericToElmFields _ _ = []
 
 -- | Single constructor field.
-instance (Selector s, Elm a) => GenericElmFields (S1 s (Rec0 a)) where
+instance (Selector s, TElm a) => GenericElmFields (S1 s (Rec0 a)) where
     genericToElmFields typeName selector = case selName selector of
         ""   -> [(elmRef @a, Nothing)]
         name -> [(elmRef @a, Just $ stripTypeNamePrefix typeName $ T.pack name)]
