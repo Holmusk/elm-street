@@ -229,7 +229,7 @@ TODO
 
 -}
 prettyShowEncoder :: ElmDefinition -> Text
-prettyShowEncoder def = T.pack $ show $ case def of
+prettyShowEncoder def = showDoc $ case def of
     DefAlias elmAlias -> aliasEncoderDoc elmAlias
     DefType elmType   -> typeEncoderDoc elmType
     DefPrim _         -> emptyDoc
