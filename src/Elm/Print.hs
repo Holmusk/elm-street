@@ -12,14 +12,11 @@ module Elm.Print
        , encodeEither
        , encodePair
 
-         -- * Standard issing decoders
+         -- * Standard missing decoders
        , decodeEnum
        , decodeChar
        , decodeEither
        , decodePair
-
-         -- * Internal utils
-       , showDoc
        ) where
 
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
@@ -566,7 +563,6 @@ typeDecoderDoc  t@ElmType{..} =
         oneField :: Int -> TypeRef -> Doc ann
         oneField i typeRef = parens $ "D.index" <+> pretty i <+> typeRefDecoder typeRef
 
-
 -- | Converts the reference to the existing type to the corresponding decoder.
 typeRefDecoder :: TypeRef -> Doc ann
 typeRefDecoder (RefPrim elmPrim) = case elmPrim of
@@ -589,17 +585,11 @@ decoderDef
     -> [Text] -- ^ List of type variables
     -> Doc ann
 decoderDef typeName vars =
-    decoderName typeName <+> colon <+> "Decoder" <+> typeVarsDoc
-  where
-    typeVarsDoc :: Doc ann
-    typeVarsDoc = case vars of
-        [] -> pretty typeName
-        vs -> parens $ pretty typeName <+> concatWith (surround " ") (map pretty vs)
+    decoderName typeName <+> colon <+> "Decoder" <+> typeWithVarsDoc typeName vars
 
 -- | Create the name of the decoder function.
 decoderName :: Text -> Doc ann
 decoderName typeName = "decode" <> pretty typeName
-
 
 decodeEnum :: Text
 decodeEnum = T.unlines
