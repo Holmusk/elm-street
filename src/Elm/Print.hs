@@ -61,17 +61,18 @@ display types of fields.
 -}
 elmPrimDoc :: ElmPrim -> Doc ann
 elmPrimDoc = \case
-    ElmUnit -> "()"
-    ElmNever -> "Never"
-    ElmBool -> "Bool"
-    ElmChar -> "Char"
-    ElmInt -> "Int"
-    ElmFloat -> "Float"
-    ElmString -> "String"
-    ElmMaybe ref -> "Maybe" <+> elmTypeParenDoc ref
-    ElmResult refA refB -> "Result" <+> elmTypeParenDoc refA <+> elmTypeParenDoc refB
-    ElmPair refA refB -> lparen <> elmTypeRefDoc refA <> comma <+> elmTypeRefDoc refB <> rparen
-    ElmList ref -> "List" <+> elmTypeParenDoc ref
+    ElmUnit       -> "()"
+    ElmNever      -> "Never"
+    ElmBool       -> "Bool"
+    ElmChar       -> "Char"
+    ElmInt        -> "Int"
+    ElmFloat      -> "Float"
+    ElmString     -> "String"
+    ElmTime       -> "Posix"
+    ElmMaybe t    -> "Maybe" <+> elmTypeParenDoc t
+    ElmResult l r -> "Result" <+> elmTypeParenDoc l <+> elmTypeParenDoc r
+    ElmPair a b   -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> rparen
+    ElmList l     -> "List" <+> elmTypeParenDoc l
 
 {- | Pretty-printer for types. Adds parens for both sides when needed (when type
 contains of multiple words).
@@ -416,6 +417,7 @@ encoderName typeName = "encode" <> pretty typeName
 
 -- | Converts the reference to the existing type to the corresponding encoder.
 typeRefEncoder :: TypeRef -> Doc ann
+typeRefEncoder (RefCustom TypeName{..}) = "encode" <> pretty unTypeName
 typeRefEncoder (RefPrim elmPrim) = case elmPrim of
     ElmUnit       -> "(const E.null)"
     ElmNever      -> "never"
@@ -424,11 +426,11 @@ typeRefEncoder (RefPrim elmPrim) = case elmPrim of
     ElmInt        -> "E.int"
     ElmFloat      -> "E.float"
     ElmString     -> "E.string"
+    ElmTime       -> "Iso.encode"
     ElmMaybe t    -> parens $ "elmStreetEncodeMaybe" <+> typeRefEncoder t
     ElmResult l r -> parens $ "elmStreetEncodeEither" <+> typeRefEncoder l <+> typeRefEncoder r
     ElmPair a b   -> parens $ "elmStreetEncodePair" <+> typeRefEncoder a <+> typeRefEncoder b
     ElmList l     -> "E.list" <+> typeRefEncoder l
-typeRefEncoder (RefCustom TypeName{..}) = "encode" <> pretty unTypeName
 
 encodeMaybe :: Text
 encodeMaybe = T.unlines
@@ -595,6 +597,7 @@ typeDecoderDoc  t@ElmType{..} =
 
 -- | Converts the reference to the existing type to the corresponding decoder.
 typeRefDecoder :: TypeRef -> Doc ann
+typeRefDecoder (RefCustom TypeName{..}) = "decode" <> pretty unTypeName
 typeRefDecoder (RefPrim elmPrim) = case elmPrim of
     ElmUnit       -> "D.hardcoded ()"
     ElmNever      -> "(D.fail \"Never is not possible\")"
@@ -603,11 +606,11 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
     ElmInt        -> "D.int"
     ElmFloat      -> "D.float"
     ElmString     -> "D.string"
+    ElmTime       -> "Iso.decoder"
     ElmMaybe t    -> parens $ "nullable" <+> typeRefEncoder t
     ElmResult l r -> parens $ "elmStreetDecodeEither" <+> typeRefEncoder l <+> typeRefEncoder r
     ElmPair a b   -> parens $ "elmStreetDecodePair" <+> typeRefEncoder a <+> typeRefEncoder b
     ElmList l     -> parens $ "D.list" <+> typeRefEncoder l
-typeRefDecoder (RefCustom TypeName{..}) = "decode" <> pretty unTypeName
 
 -- | The definition of the @encodeTYPENAME@ function.
 decoderDef

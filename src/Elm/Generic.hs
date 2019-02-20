@@ -34,6 +34,7 @@ import Data.Kind (Type)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Proxy (Proxy (..))
 import Data.Text (Text)
+import Data.Time.Clock (UTCTime)
 import Data.Void (Void)
 import Data.Word (Word16, Word32, Word8)
 import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..),
@@ -105,6 +106,8 @@ instance Elm LT.Text where toElmDefinition _ = DefPrim ElmString
 -- https://package.elm-lang.org/packages/elm/bytes/latest/Bytes
 -- instance Elm B.ByteString  where toElmDefinition _ = DefPrim ElmString
 -- instance Elm LB.ByteString where toElmDefinition _ = DefPrim ElmString
+
+instance Elm UTCTime where toElmDefinition _ = DefPrim ElmTime
 
 instance TElm a => Elm (Maybe a) where
     toElmDefinition _ = DefPrim $ ElmMaybe $ elmRef @a

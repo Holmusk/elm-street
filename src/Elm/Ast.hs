@@ -73,6 +73,7 @@ data ElmPrim
     | ElmInt                       -- ^ @Int@
     | ElmFloat                     -- ^ @Float@
     | ElmString                    -- ^ @String@
+    | ElmTime                      -- ^ @Posix@ in elm, @UTCTime@ in Haskell
     | ElmMaybe !TypeRef            -- ^ @Maybe T@
     | ElmResult !TypeRef !TypeRef  -- ^ @Result A B@ in elm
     | ElmPair !TypeRef !TypeRef    -- ^ @(A, B)@ in elm

@@ -118,12 +118,15 @@ generateElm Settings{..} = do
     typesHeader :: Text
     typesHeader = T.unlines
         [ "module " <> typesModule <> " exposing (..)"
+        , ""
+        , "import Time exposing (Posix)"
         ]
 
     encoderHeader :: Text
     encoderHeader = T.unlines
         [ "module " <> encoderModule <> " exposing (..)"
         , ""
+        , "import Iso8601 as Iso"
         , "import Json.Encode as E exposing (..)"
         , ""
         , "import " <> streetModule <> " exposing (..)"
@@ -134,7 +137,8 @@ generateElm Settings{..} = do
     decoderHeader = T.unlines
         [ "module " <> decoderModule <> " exposing (..)"
         , ""
-        , "import Json.Decode as Decode exposing (..)"
+        , "import Iso8601 as Iso"
+        , "import Json.Decode as D exposing (..)"
         , "import Json.Decode.Pipeline exposing (..)"
         , ""
         , "import " <> typesModule <> " exposing (..)"
