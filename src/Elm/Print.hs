@@ -77,7 +77,12 @@ elmPrimDoc = \case
 contains of multiple words).
 -}
 elmTypeParenDoc :: TypeRef -> Doc ann
-elmTypeParenDoc = wordsDoc . T.words . showDoc . elmTypeRefDoc
+elmTypeParenDoc = wrapParens . elmTypeRefDoc
+
+{- | Wraps given document in parens if it contains more than single word.
+-}
+wrapParens :: Doc ann -> Doc ann
+wrapParens = wordsDoc . T.words . showDoc
   where
     wordsDoc :: [Text] -> Doc ann
     wordsDoc = \case
@@ -496,9 +501,23 @@ aliasDecoderDoc :: ElmAlias -> Doc ann
 aliasDecoderDoc ElmAlias{..} =
     decoderDef elmAliasName []
     <> line
-    <> nest 4 (vsep $ (decoderName elmAliasName <+> equals <+> "D.decode" <+> aliasName)
-            : map fieldDecode (toList elmAliasFields))
+    <> if elmAliasIsNewtype
+       then newtypeDecoder
+       else recordDecoder
   where
+    newtypeDecoder :: Doc ann
+    newtypeDecoder = name <+> "D.map" <+> aliasName
+        <+> typeRefDecoder (elmRecordFieldType $ NE.head elmAliasFields)
+
+    recordDecoder :: Doc ann
+    recordDecoder = nest 4
+        $ vsep
+        $ (name <+> "D.decode" <+> aliasName)
+        : map fieldDecode (toList elmAliasFields)
+
+    name :: Doc ann
+    name = decoderName elmAliasName <+> equals
+
     aliasName :: Doc ann
     aliasName = pretty elmAliasName
 
@@ -514,10 +533,13 @@ typeDecoderDoc  t@ElmType{..} =
        decoderDef elmTypeName elmTypeVars
     <> line
     <> if isEnum t
-       -- if this is Enum just using the show instance we wrote.
+       -- if this is Enum just using the read instance we wrote.
        then enumDecoder
-       -- If it sum type then it should look like: @{"tag": "Foo", "contents" : ["string", 1]}@
-       else sumDecoder
+       else if elmTypeIsNewtype
+            -- if it newtype then wrap decoder for the field
+            then newtypeDecoder
+            -- If it sum type then it should look like: @{"tag": "Foo", "contents" : ["string", 1]}@
+            else sumDecoder
   where
     name :: Doc ann
     name = decoderName elmTypeName <+> equals
@@ -527,6 +549,14 @@ typeDecoderDoc  t@ElmType{..} =
 
     enumDecoder :: Doc ann
     enumDecoder = name <+> "elmStreetDecodeEnum read" <> typeName
+
+    newtypeDecoder :: Doc ann
+    newtypeDecoder = name <+> "D.map" <+> typeName <+> fieldDecoderDoc
+      where
+        fieldDecoderDoc :: Doc ann
+        fieldDecoderDoc = case elmConstructorFields $ NE.head elmTypeConstructors of
+            []    -> "ERROR"
+            f : _ -> typeRefDecoder f
 
     sumDecoder :: Doc ann
     sumDecoder = nest 4 $ vsep
@@ -585,7 +615,7 @@ decoderDef
     -> [Text] -- ^ List of type variables
     -> Doc ann
 decoderDef typeName vars =
-    decoderName typeName <+> colon <+> "Decoder" <+> typeWithVarsDoc typeName vars
+    decoderName typeName <+> colon <+> "Decoder" <+> wrapParens (typeWithVarsDoc typeName vars)
 
 -- | Create the name of the decoder function.
 decoderName :: Text -> Doc ann
