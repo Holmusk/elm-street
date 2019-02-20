@@ -19,8 +19,8 @@ import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((<.>), (</>))
 
 import Elm.Generic (Elm (..))
-import Elm.Print (encodeEither, encodeMaybe, encodePair, prettyShowDefinition, prettyShowEncoder,
-                  showDoc)
+import Elm.Print (decodeChar, decodeEither, decodeEnum, decodePair, encodeEither, encodeMaybe,
+                  encodePair, prettyShowDecoder, prettyShowDefinition, prettyShowEncoder)
 
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -73,7 +73,7 @@ toElmEncoderSource :: forall a . Elm a => Text
 toElmEncoderSource = prettyShowEncoder $ toElmDefinition $ Proxy @a
 
 toElmDecoderSource :: forall a . Elm a => Text
-toElmDecoderSource = ""
+toElmDecoderSource = prettyShowDecoder $ toElmDefinition $ Proxy @a
 
 {- | Generate elm definitions for the list of types. This function is supposed
 to be called like this:
@@ -145,11 +145,22 @@ generateElm Settings{..} = do
         [ "module " <> streetModule <> " exposing (..)"
         , ""
         , "import Json.Encode exposing (..)"
+        , "import Json.Decode as D exposing (Decoder)"
+        , "import Json.Decode.Pipeline as D exposing (..)"
         , ""
         , ""
-        , showDoc encodeMaybe
+        , encodeMaybe
         , ""
-        , showDoc encodeEither
+        , encodeEither
         , ""
-        , showDoc encodePair
+        , encodePair
+
+        , ""
+        , decodeEnum
+        , ""
+        , decodeChar
+        , ""
+        , decodeEither
+        , ""
+        , decodePair
         ]
