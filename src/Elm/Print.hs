@@ -555,7 +555,7 @@ typeDecoderDoc  t@ElmType{..} =
       where
         fieldDecoderDoc :: Doc ann
         fieldDecoderDoc = case elmConstructorFields $ NE.head elmTypeConstructors of
-            []    -> "ERROR"
+            []    -> "(D.fail \"Unknown field type of the newtype constructor\")"
             f : _ -> typeRefDecoder f
 
     sumDecoder :: Doc ann
