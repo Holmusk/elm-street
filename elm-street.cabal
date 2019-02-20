@@ -33,6 +33,7 @@ library
                      , filepath ^>= 1.4
                      , prettyprinter ^>= 1.2.1
                      , text ^>= 1.2
+                     , time
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns
