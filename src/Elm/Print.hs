@@ -5,11 +5,18 @@ and exports the function to represent it in the convenient way.
 module Elm.Print
        ( prettyShowDefinition
        , prettyShowEncoder
+       , prettyShowDecoder
 
          -- * Standard missing encoders
        , encodeMaybe
        , encodeEither
        , encodePair
+
+         -- * Standard issing decoders
+       , decodeEnum
+       , decodeChar
+       , decodeEither
+       , decodePair
 
          -- * Internal utils
        , showDoc
@@ -408,7 +415,7 @@ encoderName typeName = "encode" <> pretty typeName
 -- | Converts the reference to the existing type to the corresponding encoder.
 typeRefEncoder :: TypeRef -> Doc ann
 typeRefEncoder (RefPrim elmPrim) = case elmPrim of
-    ElmUnit       -> "const E.null"
+    ElmUnit       -> "(const E.null)"
     ElmNever      -> "never"
     ElmBool       -> "E.bool"
     ElmChar       -> parens "E.string << String.fromChar"
@@ -421,24 +428,209 @@ typeRefEncoder (RefPrim elmPrim) = case elmPrim of
     ElmList l     -> "E.list" <+> typeRefEncoder l
 typeRefEncoder (RefCustom TypeName{..}) = "encode" <> pretty unTypeName
 
-encodeMaybe :: Doc ann
-encodeMaybe = vsep
+encodeMaybe :: Text
+encodeMaybe = T.unlines
     [ "elmStreetEncodeMaybe : (a -> Value) -> Maybe a -> Value"
     , "elmStreetEncodeMaybe enc = Maybe.withDefault E.null << Maybe.map enc"
     ]
 
-encodeEither :: Doc ann
-encodeEither = vsep
+encodeEither :: Text
+encodeEither = T.unlines
     [ "elmStreetEncodeEither : (a -> Value) -> (b -> Value) -> Result a b -> Value"
     , "elmStreetEncodeEither encA encB res = E.object <| case res of"
     , "    Err a -> [(\"Left\",  encA a)]"
     , "    Ok b  -> [(\"Right\", encB b)]"
     ]
 
-encodePair :: Doc ann
-encodePair = vsep
+encodePair :: Text
+encodePair = T.unlines
     [ "elmStreetEncodePair : (a -> Value) -> (b -> Value) -> (a, b) -> Value"
     , "elmStreetEencodePair encA encB (a, b) = E.list [encA a, encB b]"
+    ]
+
+----------------------------------------------------------------------------
+-- Decode
+----------------------------------------------------------------------------
+
+{- |
+
+**Sum Types:**
+
+Haskell type
+
+@
+type User
+    = Foo
+    | Bar String Int
+@
+
+Encoded JSON on Haskell side
+
+@
+    [ { "tag" : "Foo"
+      }
+    , { "tag" : "Bar"
+      , "contents" : ["asd", 42, "qwerty"]
+      }
+    ]
+@
+
+Elm decoder
+
+@
+userDecoder : Decoder User
+userDecoder =
+    let decide : String -> Decoder User
+        decide x = case x of
+            "Foo" -> D.succeed Foo
+            "Bar" -> D.field "contents" <| D.map2 Bar (D.index 0 D.string) (D.index 1 D.int)
+            x -> D.fail <| "There is no constructor for User type:" ++ x
+    in D.andThen decide (D.field "tag" D.string)
+@
+
+-}
+prettyShowDecoder :: ElmDefinition -> Text
+prettyShowDecoder def = showDoc $ case def of
+    DefAlias elmAlias -> aliasDecoderDoc elmAlias
+    DefType elmType   -> typeDecoderDoc elmType
+    DefPrim _         -> emptyDoc
+
+aliasDecoderDoc :: ElmAlias -> Doc ann
+aliasDecoderDoc ElmAlias{..} =
+    decoderDef elmAliasName []
+    <> line
+    <> nest 4 (vsep $ (decoderName elmAliasName <+> equals <+> "D.decode" <+> aliasName)
+            : map fieldDecode (toList elmAliasFields))
+  where
+    aliasName :: Doc ann
+    aliasName = pretty elmAliasName
+
+    fieldDecode :: ElmRecordField -> Doc ann
+    fieldDecode ElmRecordField{..} =
+            "|> required"
+        <+> dquotes (pretty elmRecordFieldName)
+        <+> typeRefDecoder elmRecordFieldType
+
+typeDecoderDoc :: ElmType -> Doc ann
+typeDecoderDoc  t@ElmType{..} =
+    -- function defenition: @encodeTypeName : TypeName -> Value@.
+       decoderDef elmTypeName elmTypeVars
+    <> line
+    <> if isEnum t
+       -- if this is Enum just using the show instance we wrote.
+       then enumDecoder
+       -- If it sum type then it should look like: @{"tag": "Foo", "contents" : ["string", 1]}@
+       else sumDecoder
+  where
+    name :: Doc ann
+    name = decoderName elmTypeName <+> equals
+
+    typeName :: Doc ann
+    typeName = pretty elmTypeName
+
+    enumDecoder :: Doc ann
+    enumDecoder = name <+> "elmStreetDecodeEnum read" <> typeName
+
+    sumDecoder :: Doc ann
+    sumDecoder = nest 4 $ vsep
+        [ name
+        , nest 4 (vsep $ ("let decide : String -> Decoder" <+> typeName) :
+            [ nest 4
+                ( vsep $ "decide x = case x of"
+                : map cases (toList elmTypeConstructors)
+               ++ ["c -> D.fail <|" <+> dquotes (typeName <+> "doesn't have such constructor: ") <+> "++ c"]
+                )
+            ])
+        , "in D.andThen decide (D.field \"tag\" D.string)"
+        ]
+
+    cases :: ElmConstructor -> Doc ann
+    cases ElmConstructor{..} = dquotes cName <+> arrow <+>
+        case length elmConstructorFields of
+            0 -> "D.succeed" <+> cName
+            n -> "D.field \"contents\" <| D.map" <> mapNum n <+> cName <+> createIndexes
+
+      where
+        cName :: Doc ann
+        cName = pretty elmConstructorName
+
+        -- Use function map, map2, map3 etc.
+        mapNum :: Int -> Doc ann
+        mapNum 1 = emptyDoc
+        mapNum i = pretty i
+
+        createIndexes :: Doc ann
+        createIndexes = concatWith (surround " ") $ zipWith oneField [0..] elmConstructorFields
+
+        -- create @(D.index 0 D.string)@ etc.
+        oneField :: Int -> TypeRef -> Doc ann
+        oneField i typeRef = parens $ "D.index" <+> pretty i <+> typeRefDecoder typeRef
+
+
+-- | Converts the reference to the existing type to the corresponding decoder.
+typeRefDecoder :: TypeRef -> Doc ann
+typeRefDecoder (RefPrim elmPrim) = case elmPrim of
+    ElmUnit       -> "D.hardcoded ()"
+    ElmNever      -> "(D.fail \"Never is not possible\")"
+    ElmBool       -> "D.bool"
+    ElmChar       -> "elmStreetDecodeChar"
+    ElmInt        -> "D.int"
+    ElmFloat      -> "D.float"
+    ElmString     -> "D.string"
+    ElmMaybe t    -> parens $ "nullable" <+> typeRefEncoder t
+    ElmResult l r -> parens $ "elmStreetDecodeEither" <+> typeRefEncoder l <+> typeRefEncoder r
+    ElmPair a b   -> parens $ "elmStreetDecodePair" <+> typeRefEncoder a <+> typeRefEncoder b
+    ElmList l     -> parens $ "D.list" <+> typeRefEncoder l
+typeRefDecoder (RefCustom TypeName{..}) = "decode" <> pretty unTypeName
+
+-- | The definition of the @encodeTYPENAME@ function.
+decoderDef
+    :: Text  -- ^ Type name
+    -> [Text] -- ^ List of type variables
+    -> Doc ann
+decoderDef typeName vars =
+    decoderName typeName <+> colon <+> "Decoder" <+> typeVarsDoc
+  where
+    typeVarsDoc :: Doc ann
+    typeVarsDoc = case vars of
+        [] -> pretty typeName
+        vs -> parens $ pretty typeName <+> concatWith (surround " ") (map pretty vs)
+
+-- | Create the name of the decoder function.
+decoderName :: Text -> Doc ann
+decoderName typeName = "decode" <> pretty typeName
+
+
+decodeEnum :: Text
+decodeEnum = T.unlines
+    [ "decodeStr : (String -> Maybe a) -> String -> Decoder a"
+    , "decodeStr readX x = case readX x of"
+    , "    Just a -> D.succeed a"
+    , "    Nothing -> fail \"Constructor not matched\""
+    , ""
+    , "elmStreetDecodeEnum : (String -> Maybe a) -> Decoder a"
+    , "elmStreetDecodeEnum r = andThen (decodeStr r) D.string"
+    ]
+
+decodeChar :: Text
+decodeChar = T.unlines
+    [ "elmStreetDecodeChar : Decoder Char"
+    , "elmStreetDecodeChar = andThen (Maybe.map Tuple.first << String.uncons) D.string"
+    ]
+
+decodeEither :: Text
+decodeEither = T.unlines
+    [ "elmStreetDecodeEither : Decoder a -> Decoder b -> Decoder (Result a b)"
+    , "elmStreetDecodeEither decA decB = D.oneOf "
+    , "    [ D.field \"Left\"  (D.map Err decA)"
+    , "    , D.field \"Right\" (D.map Ok decB)"
+    , "    ]"
+    ]
+
+decodePair :: Text
+decodePair = T.unlines
+    [ "elmStreetDecodePair : Decoder a -> Decoder b -> Decoder (a, b)"
+    , "elmStreetDecodePair decA decB = D.map2 Tuple.pair (D.index 0 decA) (D.index 1 decB)"
     ]
 
 {-
