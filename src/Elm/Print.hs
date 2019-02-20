@@ -26,6 +26,7 @@ import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim 
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), getConstructorNames,
                 isEnum)
 
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
 
 
@@ -76,9 +77,9 @@ elmTypeParenDoc = wordsDoc . T.words . showDoc . elmTypeRefDoc
   where
     wordsDoc :: [Text] -> Doc ann
     wordsDoc = \case
-        [] -> ""
+        []  -> ""
         [x] -> pretty x
-        xs -> lparen <> pretty (T.unwords xs) <> rparen
+        xs  -> lparen <> pretty (T.unwords xs) <> rparen
 
 {- | Pretty printer for Elm aliases:
 
@@ -115,8 +116,19 @@ type Status a
     | Baz
 @
 
+If the type is a newtype then additionally @unTYPENAME@ function is generated:
+
+@
+type Id a
+    = Id String
+
+unId : Id a -> String
+unId (Id x) = x
+@
+
 If the type is Enum this function will add enum specific functions:
 
+@
 type Status
     = Approved
     | Yoyoyo
@@ -137,12 +149,14 @@ readStatus x = case x of
 
 universeStatus : List Status
 universeStatus = [Approved, Yoyoyo, Wow]
+@
 -}
 elmTypeDoc :: ElmType -> Doc ann
 elmTypeDoc t@ElmType{..} =
     nest 4 ( vsep $ ("type" <+> pretty elmTypeName <> sepVars)
                   : constructorsDoc elmTypeConstructors
            )
+    <> unFunc
     <> enumFuncs
   where
     sepVars :: Doc ann
@@ -159,11 +173,38 @@ elmTypeDoc t@ElmType{..} =
     constructorDoc ElmConstructor{..} = sep $
         pretty elmConstructorName : map elmTypeRefDoc elmConstructorFields
 
+    -- Generates 'unTYPENAME' function for newtype
+    unFunc :: Doc ann
+    unFunc =
+        if elmTypeIsNewtype
+        then line <> elmUnFuncDoc t
+        else emptyDoc
+
     enumFuncs :: Doc ann
     enumFuncs =
         if isEnum t
         then vsep $ map (line <>) [elmEnumShowDoc t, elmEnumReadDoc t, elmEnumUniverse t]
         else emptyDoc
+
+elmUnFuncDoc :: ElmType -> Doc ann
+elmUnFuncDoc ElmType{..} = line <> vsep
+    [ unName <+> colon <+> typeWithVarsDoc elmTypeName elmTypeVars <+> arrow <+> result
+    , unName <+> parens (ctorName <+> "x") <+> equals <+> "x"
+    ]
+  where
+    unName :: Doc ann
+    unName = "un" <> pretty elmTypeName
+
+    ctor :: ElmConstructor
+    ctor = NE.head elmTypeConstructors
+
+    result :: Doc ann
+    result = case elmConstructorFields ctor of
+        []      -> "ERROR"
+        fld : _ -> elmTypeRefDoc fld
+
+    ctorName :: Doc ann
+    ctorName = pretty $ elmConstructorName ctor
 
 elmEnumShowDoc :: forall ann . ElmType -> Doc ann
 elmEnumShowDoc t@ElmType{..} =
@@ -245,11 +286,31 @@ typeEncoderDoc t@ElmType{..} =
     <> line
     <> if isEnum t
        -- if this is Enum just using the show instance we wrote.
-       then name <+> equals <+> "E.string << show" <> pretty elmTypeName
-       -- If it sum type then it should look like: @{"tag": "Foo", "contents" : ["string", 1]}@
-       else nest 4 $ vsep $ (name <+> "x" <+> equals <+> "E.object <| case x of")
-            : map mkCase (toList elmTypeConstructors)
+       then enumEncoder
+       else if elmTypeIsNewtype
+            -- if this is type with one constructor and one field then it should just call encoder for wrapped type
+            then newtypeEncoder
+            -- If it sum type then it should look like: @{"tag": "Foo", "contents" : ["string", 1]}@
+            else sumEncoder
   where
+    enumEncoder :: Doc ann
+    enumEncoder = name <+> equals <+> "E.string << show" <> pretty elmTypeName
+
+    newtypeEncoder :: Doc ann
+    newtypeEncoder =
+        name <+> equals <+> fieldEncoderDoc <+> "<< un" <> pretty elmTypeName
+      where
+        fieldEncoderDoc :: Doc ann
+        fieldEncoderDoc = case elmConstructorFields $ NE.head elmTypeConstructors of
+            []    -> "ERROR"
+            f : _ -> typeRefEncoder f
+
+    sumEncoder :: Doc ann
+    sumEncoder = nest 4
+        $ vsep
+        $ (name <+> "x" <+> equals <+> "E.object <| case x of")
+        : map mkCase (toList elmTypeConstructors)
+
     -- | Encoder function name
     name :: Doc ann
     name = encoderName elmTypeName
@@ -289,9 +350,22 @@ aliasEncoderDoc :: ElmAlias -> Doc ann
 aliasEncoderDoc ElmAlias{..} =
     encoderDef elmAliasName []
     <> line
-    <> nest 4 (vsep $ (encoderName elmAliasName <+> "x" <+> equals <+> "E.object")
-            : fieldsEncode elmAliasFields)
+    <> if elmAliasIsNewtype
+       then newtypeEncoder
+       else recordEncoder
   where
+    newtypeEncoder :: Doc ann
+    newtypeEncoder = leftPart <+> fieldEncoderDoc (NE.head elmAliasFields)
+
+    recordEncoder :: Doc ann
+    recordEncoder = nest 4
+        $ vsep
+        $ (leftPart <+> "E.object")
+        : fieldsEncode elmAliasFields
+
+    leftPart :: Doc ann
+    leftPart = encoderName elmAliasName <+> "x" <+> equals
+
     fieldsEncode :: NonEmpty ElmRecordField -> [Doc ann]
     fieldsEncode (fstR :| rest) =
         lbracket <+> recordFieldDoc fstR
@@ -299,11 +373,14 @@ aliasEncoderDoc ElmAlias{..} =
      ++ [rbracket]
 
     recordFieldDoc :: ElmRecordField -> Doc ann
-    recordFieldDoc ElmRecordField{..} = parens $
+    recordFieldDoc field@ElmRecordField{..} = parens $
             dquotes (pretty elmRecordFieldName)
          <> comma
-        <+> typeRefEncoder elmRecordFieldType
-        <+> "x." <> pretty elmRecordFieldName
+        <+> fieldEncoderDoc field
+
+    fieldEncoderDoc :: ElmRecordField -> Doc ann
+    fieldEncoderDoc ElmRecordField{..} =
+        typeRefEncoder elmRecordFieldType <+> "x." <> pretty elmRecordFieldName
 
 -- | The definition of the @encodeTYPENAME@ function.
 encoderDef
@@ -311,10 +388,18 @@ encoderDef
     -> [Text] -- ^ List of type variables
     -> Doc ann
 encoderDef typeName vars =
-    encoderName typeName <+> colon <+> pretty typeName <> typeVarsDoc <+> arrow <+> "Value"
+    encoderName typeName <+> colon <+> typeWithVarsDoc typeName vars <+> arrow <+> "Value"
+
+typeWithVarsDoc
+    :: Text  -- ^ Type name
+    -> [Text] -- ^ List of type variables
+    -> Doc ann
+typeWithVarsDoc typeName = \case
+    []   -> pretty typeName
+    vars -> pretty typeName <+> typeVarsDoc vars
   where
-    typeVarsDoc :: Doc ann
-    typeVarsDoc = concatWith (surround " ") $ map pretty vars
+    typeVarsDoc :: [Text] -> Doc ann
+    typeVarsDoc = concatWith (surround " ") . map pretty
 
 -- | Create the name of the encoder function.
 encoderName :: Text -> Doc ann

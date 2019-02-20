@@ -136,15 +136,18 @@ class GenericElmDefinition (f :: k -> Type) where
 instance (Datatype d, GenericElmConstructors f) => GenericElmDefinition (D1 d f) where
     genericToElmDefinition datatype = case genericToElmConstructors (TypeName typeName) (unM1 datatype) of
         c :| [] -> case toElmConstructor c of
-            Left fields -> DefAlias $ ElmAlias typeName fields
-            Right ctor  -> DefType $ ElmType typeName [] (ctor :| [])
+            Left fields -> DefAlias $ ElmAlias typeName fields elmIsNewtype
+            Right ctor  -> DefType $ ElmType typeName [] elmIsNewtype (ctor :| [])
         c :| cs -> case traverse (rightToMaybe . toElmConstructor) (c :| cs) of
             -- TODO: this should be error but dunno what to do here
-            Nothing    -> DefType $ ElmType ("ERROR_" <> typeName) [] (ElmConstructor "ERROR" [] :| [])
-            Just ctors -> DefType $ ElmType typeName [] ctors
+            Nothing    -> DefType $ ElmType ("ERROR_" <> typeName) [] False (ElmConstructor "ERROR" [] :| [])
+            Just ctors -> DefType $ ElmType typeName [] elmIsNewtype ctors
       where
         typeName :: Text
         typeName = T.pack $ datatypeName datatype
+
+        elmIsNewtype :: Bool
+        elmIsNewtype = isNewtype datatype
 
 rightToMaybe :: Either l r -> Maybe r
 rightToMaybe = either (const Nothing) Just
@@ -154,8 +157,8 @@ constructors to Elm AST. In Haskell constructor fields may have names but may
 not have.
 -}
 data GenericConstructor = GenericConstructor
-    { genericConstructorName   :: Text
-    , genericConstructorFields :: [(TypeRef, Maybe Text)]
+    { genericConstructorName   :: !Text
+    , genericConstructorFields :: ![(TypeRef, Maybe Text)]
     }
 
 {- | Generic constructor can be in one of the three states:

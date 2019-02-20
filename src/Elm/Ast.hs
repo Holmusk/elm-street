@@ -24,19 +24,20 @@ import Data.Text (Text)
 
 
 data ElmDefinition
-    = DefAlias ElmAlias
-    | DefType  ElmType
-    | DefPrim  ElmPrim
+    = DefAlias !ElmAlias
+    | DefType  !ElmType
+    | DefPrim  !ElmPrim
     deriving (Show)
 
 data ElmAlias = ElmAlias
-    { elmAliasName   :: Text  -- ^ Name of the alias
-    , elmAliasFields :: NonEmpty ElmRecordField  -- ^ List of fields
+    { elmAliasName      :: !Text  -- ^ Name of the alias
+    , elmAliasFields    :: !(NonEmpty ElmRecordField)  -- ^ List of fields
+    , elmAliasIsNewtype :: !Bool  -- ^ 'True' if Haskell type is a @newtype@
     } deriving (Show)
 
 data ElmRecordField = ElmRecordField
-    { elmRecordFieldType :: TypeRef
-    , elmRecordFieldName :: Text
+    { elmRecordFieldType :: !TypeRef
+    , elmRecordFieldName :: !Text
     } deriving (Show)
 
 newtype TypeName = TypeName
@@ -44,17 +45,18 @@ newtype TypeName = TypeName
     } deriving (Show)
 
 data ElmType = ElmType
-    { elmTypeName         :: Text  -- ^ Name of the data type
-    , elmTypeVars         :: [Text]  -- ^ List of type variables; currently only phantom variables
-    , elmTypeConstructors :: NonEmpty ElmConstructor  -- ^ List of constructors
+    { elmTypeName         :: !Text  -- ^ Name of the data type
+    , elmTypeVars         :: ![Text]  -- ^ List of type variables; currently only phantom variables
+    , elmTypeIsNewtype    :: !Bool  -- ^ 'True' if Haskell type is a @newtype@
+    , elmTypeConstructors :: !(NonEmpty ElmConstructor)  -- ^ List of constructors
     } deriving (Show)
 
 data ElmConstructor = ElmConstructor
-    { elmConstructorName   :: Text  -- ^ Name of the constructor
-    , elmConstructorFields :: [TypeRef]  -- ^ Fields of the constructor
+    { elmConstructorName   :: !Text  -- ^ Name of the constructor
+    , elmConstructorFields :: ![TypeRef]  -- ^ Fields of the constructor
     } deriving (Show)
 
--- | Checks i the given 'ElmType' is Enum.
+-- | Checks if the given 'ElmType' is Enum.
 isEnum :: ElmType -> Bool
 isEnum ElmType{..} = null elmTypeVars && null (foldMap elmConstructorFields elmTypeConstructors)
 
@@ -62,25 +64,25 @@ isEnum ElmType{..} = null elmTypeVars && null (foldMap elmConstructorFields elmT
 getConstructorNames :: ElmType -> [Text]
 getConstructorNames ElmType{..} = map elmConstructorName $ toList elmTypeConstructors
 
--- | Primitive elm types; hardcoded by the language
+-- | Primitive elm types; hardcoded by the language.
 data ElmPrim
-    = ElmUnit                    -- ^ @()@ type in elm
-    | ElmNever                   -- ^ @Never@ type in elm, analogous to Void in Haskell
-    | ElmBool                    -- ^ @Bool@
-    | ElmChar                    -- ^ @Char@
-    | ElmInt                     -- ^ @Int@
-    | ElmFloat                   -- ^ @Float@
-    | ElmString                  -- ^ @String@
-    | ElmMaybe TypeRef           -- ^ @Maybe T@
-    | ElmResult TypeRef TypeRef  -- ^ @Result A B@ in elm
-    | ElmPair TypeRef TypeRef    -- ^ @(A, B)@ in elm
-    | ElmList TypeRef            -- ^ @List A@ in elm
+    = ElmUnit                      -- ^ @()@ type in elm
+    | ElmNever                     -- ^ @Never@ type in elm, analogous to Void in Haskell
+    | ElmBool                      -- ^ @Bool@
+    | ElmChar                      -- ^ @Char@
+    | ElmInt                       -- ^ @Int@
+    | ElmFloat                     -- ^ @Float@
+    | ElmString                    -- ^ @String@
+    | ElmMaybe !TypeRef            -- ^ @Maybe T@
+    | ElmResult !TypeRef !TypeRef  -- ^ @Result A B@ in elm
+    | ElmPair !TypeRef !TypeRef    -- ^ @(A, B)@ in elm
+    | ElmList !TypeRef             -- ^ @List A@ in elm
     deriving (Show)
 
 -- | Reference to another existing type.
 data TypeRef
-    = RefPrim ElmPrim
-    | RefCustom TypeName
+    = RefPrim !ElmPrim
+    | RefCustom !TypeName
     deriving (Show)
 
 -- | Extracts reference to the existing data type type from some other type elm defintion.
