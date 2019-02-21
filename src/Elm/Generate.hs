@@ -139,8 +139,9 @@ generateElm Settings{..} = do
         , ""
         , "import Iso8601 as Iso"
         , "import Json.Decode as D exposing (..)"
-        , "import Json.Decode.Pipeline exposing (..)"
+        , "import Json.Decode.Pipeline as D exposing (required)"
         , ""
+        , "import " <> streetModule <> " exposing (..)"
         , "import " <> typesModule <> " exposing (..)"
         ]
 
@@ -148,7 +149,7 @@ generateElm Settings{..} = do
     elmStreetDefinitions =
         [ "module " <> streetModule <> " exposing (..)"
         , ""
-        , "import Json.Encode exposing (..)"
+        , "import Json.Encode as E exposing (Value)"
         , "import Json.Decode as D exposing (Decoder)"
         , "import Json.Decode.Pipeline as D exposing (..)"
         , ""

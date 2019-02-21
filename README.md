@@ -7,6 +7,33 @@
 
 Crossing the road between Haskell and Elm.
 
+## Elm-side preparations
+
+`Elm-street` needs to have some elm packages preinstalled in the project. You can make it with the following command:
+
+```shell
+elm install elm/time
+elm install elm/json
+elm install NoRedInk/elm-json-decode-pipeline
+elm install rtfeldman/elm-iso8601-date-strings
+```
+
+## elm-example
+
+To run:
+1. Build and execute the `generate-elm` binary:
+   ```
+   cabal new-run generate-elm
+   ```
+2. Go to the `elm-example` folder:
+   ```
+   cd elm-example
+   ```
+3. Run the project:
+   ```
+   elm-app start
+   ```
+
 ## Examples
 
 Below you can see some examples of how Haskell data type are converted to Elm
