@@ -62,9 +62,9 @@ instance RenderElm '[] where
     renderDecoder = []
 
 instance (Elm t, RenderElm ts) => RenderElm (t ': ts) where
-    renderType    = toElmTypeSource    @t : renderType    @ts
-    renderEncoder = toElmEncoderSource @t : renderEncoder @ts
-    renderDecoder = toElmDecoderSource @t : renderDecoder @ts
+    renderType    = "" : toElmTypeSource    @t : renderType    @ts
+    renderEncoder = "" : toElmEncoderSource @t : renderEncoder @ts
+    renderDecoder = "" : toElmDecoderSource @t : renderDecoder @ts
 
 toElmTypeSource :: forall a . Elm a => Text
 toElmTypeSource = prettyShowDefinition $ toElmDefinition $ Proxy @a
@@ -154,17 +154,11 @@ generateElm Settings{..} = do
         , ""
         , ""
         , encodeMaybe
-        , ""
         , encodeEither
-        , ""
         , encodePair
 
-        , ""
         , decodeEnum
-        , ""
         , decodeChar
-        , ""
         , decodeEither
-        , ""
         , decodePair
         ]

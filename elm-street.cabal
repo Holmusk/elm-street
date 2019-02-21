@@ -60,6 +60,28 @@ library
                        TypeApplications
                        ViewPatterns
 
+executable generate-elm
+  hs-source-dirs:      generate-elm
+  main-is:             Main.hs
+
+  build-depends:       base >= 4.11 && < 4.13
+                     , elm-street
+                     , text
+                     , time
+
+  ghc-options:         -Wall
+                       -threaded
+                       -rtsopts
+                       -with-rtsopts=-N
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wcompat
+                       -Widentities
+                       -Wredundant-constraints
+                       -fhide-source-paths
+
+  default-language:    Haskell2010
+
 test-suite elm-street-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
