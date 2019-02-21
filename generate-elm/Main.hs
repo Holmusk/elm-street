@@ -53,8 +53,8 @@ data RequestStatus
     deriving anyclass (Elm)
 
 data User = User
-    { userId     :: Id User
-    , userName   :: Text
+    -- { userId     :: Id User
+    { userName   :: Text
     , userAge    :: Age
     , userStatus :: RequestStatus
     } deriving (Generic)
@@ -85,4 +85,4 @@ type Types =
     ]
 
 main :: IO ()
-main = generateElm @Types $ defaultSettings "example" ["Test"]
+main = generateElm @Types $ defaultSettings "elm-example/src" ["Core"]

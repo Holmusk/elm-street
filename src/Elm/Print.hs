@@ -329,7 +329,7 @@ typeEncoderDoc t@ElmType{..} =
     mkCase :: ElmConstructor -> Doc ann
     mkCase ElmConstructor{..} =
         conName <+> vars <+> arrow
-            <+> brackets (parens ("tag" <> comma <+> dquotes conName) <> contents)
+            <+> brackets (parens (dquotes "tag" <> comma <+> "E.string" <+> dquotes conName) <> contents)
       where
         -- | Constructor name
         conName :: Doc ann
@@ -341,7 +341,7 @@ typeEncoderDoc t@ElmType{..} =
             map (pretty . mkText "x") [1..]
 
         contents :: Doc ann
-        contents = "," <+> parens (dquotes "contents" <> comma <+> "E.list" <+> brackets fieldEncs)
+        contents = "," <+> parens (dquotes "contents" <> comma <+> "E.list identity" <+> brackets fieldEncs)
 
         -- | @encoderA x1@
         fieldEncs :: Doc ann
@@ -417,9 +417,9 @@ encoderName typeName = "encode" <> pretty typeName
 
 -- | Converts the reference to the existing type to the corresponding encoder.
 typeRefEncoder :: TypeRef -> Doc ann
-typeRefEncoder (RefCustom TypeName{..}) = "encode" <> pretty unTypeName
+typeRefEncoder (RefCustom TypeName{..}) = "encode" <> pretty (T.takeWhile (/= ' ') unTypeName)
 typeRefEncoder (RefPrim elmPrim) = case elmPrim of
-    ElmUnit       -> "(const E.null)"
+    ElmUnit       -> "(always E.null)"
     ElmNever      -> "never"
     ElmBool       -> "E.bool"
     ElmChar       -> parens "E.string << String.fromChar"
@@ -449,7 +449,7 @@ encodeEither = T.unlines
 encodePair :: Text
 encodePair = T.unlines
     [ "elmStreetEncodePair : (a -> Value) -> (b -> Value) -> (a, b) -> Value"
-    , "elmStreetEencodePair encA encB (a, b) = E.list [encA a, encB b]"
+    , "elmStreetEncodePair encA encB (a, b) = E.list identity [encA a, encB b]"
     ]
 
 ----------------------------------------------------------------------------
@@ -514,7 +514,7 @@ aliasDecoderDoc ElmAlias{..} =
     recordDecoder :: Doc ann
     recordDecoder = nest 4
         $ vsep
-        $ (name <+> "D.decode" <+> aliasName)
+        $ (name <+> "D.succeed" <+> aliasName)
         : map fieldDecode (toList elmAliasFields)
 
     name :: Doc ann
@@ -524,10 +524,11 @@ aliasDecoderDoc ElmAlias{..} =
     aliasName = pretty elmAliasName
 
     fieldDecode :: ElmRecordField -> Doc ann
-    fieldDecode ElmRecordField{..} =
-            "|> required"
-        <+> dquotes (pretty elmRecordFieldName)
-        <+> typeRefDecoder elmRecordFieldType
+    fieldDecode ElmRecordField{..} = case elmRecordFieldType of
+        RefPrim ElmUnit -> "|> D.hardcoded ()"
+        t -> "|> required"
+            <+> dquotes (pretty elmRecordFieldName)
+            <+> typeRefDecoder t
 
 typeDecoderDoc :: ElmType -> Doc ann
 typeDecoderDoc  t@ElmType{..} =
@@ -597,9 +598,9 @@ typeDecoderDoc  t@ElmType{..} =
 
 -- | Converts the reference to the existing type to the corresponding decoder.
 typeRefDecoder :: TypeRef -> Doc ann
-typeRefDecoder (RefCustom TypeName{..}) = "decode" <> pretty unTypeName
+typeRefDecoder (RefCustom TypeName{..}) = "decode" <> pretty (T.takeWhile (/= ' ') unTypeName)
 typeRefDecoder (RefPrim elmPrim) = case elmPrim of
-    ElmUnit       -> "D.hardcoded ()"
+    ElmUnit       -> "(D.hardcoded ())"
     ElmNever      -> "(D.fail \"Never is not possible\")"
     ElmBool       -> "D.bool"
     ElmChar       -> "elmStreetDecodeChar"
@@ -607,10 +608,10 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
     ElmFloat      -> "D.float"
     ElmString     -> "D.string"
     ElmTime       -> "Iso.decoder"
-    ElmMaybe t    -> parens $ "nullable" <+> typeRefEncoder t
-    ElmResult l r -> parens $ "elmStreetDecodeEither" <+> typeRefEncoder l <+> typeRefEncoder r
-    ElmPair a b   -> parens $ "elmStreetDecodePair" <+> typeRefEncoder a <+> typeRefEncoder b
-    ElmList l     -> parens $ "D.list" <+> typeRefEncoder l
+    ElmMaybe t    -> parens $ "nullable" <+> typeRefDecoder t
+    ElmResult l r -> parens $ "elmStreetDecodeEither" <+> typeRefDecoder l <+> typeRefDecoder r
+    ElmPair a b   -> parens $ "elmStreetDecodePair" <+> typeRefDecoder a <+> typeRefDecoder b
+    ElmList l     -> parens $ "D.list" <+> typeRefDecoder l
 
 -- | The definition of the @encodeTYPENAME@ function.
 decoderDef
@@ -628,17 +629,17 @@ decodeEnum :: Text
 decodeEnum = T.unlines
     [ "decodeStr : (String -> Maybe a) -> String -> Decoder a"
     , "decodeStr readX x = case readX x of"
-    , "    Just a -> D.succeed a"
-    , "    Nothing -> fail \"Constructor not matched\""
+    , "    Just a  -> D.succeed a"
+    , "    Nothing -> D.fail \"Constructor not matched\""
     , ""
     , "elmStreetDecodeEnum : (String -> Maybe a) -> Decoder a"
-    , "elmStreetDecodeEnum r = andThen (decodeStr r) D.string"
+    , "elmStreetDecodeEnum r = D.andThen (decodeStr r) D.string"
     ]
 
 decodeChar :: Text
 decodeChar = T.unlines
     [ "elmStreetDecodeChar : Decoder Char"
-    , "elmStreetDecodeChar = andThen (Maybe.map Tuple.first << String.uncons) D.string"
+    , "elmStreetDecodeChar = D.andThen (decodeStr (Maybe.map Tuple.first << String.uncons)) D.string"
     ]
 
 decodeEither :: Text
