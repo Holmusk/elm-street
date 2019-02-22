@@ -1,10 +1,15 @@
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+
 {-# LANGUAGE AllowAmbiguousTypes  #-}
+{-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DefaultSignatures    #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE PolyKinds            #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {- | Generic conversion of Haskell data types to Elm types.
 -}
@@ -25,12 +30,14 @@ module Elm.Generic
        , toElmConstructor
 
          -- * Internals
+       , HasNoTypeVars
+       , TypeVarsError
        , stripTypeNamePrefix
        ) where
 
 import Data.Char (isLower, toLower)
 import Data.Int (Int16, Int32, Int8)
-import Data.Kind (Type)
+import Data.Kind (Constraint, Type)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Proxy (Proxy (..))
 import Data.Text (Text)
@@ -39,6 +46,7 @@ import Data.Void (Void)
 import Data.Word (Word16, Word32, Word8)
 import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..),
                      Rec0, S1, Selector (..), U1)
+import GHC.TypeLits (ErrorMessage (..), Nat, TypeError)
 import Type.Reflection (Typeable, typeRep)
 
 import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
@@ -55,7 +63,7 @@ class Elm a where
     toElmDefinition :: Proxy a -> ElmDefinition
 
     default toElmDefinition
-        :: (Generic a, GenericElmDefinition (Rep a))
+        :: (HasNoTypeVars a, Generic a, GenericElmDefinition (Rep a))
         => Proxy a
         -> ElmDefinition
     toElmDefinition _ = genericToElmDefinition
@@ -244,3 +252,31 @@ stripTypeNamePrefix (TypeName typeName) fieldName =
     headToLower t = case T.uncons t of
         Nothing      -> error "Cannot use 'headToLower' on empty Text"
         Just (x, xs) -> T.cons (toLower x) xs
+
+----------------------------------------------------------------------------
+-- ~Magic~
+----------------------------------------------------------------------------
+
+{- | This type family checks whether data type has type variables and throws
+custom compiler error if it has. Since there's no generic way to get all type
+variables, current implementation is limited only to 6 variables. This looks
+like a reasonable number.
+-}
+type family HasNoTypeVars (f :: k) :: Constraint where
+    HasNoTypeVars (t a b c d e f) = TypeError (TypeVarsError t 6)
+    HasNoTypeVars (t a b c d e)   = TypeError (TypeVarsError t 5)
+    HasNoTypeVars (t a b c d)     = TypeError (TypeVarsError t 4)
+    HasNoTypeVars (t a b c)       = TypeError (TypeVarsError t 3)
+    HasNoTypeVars (t a b)         = TypeError (TypeVarsError t 2)
+    HasNoTypeVars (t a)           = TypeError (TypeVarsError t 1)
+    HasNoTypeVars t               = ()
+
+type family TypeVarsError (t :: k) (n :: Nat) :: ErrorMessage where
+    TypeVarsError t n =
+             'Text "'elm-street' currently doesn't support Generic deriving of the 'Elm' typeclass"
+        ':$$: 'Text "for data types with type variables. But '"
+              ':<>: 'ShowType t ':<>: 'Text "' has " ':<>: 'ShowType n ':<>: 'Text " variables."
+        ':$$: 'Text ""
+        ':$$: 'Text "See the following issue for more details:"
+        ':$$: 'Text "    * https://github.com/Holmusk/elm-street/issues/45"
+        ':$$: 'Text ""
