@@ -17,11 +17,9 @@ type alias Prims =
     , list : List Int
     }
 
-type Id a
-    = Id String
-
-unId : Id a -> String
-unId (Id x) = x
+type alias Id =
+    { unId : String
+    }
 
 type alias Age =
     { age : Int
@@ -49,7 +47,8 @@ universeRequestStatus : List RequestStatus
 universeRequestStatus = [Approved, Rejected, Reviewing]
 
 type alias User =
-    { name : String
+    { id : Id
+    , name : String
     , age : Age
     , status : RequestStatus
     }
@@ -60,7 +59,7 @@ type Guest
     | Blocked
 
 type alias UserRequest =
-    { ids : List (Id User)
+    { ids : List Id
     , limit : Int
     , example : Maybe (Result User Guest)
     }

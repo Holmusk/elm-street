@@ -22,8 +22,8 @@ encodePrims x = E.object
     , ("list", E.list E.int x.list)
     ]
 
-encodeId : Id a -> Value
-encodeId = E.string << unId
+encodeId : Id -> Value
+encodeId x = E.string x.unId
 
 encodeAge : Age -> Value
 encodeAge x = E.int x.age
@@ -33,7 +33,8 @@ encodeRequestStatus = E.string << showRequestStatus
 
 encodeUser : User -> Value
 encodeUser x = E.object
-    [ ("name", E.string x.name)
+    [ ("id", encodeId x.id)
+    , ("name", E.string x.name)
     , ("age", encodeAge x.age)
     , ("status", encodeRequestStatus x.status)
     ]

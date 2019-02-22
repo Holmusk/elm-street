@@ -9,12 +9,10 @@ module Types
        ( Types
        ) where
 
-import Data.List.NonEmpty (NonEmpty (..))
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import Data.Word (Word32)
-import Elm (Elm (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (ElmString), ElmType (..),
-            TypeRef (..))
+import Elm (Elm (..), elmNewtype)
 import GHC.Generics (Generic)
 
 
@@ -38,9 +36,7 @@ newtype Id a = Id
     } deriving (Show)
 
 instance Elm (Id a) where
-    toElmDefinition _ = DefType
-        $ ElmType "Id" ["a"] True
-        $ ElmConstructor "Id" [RefPrim ElmString] :| []
+    toElmDefinition _ = elmNewtype @Text "Id" "unId"
 
 newtype Age = Age
     { unAge :: Int
@@ -55,8 +51,8 @@ data RequestStatus
     deriving anyclass (Elm)
 
 data User = User
-    -- { userId     :: Id User
-    { userName   :: Text
+    { userId     :: Id User
+    , userName   :: Text
     , userAge    :: Age
     , userStatus :: RequestStatus
     } deriving (Generic)
