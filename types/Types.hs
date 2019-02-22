@@ -7,10 +7,24 @@
 
 module Types
        ( Types
+       , OneType (..)
+       , defaultOneType
+
+         -- * All test types
+       , Prims (..)
+       , Id (..)
+       , Age (..)
+       , RequestStatus (..)
+       , User (..)
+       , Guest (..)
+       , UserRequest (..)
        ) where
 
+import Data.Aeson (FromJSON (..), ToJSON (..))
+import Data.Aeson.Options (genericParseJSONStripType, genericToJSONStripType)
 import Data.Text (Text)
-import Data.Time.Clock (UTCTime)
+import Data.Time.Calendar (fromGregorian)
+import Data.Time.Clock (UTCTime (..))
 import Data.Word (Word32)
 import Elm (Elm (..), elmNewtype)
 import GHC.Generics (Generic)
@@ -28,50 +42,77 @@ data Prims = Prims
     , primsResult :: Either Int String
     , primsPair   :: (Char, Bool)
     , primsList   :: [Int]
-    } deriving (Generic)
+    } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
+
+instance ToJSON   Prims where toJSON = genericToJSONStripType
+instance FromJSON Prims where parseJSON = genericParseJSONStripType
 
 newtype Id a = Id
     { unId :: Text
-    } deriving (Show)
+    } deriving (Show, Eq)
+      deriving newtype (FromJSON, ToJSON)
 
 instance Elm (Id a) where
     toElmDefinition _ = elmNewtype @Text "Id" "unId"
 
 newtype Age = Age
     { unAge :: Int
-    } deriving (Generic)
+    } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
+      deriving newtype (FromJSON, ToJSON)
 
 data RequestStatus
     = Approved
     | Rejected
     | Reviewing
-    deriving (Generic)
-    deriving anyclass (Elm)
+    deriving (Generic, Eq, Show)
+    deriving anyclass (Elm, FromJSON, ToJSON)
 
 data User = User
     { userId     :: Id User
     , userName   :: Text
     , userAge    :: Age
     , userStatus :: RequestStatus
-    } deriving (Generic)
+    } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
+
+instance ToJSON   User where toJSON = genericToJSONStripType
+instance FromJSON User where parseJSON = genericParseJSONStripType
 
 data Guest
     = Regular Text Int
     | Visitor Text
     | Blocked
-    deriving (Generic)
-    deriving anyclass (Elm)
+    deriving (Generic, Eq, Show)
+    deriving anyclass (Elm, FromJSON, ToJSON)
 
 data UserRequest = UserRequest
-    { urIds     :: [Id User]
-    , urLimit   :: Word32
-    , urExample :: Maybe (Either User Guest)
-    } deriving (Generic)
+    { userRequestIds     :: [Id User]
+    , userRequestLimit   :: Word32
+    , userRequestExample :: Maybe (Either User Guest)
+    } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
 
+instance ToJSON   UserRequest where toJSON = genericToJSONStripType
+instance FromJSON UserRequest where parseJSON = genericParseJSONStripType
+
+-- | All test types together in one type to play with.
+data OneType = OneType
+    { oneTypePrims         :: Prims
+    , oneTypeId            :: Id OneType
+    , oneTypeAge           :: Age
+    , oneTypeRequestStatus :: RequestStatus
+    , oneTypeUser          :: User
+    , oneTypeGuest         :: Guest
+    , oneTypeUserRequest   :: UserRequest
+    } deriving (Generic, Eq, Show)
+      deriving anyclass (Elm)
+
+instance ToJSON   OneType where toJSON = genericToJSONStripType
+instance FromJSON OneType where parseJSON = genericParseJSONStripType
+
+-- | Type level list of all test types.
 type Types =
    '[ Prims
     , Id ()
@@ -80,4 +121,39 @@ type Types =
     , User
     , Guest
     , UserRequest
+    , OneType
     ]
+
+
+defaultOneType :: OneType
+defaultOneType = OneType
+    { oneTypePrims = defaultPrims
+    , oneTypeId = Id "myId"
+    , oneTypeAge = Age 18
+    , oneTypeRequestStatus = Reviewing
+    , oneTypeUser = User (Id "1") "not-me" (Age 100) Approved
+    , oneTypeGuest = Regular "nice" 7
+    , oneTypeUserRequest = defaultUserRequest
+    }
+  where
+    defaultPrims :: Prims
+    defaultPrims = Prims
+        { primsUnit   = ()
+        , primsBool   = True
+        , primsChar   = 'a'
+        , primsInt    = 42
+        , primsFloat  = 36.6
+        , primsString = "heh"
+        , primsTime   = UTCTime (fromGregorian 2019 2 22) 0
+        , primsMaybe  = Just 12
+        , primsResult = Left 666
+        , primsPair   = ('o', False)
+        , primsList   = [1..5]
+        }
+
+    defaultUserRequest :: UserRequest
+    defaultUserRequest = UserRequest
+        { userRequestIds     = [Id "1", Id "2"]
+        , userRequestLimit   = 123
+        , userRequestExample = Just (Right Blocked)
+        }

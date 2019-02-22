@@ -63,3 +63,13 @@ type alias UserRequest =
     , limit : Int
     , example : Maybe (Result User Guest)
     }
+
+type alias OneType =
+    { prims : Prims
+    , id : Id
+    , age : Age
+    , requestStatus : RequestStatus
+    , user : User
+    , guest : Guest
+    , userRequest : UserRequest
+    }

@@ -12,4 +12,4 @@ import Types (Types)
 
 
 main :: IO ()
-main = generateElm @Types $ defaultSettings "elm-example/src" ["Core"]
+main = generateElm @Types $ defaultSettings "frontend/src" ["Core"]

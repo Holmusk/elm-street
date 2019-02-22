@@ -419,7 +419,7 @@ encoderName typeName = "encode" <> pretty typeName
 typeRefEncoder :: TypeRef -> Doc ann
 typeRefEncoder (RefCustom TypeName{..}) = "encode" <> pretty (T.takeWhile (/= ' ') unTypeName)
 typeRefEncoder (RefPrim elmPrim) = case elmPrim of
-    ElmUnit       -> "(always E.null)"
+    ElmUnit       -> "(always <| E.list identity [])"
     ElmNever      -> "never"
     ElmBool       -> "E.bool"
     ElmChar       -> parens "E.string << String.fromChar"
