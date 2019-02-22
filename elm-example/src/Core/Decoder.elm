@@ -22,7 +22,7 @@ decodePrims = D.succeed Prims
     |> required "pair" (elmStreetDecodePair elmStreetDecodeChar D.bool)
     |> required "list" (D.list D.int)
 
-decodeId : Decoder (Id a)
+decodeId : Decoder Id
 decodeId = D.map Id D.string
 
 decodeAge : Decoder Age
@@ -33,6 +33,7 @@ decodeRequestStatus = elmStreetDecodeEnum readRequestStatus
 
 decodeUser : Decoder User
 decodeUser = D.succeed User
+    |> required "id" decodeId
     |> required "name" D.string
     |> required "age" decodeAge
     |> required "status" decodeRequestStatus

@@ -17,9 +17,10 @@
 module Elm.Generic
        ( -- * Main data type for the user
          Elm (..)
-       , TElm
-       , elmTypeRef
        , elmRef
+
+         -- * Smart constructors
+       , elmNewtype
 
          -- * Generic utilities
        , GenericElmDefinition (..)
@@ -47,7 +48,6 @@ import Data.Word (Word16, Word32, Word8)
 import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..),
                      Rec0, S1, Selector (..), U1)
 import GHC.TypeLits (ErrorMessage (..), Nat, TypeError)
-import Type.Reflection (Typeable, typeRep)
 
 import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), definitionToRef)
@@ -69,20 +69,11 @@ class Elm a where
     toElmDefinition _ = genericToElmDefinition
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
--- | 'TypeRef' for the existing type.
-elmTypeRef :: forall a . Elm a => TypeRef
-elmTypeRef = definitionToRef $ toElmDefinition (Proxy @a)
-
-{- | Like 'elmTypeRef' but uses type name display from Haskell to display custom
-data types. This is required to show type variables.
+{- | Returns 'TypeRef' for the existing type. This function always returns the
+name of the type without any type variables added.
 -}
-elmRef :: forall a . TElm a => TypeRef
-elmRef = case elmTypeRef @a of
-    prim@(RefPrim _) -> prim
-    RefCustom _      -> RefCustom $ TypeName $ T.pack $ show $ typeRep @a
-
--- | Constraint alias for things that have both 'Typeable' and 'Elm' constraints.
-type TElm a = (Typeable a, Elm a)
+elmRef :: forall a . Elm a => TypeRef
+elmRef = definitionToRef $ toElmDefinition $ Proxy @a
 
 ----------------------------------------------------------------------------
 -- Primitive instances
@@ -117,20 +108,42 @@ instance Elm LT.Text where toElmDefinition _ = DefPrim ElmString
 
 instance Elm UTCTime where toElmDefinition _ = DefPrim ElmTime
 
-instance TElm a => Elm (Maybe a) where
+instance Elm a => Elm (Maybe a) where
     toElmDefinition _ = DefPrim $ ElmMaybe $ elmRef @a
 
-instance (TElm a, TElm b) => Elm (Either a b) where
+instance (Elm a, Elm b) => Elm (Either a b) where
     toElmDefinition _ = DefPrim $ ElmResult (elmRef @a) (elmRef @b)
 
-instance (TElm a, TElm b) => Elm (a, b) where
+instance (Elm a, Elm b) => Elm (a, b) where
     toElmDefinition _ = DefPrim $ ElmPair (elmRef @a) (elmRef @b)
 
-instance TElm a => Elm [a] where
+instance Elm a => Elm [a] where
     toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
 
-instance TElm a => Elm (NonEmpty a) where
+instance Elm a => Elm (NonEmpty a) where
     toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
+
+----------------------------------------------------------------------------
+-- Smart constructors
+----------------------------------------------------------------------------
+
+{- | This function can be used to create manual 'Elm' instances easily for
+@newtypes@ where 'Generic' deriving doesn't work. This function can be used like
+this:
+
+@
+newtype Id a = Id { unId :: Text }
+
+instance Elm (Id a) where
+    toElmDefinition _ = elmNewtype @Text "Id" "unId"
+@
+-}
+elmNewtype :: forall a . Elm a => Text -> Text -> ElmDefinition
+elmNewtype typeName fieldName = DefAlias $ ElmAlias
+    { elmAliasName      = typeName
+    , elmAliasFields    = ElmRecordField (elmRef @a) fieldName :| []
+    , elmAliasIsNewtype = True
+    }
 
 ----------------------------------------------------------------------------
 -- Generic instances
@@ -226,7 +239,7 @@ instance GenericElmFields U1 where
     genericToElmFields _ _ = []
 
 -- | Single constructor field.
-instance (Selector s, TElm a) => GenericElmFields (S1 s (Rec0 a)) where
+instance (Selector s, Elm a) => GenericElmFields (S1 s (Rec0 a)) where
     genericToElmFields typeName selector = case selName selector of
         ""   -> [(elmRef @a, Nothing)]
         name -> [(elmRef @a, Just $ stripTypeNamePrefix typeName $ T.pack name)]
