@@ -9,7 +9,7 @@ import Core.Types exposing (..)
 
 encodePrims : Prims -> Value
 encodePrims x = E.object
-    [ ("unit", (always E.null) x.unit)
+    [ ("unit", (always <| E.list identity []) x.unit)
     , ("bool", E.bool x.bool)
     , ("char", (E.string << String.fromChar) x.char)
     , ("int", E.int x.int)
@@ -50,4 +50,15 @@ encodeUserRequest x = E.object
     [ ("ids", E.list encodeId x.ids)
     , ("limit", E.int x.limit)
     , ("example", (elmStreetEncodeMaybe (elmStreetEncodeEither encodeUser encodeGuest)) x.example)
+    ]
+
+encodeOneType : OneType -> Value
+encodeOneType x = E.object
+    [ ("prims", encodePrims x.prims)
+    , ("id", encodeId x.id)
+    , ("age", encodeAge x.age)
+    , ("requestStatus", encodeRequestStatus x.requestStatus)
+    , ("user", encodeUser x.user)
+    , ("guest", encodeGuest x.guest)
+    , ("userRequest", encodeUserRequest x.userRequest)
     ]

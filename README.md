@@ -25,9 +25,9 @@ To run:
    ```
    cabal new-run generate-elm
    ```
-2. Go to the `elm-example` folder:
+2. Go to the `frontend` folder:
    ```
-   cd elm-example
+   cd frontend
    ```
 3. Run the project:
    ```

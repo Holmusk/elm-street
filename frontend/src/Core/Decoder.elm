@@ -53,3 +53,13 @@ decodeUserRequest = D.succeed UserRequest
     |> required "ids" (D.list decodeId)
     |> required "limit" D.int
     |> required "example" (nullable (elmStreetDecodeEither decodeUser decodeGuest))
+
+decodeOneType : Decoder OneType
+decodeOneType = D.succeed OneType
+    |> required "prims" decodePrims
+    |> required "id" decodeId
+    |> required "age" decodeAge
+    |> required "requestStatus" decodeRequestStatus
+    |> required "user" decodeUser
+    |> required "guest" decodeGuest
+    |> required "userRequest" decodeUserRequest
