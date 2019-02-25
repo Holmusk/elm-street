@@ -68,7 +68,6 @@ library types
 
   build-depends:       base >= 4.11 && < 4.13
                      , aeson
-                     , aeson-options ^>= 0.1
                      , elm-street
                      , text
                      , time

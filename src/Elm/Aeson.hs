@@ -1,5 +1,6 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE AllowAmbiguousTypes  #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {- | Options used to derive FromJSON/ToJSON instance. These options generally
 comply to @elm-street@ rules regarding names.
@@ -9,18 +10,21 @@ module Elm.Aeson
        ( elmStreetParseJson
        , elmStreetToJson
        , elmStreetJsonOptions
+
+       , ElmStreet (..)
        ) where
 
-import Data.Aeson (GFromJSON, GToJSON, Options (..), Value, Zero, defaultOptions, genericParseJSON,
-                   genericToJSON)
+import Data.Aeson (FromJSON (..), GFromJSON, GToJSON, Options (..), ToJSON (..), Value, Zero,
+                   defaultOptions, genericParseJSON, genericToJSON)
 import Data.Aeson.Types (Parser)
 import GHC.Generics (Generic, Rep)
 import Type.Reflection (Typeable, typeRep)
 
 import Elm.Ast (TypeName (..))
-import Elm.Generic (stripTypeNamePrefix)
+import Elm.Generic (Elm (..), GenericElmDefinition (..), HasNoTypeVars, stripTypeNamePrefix)
 
 import qualified Data.Text as T
+import qualified GHC.Generics as Generic (from)
 
 
 {- | Allows to create 'Data.Aeson.FromJSON' instance that strips the supported
@@ -43,9 +47,9 @@ it is decoded it the following way for each of the specified types:
 +===============================+==========================+
 | @                             | @                        |
 | data User = User              | User                     |
-|    { userName :: String       |    { userName = \"John\" |
-|    , userAge  :: Int          |    , userAge  = 42       |
-|    }                          |    }                     |
+| \   { userName :: String      |    { userName = \"John\" |
+| \   , userAge  :: Int         |    , userAge  = 42       |
+| \   }                         |    }                     |
 | @                             | @                        |
 +-------------------------------+--------------------------+
 |                               |                          |
@@ -130,3 +134,26 @@ elmStreetJsonOptions = defaultOptions
   where
     typeName :: TypeName
     typeName = TypeName $ T.pack $ show $ typeRep @a
+
+
+{- | Newtype for reusing in @DerivingVia@.
+
+In order to use it with your type @MyType@ add the following deriving to your type:
+
+@
+    deriving (Elm, ToJSON, FromJSON) via ElmStreet MyType
+@
+-}
+newtype ElmStreet a = ElmStreet
+    { unElmStreet :: a
+    }
+
+instance (HasNoTypeVars a, Generic a, GenericElmDefinition (Rep a)) => Elm (ElmStreet a) where
+    toElmDefinition _ = genericToElmDefinition
+        $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
+
+instance (Typeable a, Generic a, GToJSON Zero (Rep a)) => ToJSON (ElmStreet a) where
+    toJSON = elmStreetToJson . unElmStreet
+
+instance (Typeable a, Generic a, GFromJSON Zero (Rep a)) => FromJSON (ElmStreet a) where
+    parseJSON = fmap ElmStreet . elmStreetParseJson
