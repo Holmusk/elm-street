@@ -85,9 +85,9 @@ limitations, specifically:
        , hrWeight :: Double
        }
    ```
-2. Data types with type variables are not supported. Though, if type variables
-   are phantom, you still can implement `Elm` instance which will generate
-   valid Elm defintions. Here is how you can create `Elm` instance for
+2. Data types with type variables are not supported (see [issue #45](https://github.com/Holmusk/elm-street/issues/45) for more details).
+   Though, if type variables are phantom, you still can implement `Elm` instance which
+   will generate valid Elm defintions. Here is how you can create `Elm` instance for
    `newtype`s with phantom type variables:
    ```haskell
    newtype Id a = Id { unId :: Text }
