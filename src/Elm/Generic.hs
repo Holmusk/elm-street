@@ -32,7 +32,9 @@ module Elm.Generic
 
          -- * Internals
        , HasNoTypeVars
+       , HasLessThanEightUnnamedFields
        , TypeVarsError
+       , CheckFields
        , stripTypeNamePrefix
        ) where
 
@@ -43,11 +45,13 @@ import Data.List.NonEmpty (NonEmpty (..))
 import Data.Proxy (Proxy (..))
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
+import Data.Type.Bool (If)
 import Data.Void (Void)
 import Data.Word (Word16, Word32, Word8)
-import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..),
+import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..), Meta (..),
                      Rec0, S1, Selector (..), U1)
 import GHC.TypeLits (ErrorMessage (..), Nat, TypeError)
+import GHC.TypeNats (type (<=?), type (+))
 
 import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), definitionToRef)
@@ -63,7 +67,11 @@ class Elm a where
     toElmDefinition :: Proxy a -> ElmDefinition
 
     default toElmDefinition
-        :: (HasNoTypeVars a, Generic a, GenericElmDefinition (Rep a))
+        :: ( HasNoTypeVars a
+           , HasLessThanEightUnnamedFields a
+           , Generic a
+           , GenericElmDefinition (Rep a)
+           )
         => Proxy a
         -> ElmDefinition
     toElmDefinition _ = genericToElmDefinition
@@ -303,3 +311,29 @@ type family TypeVarsError (t :: k) (n :: Nat) :: ErrorMessage where
         ':$$: 'Text "See the following issue for more details:"
         ':$$: 'Text "    * https://github.com/Holmusk/elm-street/issues/45"
         ':$$: 'Text ""
+
+{- | This type family checks whether each constructor of the sum data type has
+less than eight unnamed fields and throws custom compiler error if it has.
+-}
+type family HasLessThanEightUnnamedFields (f :: k) :: Constraint where
+    HasLessThanEightUnnamedFields t =
+        If (CheckFields (Rep t) <=? 8)
+            (() :: Constraint)
+            (TypeError (FieldsError t))
+
+type family CheckFields (f :: k -> Type) :: Nat where
+    CheckFields (D1 _ f) = CheckFields f
+    CheckFields (f :+: g) = Max (CheckFields f) (CheckFields g)
+    CheckFields (C1 _ f) = CheckFields f
+    CheckFields (f :*: g) = CheckFields f + CheckFields g
+    CheckFields (S1 ('MetaSel ('Just _ ) _ _ _) _) = 0
+    CheckFields (S1 _ _) = 1
+    CheckFields _ = 0
+
+type family Max (x :: Nat) (y :: Nat) :: Nat where
+    Max x y = If (x <=? y) y x
+
+type family FieldsError (t :: k) :: ErrorMessage where
+    FieldsError t =
+             'Text "'elm-street' doesn't support Constructors with more than 8 unnamed fields."
+        ':$$: 'Text "But '" ':<>: 'ShowType t ':<>: 'Text "' has more."
