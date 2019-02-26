@@ -23,27 +23,32 @@ import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text (Text)
 
 
+-- | Elm data type definition.
 data ElmDefinition
     = DefAlias !ElmAlias
     | DefType  !ElmType
     | DefPrim  !ElmPrim
     deriving (Show)
 
+-- | AST for @type alias@ in Elm.
 data ElmAlias = ElmAlias
     { elmAliasName      :: !Text  -- ^ Name of the alias
     , elmAliasFields    :: !(NonEmpty ElmRecordField)  -- ^ List of fields
     , elmAliasIsNewtype :: !Bool  -- ^ 'True' if Haskell type is a @newtype@
     } deriving (Show)
 
+-- | Single file of @type alias@.
 data ElmRecordField = ElmRecordField
     { elmRecordFieldType :: !TypeRef
     , elmRecordFieldName :: !Text
     } deriving (Show)
 
+-- | Wrapper for name of the type.
 newtype TypeName = TypeName
     { unTypeName :: Text
     } deriving (Show)
 
+-- | AST for @type@ in Elm.
 data ElmType = ElmType
     { elmTypeName         :: !Text  -- ^ Name of the data type
     , elmTypeVars         :: ![Text]  -- ^ List of type variables; currently only phantom variables
@@ -51,6 +56,7 @@ data ElmType = ElmType
     , elmTypeConstructors :: !(NonEmpty ElmConstructor)  -- ^ List of constructors
     } deriving (Show)
 
+-- | Constructor of @type@.
 data ElmConstructor = ElmConstructor
     { elmConstructorName   :: !Text  -- ^ Name of the constructor
     , elmConstructorFields :: ![TypeRef]  -- ^ Fields of the constructor
