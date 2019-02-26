@@ -254,17 +254,27 @@ instance (Selector s, Elm a) => GenericElmFields (S1 s (Rec0 a)) where
 
 >>> stripTypeNamePrefix (TypeName "RecordUpdate") "ruRows"
 "rows"
+
+>>> stripTypeNamePrefix (TypeName "Foo") "foo"
+"foo"
+
+>>> stripTypeNamePrefix (TypeName "Foo") "abc"
+"abc"
 -}
 stripTypeNamePrefix :: TypeName -> Text -> Text
 stripTypeNamePrefix (TypeName typeName) fieldName =
     case T.stripPrefix (headToLower typeName) fieldName of
-        Just rest -> headToLower rest
-        Nothing   -> headToLower $ T.dropWhile isLower fieldName
+        Just rest -> leaveIfEmpty rest
+        Nothing   -> leaveIfEmpty (T.dropWhile isLower fieldName)
   where
     headToLower :: Text -> Text
     headToLower t = case T.uncons t of
         Nothing      -> error "Cannot use 'headToLower' on empty Text"
         Just (x, xs) -> T.cons (toLower x) xs
+
+    -- if all lower case then leave field as it is
+    leaveIfEmpty :: Text -> Text
+    leaveIfEmpty rest = if T.null rest then fieldName else headToLower rest
 
 ----------------------------------------------------------------------------
 -- ~Magic~

@@ -1,5 +1,9 @@
+{-# LANGUAGE CPP                #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveAnyClass     #-}
+#if ( __GLASGOW_HASKELL__ >= 806 )
+{-# LANGUAGE DerivingVia        #-}
+#endif
 {-# LANGUAGE DerivingStrategies #-}
 
 {- | Haskell types used for testing `elm-street` generated Elm types.
@@ -21,12 +25,11 @@ module Types
        ) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..))
-import Data.Aeson.Options (genericParseJSONStripType, genericToJSONStripType)
 import Data.Text (Text)
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Clock (UTCTime (..))
 import Data.Word (Word32)
-import Elm (Elm (..), elmNewtype)
+import Elm (Elm (..), ElmStreet (..), elmNewtype, elmStreetParseJson, elmStreetToJson)
 import GHC.Generics (Generic)
 
 
@@ -43,10 +46,14 @@ data Prims = Prims
     , primsPair   :: (Char, Bool)
     , primsList   :: [Int]
     } deriving (Generic, Eq, Show)
-      deriving anyclass (Elm)
+#if ( __GLASGOW_HASKELL__ >= 806 )
+      deriving (Elm, ToJSON, FromJSON) via ElmStreet Prims
+#else
+      deriving anyclass Elm
 
-instance ToJSON   Prims where toJSON = genericToJSONStripType
-instance FromJSON Prims where parseJSON = genericParseJSONStripType
+instance ToJSON   Prims where toJSON = elmStreetToJson
+instance FromJSON Prims where parseJSON = elmStreetParseJson
+#endif
 
 newtype Id a = Id
     { unId :: Text
@@ -77,8 +84,8 @@ data User = User
     } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
 
-instance ToJSON   User where toJSON = genericToJSONStripType
-instance FromJSON User where parseJSON = genericParseJSONStripType
+instance ToJSON   User where toJSON = elmStreetToJson
+instance FromJSON User where parseJSON = elmStreetParseJson
 
 data Guest
     = Regular Text Int
@@ -94,8 +101,8 @@ data UserRequest = UserRequest
     } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
 
-instance ToJSON   UserRequest where toJSON = genericToJSONStripType
-instance FromJSON UserRequest where parseJSON = genericParseJSONStripType
+instance ToJSON   UserRequest where toJSON = elmStreetToJson
+instance FromJSON UserRequest where parseJSON = elmStreetParseJson
 
 -- | All test types together in one type to play with.
 data OneType = OneType
@@ -109,8 +116,8 @@ data OneType = OneType
     } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
 
-instance ToJSON   OneType where toJSON = genericToJSONStripType
-instance FromJSON OneType where parseJSON = genericParseJSONStripType
+instance ToJSON   OneType where toJSON = elmStreetToJson
+instance FromJSON OneType where parseJSON = elmStreetParseJson
 
 -- | Type level list of all test types.
 type Types =
