@@ -33,8 +33,8 @@ module Elm.Generic
          -- * Internals
        , HasNoTypeVars
        , HasLessThanEightUnnamedFields
+       , HasNoNamedSum
        , TypeVarsError
-       , CheckFields
        , stripTypeNamePrefix
        ) where
 
@@ -45,7 +45,7 @@ import Data.List.NonEmpty (NonEmpty (..))
 import Data.Proxy (Proxy (..))
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
-import Data.Type.Bool (If)
+import Data.Type.Bool (If, type (||))
 import Data.Void (Void)
 import Data.Word (Word16, Word32, Word8)
 import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..), Meta (..),
@@ -69,6 +69,7 @@ class Elm a where
     default toElmDefinition
         :: ( HasNoTypeVars a
            , HasLessThanEightUnnamedFields a
+           , HasNoNamedSum a
            , Generic a
            , GenericElmDefinition (Rep a)
            )
@@ -337,3 +338,31 @@ type family FieldsError (t :: k) :: ErrorMessage where
     FieldsError t =
              'Text "'elm-street' doesn't support Constructors with more than 8 unnamed fields."
         ':$$: 'Text "But '" ':<>: 'ShowType t ':<>: 'Text "' has more."
+
+{- | This type family checks whether each constructor of the sum data type has
+less than eight unnamed fields and throws custom compiler error if it has.
+-}
+type family HasNoNamedSum (f :: k) :: Constraint where
+    HasNoNamedSum t =
+        If (CheckNamedSum (Rep t))
+            (TypeError (NamedSumError t))
+            (() :: Constraint)
+
+-- | Is the data type id Sum type with named fields?
+type family CheckNamedSum (f :: k -> Type) :: Bool where
+    CheckNamedSum (D1 _ f) = CheckNamedSum f
+    CheckNamedSum (f :+: g) = CheckConst f || CheckConst g
+    CheckNamedSum _ = 'False
+
+-- | Check if Sum type has named fields at least for one of the Constructors.
+type family CheckConst (f :: k -> Type) :: Bool where
+    CheckConst (f :+: g) = CheckConst f || CheckConst g
+    CheckConst (C1 _ f) = CheckConst f
+    CheckConst (S1 ('MetaSel ('Just _ ) _ _ _) _) = 'True
+    CheckConst (f :*: g) = CheckConst f || CheckConst g
+    CheckConst _ = 'False
+
+type family NamedSumError (t :: k) :: ErrorMessage where
+    NamedSumError t =
+             'Text "'elm-street' doesn't support Sum types with records."
+        ':$$: 'Text "But '" ':<>: 'ShowType t ':<>: 'Text "' has records."
