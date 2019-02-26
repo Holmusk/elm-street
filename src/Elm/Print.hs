@@ -17,6 +17,10 @@ module Elm.Print
        , decodeChar
        , decodeEither
        , decodePair
+
+         -- * Internal functions
+       , elmAliasDoc
+       , elmTypeDoc
        ) where
 
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
@@ -36,7 +40,8 @@ import qualified Data.Text as T
 
 {- | Pretty shows Elm types.
 
-TODO: more docs later
+* See 'elmAliasDoc' for examples of generated @type alias@.
+* See 'elmTypeDoc' for examples of generated @type@.
 -}
 prettyShowDefinition :: ElmDefinition -> Text
 prettyShowDefinition = showDoc . elmDoc

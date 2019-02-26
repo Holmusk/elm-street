@@ -30,11 +30,21 @@ module Elm.Generic
        , GenericConstructor (..)
        , toElmConstructor
 
-         -- * Internals
+         -- * Type families for compile-time checks
        , HasNoTypeVars
-       , HasLessThanEightUnnamedFields
-       , HasNoNamedSum
        , TypeVarsError
+
+       , HasLessThanEightUnnamedFields
+       , FieldsError
+       , CheckFields
+       , Max
+
+       , HasNoNamedSum
+       , NamedSumError
+       , CheckNamedSum
+       , CheckConst
+
+         -- * Internals
        , stripTypeNamePrefix
        ) where
 
@@ -141,9 +151,9 @@ instance Elm a => Elm (NonEmpty a) where
 this:
 
 @
-newtype Id a = Id { unId :: Text }
+__newtype__ Id a = Id { unId :: Text }
 
-instance Elm (Id a) where
+__instance__ Elm (Id a) __where__
     toElmDefinition _ = elmNewtype @Text "Id" "unId"
 @
 -}

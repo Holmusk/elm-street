@@ -2,7 +2,11 @@ cabal-version:       2.0
 name:                elm-street
 version:             0.0.0
 synopsis:            Crossing the road between Haskell and Elm
-description:         Crossing the road between Haskell and Elm
+description:
+    `Elm-street` allows you to generate automatically derived from Haskell types
+    definitions of Elm data types, JSON encoders and decoders. This helps to avoid
+    writing and maintaining huge chunk of boilerplate code when developing full-stack
+    applications.
 homepage:            https://github.com/Holmusk/elm-street
 bug-reports:         https://github.com/Holmusk/elm-street/issues
 license:             MPL-2.0

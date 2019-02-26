@@ -142,7 +142,7 @@ elmStreetJsonOptions = defaultOptions
 In order to use it with your type @MyType@ add the following deriving to your type:
 
 @
-    deriving (Elm, ToJSON, FromJSON) via ElmStreet MyType
+    __deriving__ (Elm, ToJSON, FromJSON) __via__ ElmStreet MyType
 @
 -}
 newtype ElmStreet a = ElmStreet

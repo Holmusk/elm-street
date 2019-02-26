@@ -9,6 +9,9 @@ module Elm.Generate
        ( Settings (..)
        , defaultSettings
        , generateElm
+
+         -- * Internal helpers
+       , RenderElm (..)
        ) where
 
 import Data.Kind (Type)
@@ -28,7 +31,7 @@ import qualified Data.Text.IO as TIO
 
 -- | Settings for outputting generated Elm code.
 data Settings = Settings
-    { settingsDirectory   :: !FilePath    -- ^ Directory to put generated files, e.g. @frontend/src@
+    { settingsDirectory   :: !FilePath    -- ^ Directory to put generated files, e.g. @frontend\/src@
     , settingsModule      :: ![FilePath]  -- ^ List of module parts, like @["ABC", "Core"]@
     , settingsTypesFile   :: !FilePath    -- ^ File name for module with types, e.g. @Types@
     , settingsEncoderFile :: !FilePath    -- ^ File name for module with JSON encoders, e.g. @Encoder@
@@ -79,14 +82,14 @@ toElmDecoderSource = prettyShowDecoder $ toElmDefinition $ Proxy @a
 to be called like this:
 
 @
-type Types =
+__type__ Types =
    '[ User
     , UserStatus
     , Measure
     ]
 
 main :: IO ()
-main = generateElm @Types $ defaultSettings "frontend/src/" ["ABC", "Core"]
+main = generateElm @Types $ defaultSettings "frontend\/src\/" ["ABC", "Core"]
 @
 -}
 generateElm :: forall (ts :: [Type]) . RenderElm ts => Settings -> IO ()
