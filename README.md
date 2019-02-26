@@ -36,7 +36,7 @@ In order to use `elm-street` features, you need to perform the following steps:
    ```
    > **NOTE:** This requires extensions `-XDerivingStrategies`, `-XDeriveGeneric`, `-XDeriveAnyClass`.
 
-   Alternatively you can use `-XDerivingVia` to remove some boilerplate:
+   Alternatively you can use `-XDerivingVia` to remove some boilerplate (available since GHC 8.6.1):
    ```haskell
    import Elm (Elm, ElmStreet (..))
 
@@ -140,7 +140,7 @@ limitations, specifically:
    ```
 6. Generated JSON encoders and decoders are consistent with default behavior of
    derived `ToJSON/FromJSON` instances from the `aeson` library except you need
-   to strip record field prefixex. Fortunately, this also can be done
+   to strip record field prefixes. Fortunately, this also can be done
    generically. You can use functions from `Elm.Aeson` module to derive `JSON`
    instances from the `aeson` package.
 7. Only `UTCTime` Haskell data type is supported and it's translated to `Posix`
