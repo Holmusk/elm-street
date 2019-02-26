@@ -19,17 +19,33 @@ applications.
 In order to use `elm-street` features, you need to perform the following steps:
 
 1. Add `elm-street` to the dependencies of your Haskell package.
-2. Derive the `Elm` typeclass for relevant data types. This can be done like this:
+2. Derive the `Elm` typeclass for relevant data types. You also need to derive
+   JSON instances according to `elm-street` naming scheme.
+   This can be done like this:
    ```haskell
-   import Elm (Elm)
+   import Elm (Elm, elmStreetParseJson, elmStreetToJson)
 
    data User = User
        { userName :: Text
        , userAge  :: Int
        } deriving (Generic)
          deriving anyclass (Elm)
+
+   instance ToJSON   User where toJSON = elmStreetToJson
+   instance FromJSON User where parseJSON = elmStreetParseJson
    ```
    > **NOTE:** This requires extensions `-XDerivingStrategies`, `-XDeriveGeneric`, `-XDeriveAnyClass`.
+
+   Alternatively you can use `-XDerivingVia` to remove some boilerplate (available since GHC 8.6.1):
+   ```haskell
+   import Elm (Elm, ElmStreet (..))
+
+   data User = User
+       { userName :: Text
+       , userAge  :: Int
+       } deriving (Generic)
+         deriving (Elm, ToJSON, FromJSON) via ElmStreet User
+   ```
 3. Create list of all types you want to expose to Elm:
    ```haskell
    type Types =
@@ -124,9 +140,9 @@ limitations, specifically:
    ```
 6. Generated JSON encoders and decoders are consistent with default behavior of
    derived `ToJSON/FromJSON` instances from the `aeson` library except you need
-   to strip record field prefixes (fortunately, this also can be done generically).
-
-   TODO: link to generic options
+   to strip record field prefixes. Fortunately, this also can be done
+   generically. You can use functions from `Elm.Aeson` module to derive `JSON`
+   instances from the `aeson` package.
 7. Only `UTCTime` Haskell data type is supported and it's translated to `Posix`
    type in Elm.
 
