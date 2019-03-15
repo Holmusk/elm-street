@@ -22,6 +22,8 @@ matrix:
   # stack
   - ghc: 8.6.3
     env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
+  - ghc: 8.4.4
+    env: STACK_YAML="$TRAVIS_BUILD_DIR/stack-8.4.4.yaml"
 
 install:
   - |

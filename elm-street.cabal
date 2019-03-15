@@ -34,7 +34,7 @@ library
                          Elm.Print
 
   build-depends:       base >= 4.11.1.0 && < 4.13
-                     , aeson >= 1.4
+                     , aeson >= 1.3
                      , directory ^>= 1.3
                      , filepath ^>= 1.4
                      , prettyprinter ^>= 1.2.1
@@ -128,10 +128,10 @@ executable run-backend
   other-modules:       Api
 
   build-depends:       base
-                     , servant ^>= 0.15
-                     , servant-server ^>= 0.15
+                     , servant >= 0.14 && < 0.16
+                     , servant-server >= 0.14 && < 0.16
                      , types
-                     , wai ^>= 3.2.2
+                     , wai ^>= 3.2
                      , warp ^>= 3.2
 
   ghc-options:         -Wall
