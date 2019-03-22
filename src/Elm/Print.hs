@@ -25,7 +25,7 @@ module Elm.Print
 
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
 import Data.Text (Text)
-import Data.Text.Prettyprint.Doc (Doc, brackets, colon, comma, concatWith, dquotes, emptyDoc,
+import Data.Text.Prettyprint.Doc (Doc, align, brackets, colon, comma, concatWith, dquotes, emptyDoc,
                                   equals, lbrace, lbracket, line, lparen, nest, parens, pipe,
                                   pretty, prettyList, rbrace, rbracket, rparen, sep, space,
                                   surround, vsep, (<+>))
@@ -263,7 +263,7 @@ elmEnumUniverse :: ElmType -> Doc ann
 elmEnumUniverse t@ElmType{..} = vsep
     -- function type
     [ universeName <+> colon <+> "List" <+> pretty elmTypeName
-    , universeName <+> equals <+> prettyList (getConstructorNames t)
+    , universeName <+> equals <+> align (prettyList $ getConstructorNames t)
     ]
   where
     universeName :: Doc ann
@@ -672,4 +672,7 @@ putStrLn $ T.unpack $ prettyShowEncoder $ DefType $ ElmType "Status" [] $ (ElmCo
 putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] $ (ElmConstructor "Approved" [TypeName "String", TypeName "Int"]) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" [TypeName "a"]]
 
 putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" ["a"] $ (ElmConstructor "Approved" [TypeName "String", TypeName "Int"]) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" [TypeName "a"]]
+
+putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] ((ElmConstructor "Approved" []) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" [], ElmConstructor "OneMore" [], ElmConstructor "AndAnother" []])
+
 -}
