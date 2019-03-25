@@ -43,7 +43,7 @@ decodeGuest =
     let decide : String -> Decoder Guest
         decide x = case x of
             "Regular" -> D.field "contents" <| D.map2 Regular (D.index 0 D.string) (D.index 1 D.int)
-            "Visitor" -> D.field "contents" <| D.map Visitor (D.index 0 D.string)
+            "Visitor" -> D.field "contents" <| D.map Visitor D.string
             "Blocked" -> D.succeed Blocked
             c -> D.fail <| "Guest doesn't have such constructor: " ++ c
     in D.andThen decide (D.field "tag" D.string)
@@ -61,5 +61,5 @@ decodeOneType = D.succeed OneType
     |> required "age" decodeAge
     |> required "requestStatus" decodeRequestStatus
     |> required "user" decodeUser
-    |> required "guest" decodeGuest
+    |> required "guests" (D.list decodeGuest)
     |> required "userRequest" decodeUserRequest

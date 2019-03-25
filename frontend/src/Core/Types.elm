@@ -70,6 +70,6 @@ type alias OneType =
     , age : Age
     , requestStatus : RequestStatus
     , user : User
-    , guest : Guest
+    , guests : List Guest
     , userRequest : UserRequest
     }
