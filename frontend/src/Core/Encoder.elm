@@ -42,7 +42,7 @@ encodeUser x = E.object
 encodeGuest : Guest -> Value
 encodeGuest x = E.object <| case x of
     Regular x1 x2 -> [("tag", E.string "Regular"), ("contents", E.list identity [E.string x1, E.int x2])]
-    Visitor x1 -> [("tag", E.string "Visitor"), ("contents", E.list identity [E.string x1])]
+    Visitor x1 -> [("tag", E.string "Visitor"), ("contents", E.string x1)]
     Blocked  -> [("tag", E.string "Blocked"), ("contents", E.list identity [])]
 
 encodeUserRequest : UserRequest -> Value
@@ -59,6 +59,6 @@ encodeOneType x = E.object
     , ("age", encodeAge x.age)
     , ("requestStatus", encodeRequestStatus x.requestStatus)
     , ("user", encodeUser x.user)
-    , ("guest", encodeGuest x.guest)
+    , ("guests", E.list encodeGuest x.guests)
     , ("userRequest", encodeUserRequest x.userRequest)
     ]

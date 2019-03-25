@@ -346,7 +346,13 @@ typeEncoderDoc t@ElmType{..} =
             map (pretty . mkText "x") [1..]
 
         contents :: Doc ann
-        contents = "," <+> parens (dquotes "contents" <> comma <+> "E.list identity" <+> brackets fieldEncs)
+        contents = "," <+> parens (dquotes "contents" <> comma <+> contentsEnc)
+
+        -- JSON encoder for the "contents" key
+        contentsEnc :: Doc ann
+        contentsEnc = case elmConstructorFields of
+            [_] -> fieldEncs
+            _   -> "E.list identity" <+> brackets fieldEncs
 
         -- | @encoderA x1@
         fieldEncs :: Doc ann
@@ -581,10 +587,10 @@ typeDecoderDoc  t@ElmType{..} =
 
     cases :: ElmConstructor -> Doc ann
     cases ElmConstructor{..} = dquotes cName <+> arrow <+>
-        case length elmConstructorFields of
-            0 -> "D.succeed" <+> cName
-            n -> "D.field \"contents\" <| D.map" <> mapNum n <+> cName <+> createIndexes
-
+        case elmConstructorFields of
+            []  -> "D.succeed" <+> cName
+            [f] -> "D.field \"contents\" <| D.map" <+> cName <+> typeRefDecoder f
+            l   -> "D.field \"contents\" <| D.map" <> mapNum (length l) <+> cName <+> createIndexes
       where
         cName :: Doc ann
         cName = pretty elmConstructorName

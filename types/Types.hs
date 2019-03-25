@@ -34,17 +34,17 @@ import GHC.Generics (Generic)
 
 
 data Prims = Prims
-    { primsUnit   :: ()
-    , primsBool   :: Bool
-    , primsChar   :: Char
-    , primsInt    :: Int
-    , primsFloat  :: Double
-    , primsString :: String
-    , primsTime   :: UTCTime
-    , primsMaybe  :: Maybe Word
-    , primsResult :: Either Int String
-    , primsPair   :: (Char, Bool)
-    , primsList   :: [Int]
+    { primsUnit   :: !()
+    , primsBool   :: !Bool
+    , primsChar   :: !Char
+    , primsInt    :: !Int
+    , primsFloat  :: !Double
+    , primsString :: !String
+    , primsTime   :: !UTCTime
+    , primsMaybe  :: !(Maybe Word)
+    , primsResult :: !(Either Int String)
+    , primsPair   :: !(Char, Bool)
+    , primsList   :: ![Int]
     } deriving (Generic, Eq, Show)
 #if ( __GLASGOW_HASKELL__ >= 806 )
       deriving (Elm, ToJSON, FromJSON) via ElmStreet Prims
@@ -77,10 +77,10 @@ data RequestStatus
     deriving anyclass (Elm, FromJSON, ToJSON)
 
 data User = User
-    { userId     :: Id User
-    , userName   :: Text
-    , userAge    :: Age
-    , userStatus :: RequestStatus
+    { userId     :: !(Id User)
+    , userName   :: !Text
+    , userAge    :: !Age
+    , userStatus :: !RequestStatus
     } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
 
@@ -95,9 +95,9 @@ data Guest
     deriving anyclass (Elm, FromJSON, ToJSON)
 
 data UserRequest = UserRequest
-    { userRequestIds     :: [Id User]
-    , userRequestLimit   :: Word32
-    , userRequestExample :: Maybe (Either User Guest)
+    { userRequestIds     :: ![Id User]
+    , userRequestLimit   :: !Word32
+    , userRequestExample :: !(Maybe (Either User Guest))
     } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
 
@@ -106,13 +106,13 @@ instance FromJSON UserRequest where parseJSON = elmStreetParseJson
 
 -- | All test types together in one type to play with.
 data OneType = OneType
-    { oneTypePrims         :: Prims
-    , oneTypeId            :: Id OneType
-    , oneTypeAge           :: Age
-    , oneTypeRequestStatus :: RequestStatus
-    , oneTypeUser          :: User
-    , oneTypeGuest         :: Guest
-    , oneTypeUserRequest   :: UserRequest
+    { oneTypePrims         :: !Prims
+    , oneTypeId            :: !(Id OneType)
+    , oneTypeAge           :: !Age
+    , oneTypeRequestStatus :: !RequestStatus
+    , oneTypeUser          :: !User
+    , oneTypeGuests        :: ![Guest]
+    , oneTypeUserRequest   :: !UserRequest
     } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
 
@@ -139,7 +139,7 @@ defaultOneType = OneType
     , oneTypeAge = Age 18
     , oneTypeRequestStatus = Reviewing
     , oneTypeUser = User (Id "1") "not-me" (Age 100) Approved
-    , oneTypeGuest = Regular "nice" 7
+    , oneTypeGuests = [guestRegular, guestVisitor, guestBlocked]
     , oneTypeUserRequest = defaultUserRequest
     }
   where
@@ -157,6 +157,11 @@ defaultOneType = OneType
         , primsPair   = ('o', False)
         , primsList   = [1..5]
         }
+
+    guestRegular, guestVisitor, guestBlocked :: Guest
+    guestRegular = Regular "nice" 7
+    guestVisitor = Visitor "new-guest"
+    guestBlocked = Blocked
 
     defaultUserRequest :: UserRequest
     defaultUserRequest = UserRequest

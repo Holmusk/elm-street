@@ -182,7 +182,7 @@ data User = User
     { userName :: Text
     , userAge  :: Int
     } deriving (Generic)
-      deriving anyclass (Elm)
+      deriving (Elm, ToJSON, FromJSON) via ElmStreet User
 ```
 
 **Elm**
@@ -215,7 +215,7 @@ data RequestStatus
     | Rejected
     | Reviewing
     deriving (Generic)
-    deriving anyclass (Elm)
+    deriving (Elm, ToJSON, FromJSON) via ElmStreet RequestStatus
 ```
 
 **Elm**
@@ -257,6 +257,7 @@ decodeRequestStatus = elmStreetDecodeEnum readRequestStatus
 newtype Age = Age
     { unAge :: Int
     } deriving (Generic)
+      deriving newtype (FromJSON, ToJSON)
       deriving anyclass (Elm)
 ```
 
@@ -279,7 +280,10 @@ decodeAge = D.map Age D.int
 **Haskell**
 
 ```haskell
-newtype Id a = Id { unId :: Text }
+newtype Id a = Id
+    { unId :: Text
+    } deriving (Generic)
+      deriving newtype (FromJSON, ToJSON)
 
 instance Elm (Id a) where
     toElmDefinition _ = elmNewtype @Text "Id" "unId"
@@ -309,7 +313,7 @@ data Guest
     | Visitor Text
     | Blocked
     deriving (Generic)
-    deriving anyclass (Elm)
+    deriving (Elm, ToJSON, FromJSON) via ElmStreet Guest
 ```
 
 **Elm**
@@ -323,7 +327,7 @@ type Guest
 encodeGuest : Guest -> Value
 encodeGuest x = E.object <| case x of
     Regular x1 x2 -> [("tag", E.string "Regular"), ("contents", E.list identity [E.string x1, E.int x2])]
-    Visitor x1 -> [("tag", E.string "Visitor"), ("contents", E.list identity [E.string x1])]
+    Visitor x1 -> [("tag", E.string "Visitor"), ("contents", E.string x1)]
     Blocked  -> [("tag", E.string "Blocked"), ("contents", E.list identity [])]
 
 decodeGuest : Decoder Guest
@@ -331,7 +335,7 @@ decodeGuest =
     let decide : String -> Decoder Guest
         decide x = case x of
             "Regular" -> D.field "contents" <| D.map2 Regular (D.index 0 D.string) (D.index 1 D.int)
-            "Visitor" -> D.field "contents" <| D.map Visitor (D.index 0 D.string)
+            "Visitor" -> D.field "contents" <| D.map Visitor D.string
             "Blocked" -> D.succeed Blocked
             c -> D.fail <| "Guest doesn't have such constructor: " ++ c
     in D.andThen decide (D.field "tag" D.string)
