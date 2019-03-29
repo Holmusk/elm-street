@@ -3,7 +3,7 @@
 `elm-street` uses [PVP Versioning][1].
 The changelog is available [on GitHub][2].
 
-## Unreleased: 0.0.1
+## 0.0.1 — Mar 29, 2019
 
 * [#64](https://github.com/holmusk/elm-street/issues/64):
   Fix indentation for the generated enums.
