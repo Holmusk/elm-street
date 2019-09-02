@@ -104,9 +104,21 @@ data UserRequest = UserRequest
 instance ToJSON   UserRequest where toJSON = elmStreetToJson
 instance FromJSON UserRequest where parseJSON = elmStreetParseJson
 
+data MyUnit = MyUnit ()
+    deriving stock (Show, Eq, Ord, Generic)
+#if ( __GLASGOW_HASKELL__ >= 806 )
+      deriving (Elm, ToJSON, FromJSON) via ElmStreet MyUnit
+#else
+      deriving anyclass Elm
+
+instance ToJSON   MyUnit where toJSON = elmStreetToJson
+instance FromJSON MyUnit where parseJSON = elmStreetParseJson
+#endif
+
 -- | All test types together in one type to play with.
 data OneType = OneType
     { oneTypePrims         :: !Prims
+    , oneTypeMyUnit        :: !MyUnit
     , oneTypeId            :: !(Id OneType)
     , oneTypeAge           :: !Age
     , oneTypeRequestStatus :: !RequestStatus
@@ -122,6 +134,7 @@ instance FromJSON OneType where parseJSON = elmStreetParseJson
 -- | Type level list of all test types.
 type Types =
    '[ Prims
+    , MyUnit
     , Id ()
     , Age
     , RequestStatus
@@ -135,6 +148,7 @@ type Types =
 defaultOneType :: OneType
 defaultOneType = OneType
     { oneTypePrims = defaultPrims
+    , oneTypeMyUnit = MyUnit ()
     , oneTypeId = Id "myId"
     , oneTypeAge = Age 18
     , oneTypeRequestStatus = Reviewing

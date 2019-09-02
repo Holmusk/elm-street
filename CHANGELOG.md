@@ -5,6 +5,8 @@ The changelog is available [on GitHub][2].
 
 ## Unreleased: 0.0.2.0
 
+* [#74](https://github.com/holmusk/elm-street/issues/74):
+  Fix unit type `typeRef` encoder and decoder printers.
 * [#72](https://github.com/holmusk/elm-street/issues/72):
   Use consistent encoders and decoders for unary constructors.
 
