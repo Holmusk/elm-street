@@ -17,6 +17,9 @@ type alias Prims =
     , list : List Int
     }
 
+type MyUnit
+    = MyUnit ()
+
 type alias Id =
     { unId : String
     }
@@ -66,6 +69,7 @@ type alias UserRequest =
 
 type alias OneType =
     { prims : Prims
+    , myUnit : MyUnit
     , id : Id
     , age : Age
     , requestStatus : RequestStatus

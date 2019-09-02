@@ -611,7 +611,7 @@ typeDecoderDoc  t@ElmType{..} =
 typeRefDecoder :: TypeRef -> Doc ann
 typeRefDecoder (RefCustom TypeName{..}) = "decode" <> pretty (T.takeWhile (/= ' ') unTypeName)
 typeRefDecoder (RefPrim elmPrim) = case elmPrim of
-    ElmUnit       -> "(D.hardcoded ())"
+    ElmUnit       -> "(D.map (always ()) (D.list D.string))"
     ElmNever      -> "(D.fail \"Never is not possible\")"
     ElmBool       -> "D.bool"
     ElmChar       -> "elmStreetDecodeChar"

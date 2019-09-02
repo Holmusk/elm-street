@@ -22,6 +22,10 @@ encodePrims x = E.object
     , ("list", E.list E.int x.list)
     ]
 
+encodeMyUnit : MyUnit -> Value
+encodeMyUnit x = E.object <| case x of
+    MyUnit x1 -> [("tag", E.string "MyUnit"), ("contents", (always <| E.list identity []) x1)]
+
 encodeId : Id -> Value
 encodeId x = E.string x.unId
 
@@ -55,6 +59,7 @@ encodeUserRequest x = E.object
 encodeOneType : OneType -> Value
 encodeOneType x = E.object
     [ ("prims", encodePrims x.prims)
+    , ("myUnit", encodeMyUnit x.myUnit)
     , ("id", encodeId x.id)
     , ("age", encodeAge x.age)
     , ("requestStatus", encodeRequestStatus x.requestStatus)

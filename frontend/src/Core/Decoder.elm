@@ -22,6 +22,14 @@ decodePrims = D.succeed Prims
     |> required "pair" (elmStreetDecodePair elmStreetDecodeChar D.bool)
     |> required "list" (D.list D.int)
 
+decodeMyUnit : Decoder MyUnit
+decodeMyUnit =
+    let decide : String -> Decoder MyUnit
+        decide x = case x of
+            "MyUnit" -> D.field "contents" <| D.map MyUnit (D.map (always ()) (D.list D.string))
+            c -> D.fail <| "MyUnit doesn't have such constructor: " ++ c
+    in D.andThen decide (D.field "tag" D.string)
+
 decodeId : Decoder Id
 decodeId = D.map Id D.string
 
@@ -57,6 +65,7 @@ decodeUserRequest = D.succeed UserRequest
 decodeOneType : Decoder OneType
 decodeOneType = D.succeed OneType
     |> required "prims" decodePrims
+    |> required "myUnit" decodeMyUnit
     |> required "id" decodeId
     |> required "age" decodeAge
     |> required "requestStatus" decodeRequestStatus
