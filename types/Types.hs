@@ -106,7 +106,14 @@ instance FromJSON UserRequest where parseJSON = elmStreetParseJson
 
 data MyUnit = MyUnit ()
     deriving stock (Show, Eq, Ord, Generic)
-    deriving (Elm, ToJSON, FromJSON) via ElmStreet MyUnit
+#if ( __GLASGOW_HASKELL__ >= 806 )
+      deriving (Elm, ToJSON, FromJSON) via ElmStreet MyUnit
+#else
+      deriving anyclass Elm
+
+instance ToJSON   MyUnit where toJSON = elmStreetToJson
+instance FromJSON MyUnit where parseJSON = elmStreetParseJson
+#endif
 
 -- | All test types together in one type to play with.
 data OneType = OneType
