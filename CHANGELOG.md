@@ -3,6 +3,11 @@
 `elm-street` uses [PVP Versioning][1].
 The changelog is available [on GitHub][2].
 
+## Unreleased: 0.0.2.0
+
+* [#72](https://github.com/holmusk/elm-street/issues/72):
+  Use consistent encoders and decoders for unary constructors.
+
 ## 0.0.1 — Mar 29, 2019
 
 * [#64](https://github.com/holmusk/elm-street/issues/64):

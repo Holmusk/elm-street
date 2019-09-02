@@ -133,6 +133,7 @@ elmStreetToJson = genericToJSON (elmStreetJsonOptions @a)
 elmStreetJsonOptions :: forall a . Typeable a => Options
 elmStreetJsonOptions = defaultOptions
     { fieldLabelModifier = T.unpack . stripTypeNamePrefix typeName . T.pack
+    , tagSingleConstructors = True
     }
   where
     typeName :: TypeName
