@@ -145,6 +145,22 @@ limitations, specifically:
    instances from the `aeson` package.
 7. Only `UTCTime` Haskell data type is supported and it's translated to `Posix`
    type in Elm.
+8. Some words in Elm are considered reserved and naming a record field with one of these words (prefixed with the type name, see 1) will result in the generated Elm files to not compile. So, the following words should not be used as field names:
+   * `if`
+   * `then`
+   * `else`
+   * `case`
+   * `of`
+   * `let`
+   * `in`
+   * `type`
+   * `module`
+   * `where`
+   * `import`
+   * `exposing`
+   * `as`
+   * `port`
+   * `tag` (reserved for constructor name due to `aeson` options)
 
 ## Play with frontend example
 
