@@ -1,4 +1,4 @@
-cabal-version:       2.0
+cabal-version:       2.4
 name:                elm-street
 version:             0.0.2.0
 synopsis:            Crossing the road between Haskell and Elm
@@ -11,35 +11,22 @@ homepage:            https://github.com/Holmusk/elm-street
 bug-reports:         https://github.com/Holmusk/elm-street/issues
 license:             MPL-2.0
 license-file:        LICENSE
-author:              Holmusk
-maintainer:          tech@holmusk.com
+author:              Veronika Romashkina, Dmitrii Kovanikov
+maintainer:          Holmusk <tech@holmusk.com>
 copyright:           2019 Holmusk
 category:            Language, Compiler, Elm
 build-type:          Simple
 extra-doc-files:     README.md
                    , CHANGELOG.md
-tested-with:         GHC == 8.4.4, GHC == 8.6.3
+tested-with:         GHC == 8.4.4
+                     GHC == 8.6.5
 
 source-repository head
   type:                git
   location:            https://github.com/Holmusk/elm-street.git
 
-library
-  hs-source-dirs:      src
-  exposed-modules:     Elm
-                         Elm.Aeson
-                         Elm.Ast
-                         Elm.Generate
-                         Elm.Generic
-                         Elm.Print
-
+common common-options
   build-depends:       base >= 4.11.1.0 && < 4.13
-                     , aeson >= 1.3
-                     , directory ^>= 1.3
-                     , filepath ^>= 1.4
-                     , prettyprinter ^>= 1.2.1
-                     , text ^>= 1.2
-                     , time
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns
@@ -50,100 +37,6 @@ library
                        -fhide-source-paths
                        -Wmissing-export-lists
                        -Wpartial-fields
-
-  default-language:    Haskell2010
-  default-extensions:  ConstraintKinds
-                       DeriveGeneric
-                       GeneralizedNewtypeDeriving
-                       InstanceSigs
-                       KindSignatures
-                       LambdaCase
-                       OverloadedStrings
-                       RecordWildCards
-                       ScopedTypeVariables
-                       StandaloneDeriving
-                       TupleSections
-                       TypeApplications
-                       ViewPatterns
-
-library types
-  hs-source-dirs:      types
-  exposed-modules:     Types
-
-  build-depends:       base >= 4.11 && < 4.13
-                     , aeson
-                     , elm-street
-                     , text
-                     , time
-
-  ghc-options:         -Wall
-                       -Wincomplete-uni-patterns
-                       -Wincomplete-record-updates
-                       -Wcompat
-                       -Widentities
-                       -Wredundant-constraints
-                       -fhide-source-paths
-                       -Wmissing-export-lists
-                       -Wpartial-fields
-
-  default-language:    Haskell2010
-  default-extensions:  ConstraintKinds
-                       DeriveGeneric
-                       GeneralizedNewtypeDeriving
-                       InstanceSigs
-                       KindSignatures
-                       LambdaCase
-                       OverloadedStrings
-                       RecordWildCards
-                       ScopedTypeVariables
-                       StandaloneDeriving
-                       TupleSections
-                       TypeApplications
-                       ViewPatterns
-
-executable generate-elm
-  hs-source-dirs:      generate-elm
-  main-is:             Main.hs
-
-  build-depends:       base
-                     , elm-street
-                     , types
-
-  ghc-options:         -Wall
-                       -threaded
-                       -rtsopts
-                       -with-rtsopts=-N
-                       -Wincomplete-uni-patterns
-                       -Wincomplete-record-updates
-                       -Wcompat
-                       -Widentities
-                       -Wredundant-constraints
-                       -fhide-source-paths
-
-  default-language:    Haskell2010
-
-executable run-backend
-  hs-source-dirs:      backend
-  main-is:             Main.hs
-  other-modules:       Api
-
-  build-depends:       base
-                     , servant >= 0.14 && < 0.17
-                     , servant-server >= 0.14 && < 0.17
-                     , types
-                     , wai ^>= 3.2
-                     , warp ^>= 3.2
-
-  ghc-options:         -Wall
-                       -threaded
-                       -rtsopts
-                       -with-rtsopts=-N
-                       -Wincomplete-uni-patterns
-                       -Wincomplete-record-updates
-                       -Wcompat
-                       -Widentities
-                       -Wredundant-constraints
-                       -fhide-source-paths
 
   default-language:    Haskell2010
   default-extensions:  ConstraintKinds
@@ -161,39 +54,69 @@ executable run-backend
                        TypeOperators
                        ViewPatterns
 
+library
+  import:              common-options
+  hs-source-dirs:      src
+  exposed-modules:     Elm
+                         Elm.Aeson
+                         Elm.Ast
+                         Elm.Generate
+                         Elm.Generic
+                         Elm.Print
+
+  build-depends:       aeson >= 1.3
+                     , directory ^>= 1.3
+                     , filepath ^>= 1.4
+                     , prettyprinter ^>= 1.2.1
+                     , text ^>= 1.2
+                     , time
+
+library types
+  import:              common-options
+  hs-source-dirs:      types
+  exposed-modules:     Types
+
+  build-depends:       aeson
+                     , elm-street
+                     , text
+                     , time
+
+executable generate-elm
+  import:              common-options
+  hs-source-dirs:      generate-elm
+  main-is:             Main.hs
+
+  build-depends:       elm-street
+                     , types
+
+  ghc-options:         -threaded
+                       -rtsopts
+                       -with-rtsopts=-N
+
+executable run-backend
+  import:              common-options
+  hs-source-dirs:      backend
+  main-is:             Main.hs
+  other-modules:       Api
+
+  build-depends:       servant >= 0.14 && < 0.17
+                     , servant-server >= 0.14 && < 0.17
+                     , types
+                     , wai ^>= 3.2
+                     , warp ^>= 3.2
+
+  ghc-options:         -threaded
+                       -rtsopts
+                       -with-rtsopts=-N
+
 test-suite elm-street-test
+  import:              common-options
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
 
-  build-depends:       base >= 4.11.1.0 && < 4.13
-                     , elm-street
+  build-depends:       elm-street
 
-
-  ghc-options:         -Wall
-                       -threaded
+  ghc-options:         -threaded
                        -rtsopts
                        -with-rtsopts=-N
-                       -Wincomplete-uni-patterns
-                       -Wincomplete-record-updates
-                       -Wcompat
-                       -Widentities
-                       -Wredundant-constraints
-                       -fhide-source-paths
-                       -Wmissing-export-lists
-                       -Wpartial-fields
-
-  default-language:    Haskell2010
-  default-extensions:  ConstraintKinds
-                       DeriveGeneric
-                       GeneralizedNewtypeDeriving
-                       InstanceSigs
-                       KindSignatures
-                       LambdaCase
-                       OverloadedStrings
-                       RecordWildCards
-                       ScopedTypeVariables
-                       StandaloneDeriving
-                       TupleSections
-                       TypeApplications
-                       ViewPatterns

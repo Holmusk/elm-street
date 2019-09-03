@@ -9,6 +9,8 @@ The changelog is available [on GitHub][2].
   Fix unit type `typeRef` encoder and decoder printers.
 * [#72](https://github.com/holmusk/elm-street/issues/72):
   Use consistent encoders and decoders for unary constructors.
+* [#76](https://github.com/holmusk/elm-street/issues/76):
+  Support GHC-8.6.5. Use common stanzas.
 
 ## 0.0.1 — Mar 29, 2019
 

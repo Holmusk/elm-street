@@ -4,7 +4,7 @@ language: haskell
 git:
   depth: 5
 
-cabal: "head"
+cabal: "3.0"
 
 cache:
   directories:
@@ -17,21 +17,21 @@ matrix:
 
   # Cabal
   - ghc: 8.4.4
-  - ghc: 8.6.3
+  - ghc: 8.6.5
 
   # stack
-  - ghc: 8.6.3
-    env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
   - ghc: 8.4.4
     env: STACK_YAML="$TRAVIS_BUILD_DIR/stack-8.4.4.yaml"
+  - ghc: 8.6.5
+    env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
 
 install:
   - |
     if [ -z "$STACK_YAML" ]; then
       ghc --version
       cabal --version
-      cabal new-update
-      cabal new-build --enable-tests --enable-benchmarks
+      cabal update
+      cabal build --enable-tests --enable-benchmarks
     else
       # install stack
       curl -sSL https://get.haskellstack.org/ | sh
@@ -44,7 +44,7 @@ install:
 script:
   - |
     if [ -z "$STACK_YAML" ]; then
-      cabal new-test --enable-tests
+      cabal test --enable-tests
     else
       stack test --system-ghc
     fi
