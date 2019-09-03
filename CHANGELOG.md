@@ -14,6 +14,8 @@ The changelog is available [on GitHub][2].
   Use consistent encoders and decoders for unary constructors.
 * [#76](https://github.com/holmusk/elm-street/issues/76):
   Support GHC-8.6.5. Use common stanzas.
+* [#73](https://github.com/holmusk/elm-street/issues/73):
+  Clarify the restriction with reserved words in documentation.
 
 ## 0.0.1 — Mar 29, 2019
 
