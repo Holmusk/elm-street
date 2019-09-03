@@ -25,6 +25,21 @@ matrix:
   - ghc: 8.6.5
     env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
 
+  # elm
+  - language: elm
+    cache:
+      directories:
+      - "$HOME/.npm"
+      - "$TRAVIS_BUILD_DIR/frontend/node_modules"
+      - "$TRAVIS_BUILD_DIR/frontend/elm-stuff"
+
+    install:
+      - cd frontend/
+      - npm install -g create-elm-app@2.2.0
+      - npm install
+    script:
+      - elm-app build
+
 install:
   - |
     if [ -z "$STACK_YAML" ]; then
