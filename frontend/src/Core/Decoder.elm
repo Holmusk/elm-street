@@ -5,65 +5,65 @@ import Json.Decode as D exposing (..)
 import Json.Decode.Pipeline as D exposing (required)
 
 import Core.ElmStreet exposing (..)
-import Core.Types exposing (..)
+import Core.Types as T
 
 
-decodePrims : Decoder Prims
-decodePrims = D.succeed Prims
+decodePrims : Decoder T.Prims
+decodePrims = D.succeed T.Prims
     |> D.hardcoded ()
     |> required "bool" D.bool
     |> required "char" elmStreetDecodeChar
     |> required "int" D.int
     |> required "float" D.float
-    |> required "string" D.string
+    |> required "text" D.string
     |> required "time" Iso.decoder
     |> required "maybe" (nullable D.int)
     |> required "result" (elmStreetDecodeEither D.int D.string)
     |> required "pair" (elmStreetDecodePair elmStreetDecodeChar D.bool)
     |> required "list" (D.list D.int)
 
-decodeMyUnit : Decoder MyUnit
+decodeMyUnit : Decoder T.MyUnit
 decodeMyUnit =
-    let decide : String -> Decoder MyUnit
+    let decide : String -> Decoder T.MyUnit
         decide x = case x of
-            "MyUnit" -> D.field "contents" <| D.map MyUnit (D.map (always ()) (D.list D.string))
+            "MyUnit" -> D.field "contents" <| D.map T.MyUnit (D.map (always ()) (D.list D.string))
             c -> D.fail <| "MyUnit doesn't have such constructor: " ++ c
     in D.andThen decide (D.field "tag" D.string)
 
-decodeId : Decoder Id
-decodeId = D.map Id D.string
+decodeId : Decoder T.Id
+decodeId = D.map T.Id D.string
 
-decodeAge : Decoder Age
-decodeAge = D.map Age D.int
+decodeAge : Decoder T.Age
+decodeAge = D.map T.Age D.int
 
-decodeRequestStatus : Decoder RequestStatus
-decodeRequestStatus = elmStreetDecodeEnum readRequestStatus
+decodeRequestStatus : Decoder T.RequestStatus
+decodeRequestStatus = elmStreetDecodeEnum T.readRequestStatus
 
-decodeUser : Decoder User
-decodeUser = D.succeed User
+decodeUser : Decoder T.User
+decodeUser = D.succeed T.User
     |> required "id" decodeId
     |> required "name" D.string
     |> required "age" decodeAge
     |> required "status" decodeRequestStatus
 
-decodeGuest : Decoder Guest
+decodeGuest : Decoder T.Guest
 decodeGuest =
-    let decide : String -> Decoder Guest
+    let decide : String -> Decoder T.Guest
         decide x = case x of
-            "Regular" -> D.field "contents" <| D.map2 Regular (D.index 0 D.string) (D.index 1 D.int)
-            "Visitor" -> D.field "contents" <| D.map Visitor D.string
-            "Blocked" -> D.succeed Blocked
+            "Regular" -> D.field "contents" <| D.map2 T.Regular (D.index 0 D.string) (D.index 1 D.int)
+            "Visitor" -> D.field "contents" <| D.map T.Visitor D.string
+            "Blocked" -> D.succeed T.Blocked
             c -> D.fail <| "Guest doesn't have such constructor: " ++ c
     in D.andThen decide (D.field "tag" D.string)
 
-decodeUserRequest : Decoder UserRequest
-decodeUserRequest = D.succeed UserRequest
+decodeUserRequest : Decoder T.UserRequest
+decodeUserRequest = D.succeed T.UserRequest
     |> required "ids" (D.list decodeId)
     |> required "limit" D.int
     |> required "example" (nullable (elmStreetDecodeEither decodeUser decodeGuest))
 
-decodeOneType : Decoder OneType
-decodeOneType = D.succeed OneType
+decodeOneType : Decoder T.OneType
+decodeOneType = D.succeed T.OneType
     |> required "prims" decodePrims
     |> required "myUnit" decodeMyUnit
     |> required "id" decodeId

@@ -9,7 +9,7 @@ type alias Prims =
     , char : Char
     , int : Int
     , float : Float
-    , string : String
+    , text : String
     , time : Posix
     , maybe : Maybe Int
     , result : Result Int String

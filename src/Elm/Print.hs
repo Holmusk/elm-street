@@ -96,6 +96,10 @@ wrapParens = wordsDoc . T.words . showDoc
         [x] -> pretty x
         xs  -> lparen <> pretty (T.unwords xs) <> rparen
 
+{- | Add qualified prefix to the type names: @T.MyType@ -}
+mkQualified :: Text -> Doc ann
+mkQualified = pretty . ("T." <>)
+
 {- | Pretty printer for Elm aliases:
 
 @
@@ -309,7 +313,7 @@ typeEncoderDoc t@ElmType{..} =
             else sumEncoder
   where
     enumEncoder :: Doc ann
-    enumEncoder = name <+> equals <+> "E.string << show" <> pretty elmTypeName
+    enumEncoder = name <+> equals <+> "E.string << T.show" <> pretty elmTypeName
 
     newtypeEncoder :: Doc ann
     newtypeEncoder =
@@ -332,13 +336,11 @@ typeEncoderDoc t@ElmType{..} =
 
     -- | Create case clouse for each of the sum Constructors.
     mkCase :: ElmConstructor -> Doc ann
-    mkCase ElmConstructor{..} = conName <+> vars <+> arrow
+    mkCase ElmConstructor{..} = mkQualified elmConstructorName
+        <+> vars
+        <+> arrow
         <+> brackets (mkTag elmConstructorName <> contents)
       where
-        -- | Constructor name
-        conName :: Doc ann
-        conName = pretty elmConstructorName
-
         -- | Creates variables: @x1@ to @xN@, where N is the number of the constructor fields.
         fields :: [Doc ann]
         fields = take (length elmConstructorFields) $
@@ -418,9 +420,9 @@ typeWithVarsDoc
     :: Text  -- ^ Type name
     -> [Text] -- ^ List of type variables
     -> Doc ann
-typeWithVarsDoc typeName = \case
-    []   -> pretty typeName
-    vars -> pretty typeName <+> typeVarsDoc vars
+typeWithVarsDoc (mkQualified -> qTypeName) = \case
+    []   -> qTypeName
+    vars -> qTypeName <+> typeVarsDoc vars
   where
     typeVarsDoc :: [Text] -> Doc ann
     typeVarsDoc = concatWith (surround " ") . map pretty
@@ -522,20 +524,20 @@ aliasDecoderDoc ElmAlias{..} =
        else recordDecoder
   where
     newtypeDecoder :: Doc ann
-    newtypeDecoder = name <+> "D.map" <+> aliasName
+    newtypeDecoder = name <+> "D.map" <+> qualifiedAliasName
         <+> typeRefDecoder (elmRecordFieldType $ NE.head elmAliasFields)
 
     recordDecoder :: Doc ann
     recordDecoder = nest 4
         $ vsep
-        $ (name <+> "D.succeed" <+> aliasName)
+        $ (name <+> "D.succeed" <+> qualifiedAliasName)
         : map fieldDecode (toList elmAliasFields)
 
     name :: Doc ann
     name = decoderName elmAliasName <+> equals
 
-    aliasName :: Doc ann
-    aliasName = pretty elmAliasName
+    qualifiedAliasName :: Doc ann
+    qualifiedAliasName = mkQualified elmAliasName
 
     fieldDecode :: ElmRecordField -> Doc ann
     fieldDecode ElmRecordField{..} = case elmRecordFieldType of
@@ -564,11 +566,14 @@ typeDecoderDoc  t@ElmType{..} =
     typeName :: Doc ann
     typeName = pretty elmTypeName
 
+    qualifiedTypeName :: Doc ann
+    qualifiedTypeName = mkQualified elmTypeName
+
     enumDecoder :: Doc ann
-    enumDecoder = name <+> "elmStreetDecodeEnum read" <> typeName
+    enumDecoder = name <+> "elmStreetDecodeEnum T.read" <> typeName
 
     newtypeDecoder :: Doc ann
-    newtypeDecoder = name <+> "D.map" <+> typeName <+> fieldDecoderDoc
+    newtypeDecoder = name <+> "D.map" <+> qualifiedTypeName <+> fieldDecoderDoc
       where
         fieldDecoderDoc :: Doc ann
         fieldDecoderDoc = case elmConstructorFields $ NE.head elmTypeConstructors of
@@ -578,7 +583,7 @@ typeDecoderDoc  t@ElmType{..} =
     sumDecoder :: Doc ann
     sumDecoder = nest 4 $ vsep
         [ name
-        , nest 4 (vsep $ ("let decide : String -> Decoder" <+> typeName) :
+        , nest 4 (vsep $ ("let decide : String -> Decoder" <+> qualifiedTypeName) :
             [ nest 4
                 ( vsep $ "decide x = case x of"
                 : map cases (toList elmTypeConstructors)
@@ -591,12 +596,15 @@ typeDecoderDoc  t@ElmType{..} =
     cases :: ElmConstructor -> Doc ann
     cases ElmConstructor{..} = dquotes cName <+> arrow <+>
         case elmConstructorFields of
-            []  -> "D.succeed" <+> cName
-            [f] -> "D.field \"contents\" <| D.map" <+> cName <+> typeRefDecoder f
-            l   -> "D.field \"contents\" <| D.map" <> mapNum (length l) <+> cName <+> createIndexes
+            []  -> "D.succeed" <+> qualifiedConName
+            [f] -> "D.field \"contents\" <| D.map" <+> qualifiedConName <+> typeRefDecoder f
+            l   -> "D.field \"contents\" <| D.map" <> mapNum (length l) <+> qualifiedConName <+> createIndexes
       where
         cName :: Doc ann
         cName = pretty elmConstructorName
+
+        qualifiedConName :: Doc ann
+        qualifiedConName = mkQualified elmConstructorName
 
         -- Use function map, map2, map3 etc.
         mapNum :: Int -> Doc ann
@@ -627,7 +635,7 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
     ElmPair a b   -> parens $ "elmStreetDecodePair" <+> typeRefDecoder a <+> typeRefDecoder b
     ElmList l     -> parens $ "D.list" <+> typeRefDecoder l
 
--- | The definition of the @encodeTYPENAME@ function.
+-- | The definition of the @decodeTYPENAME@ function.
 decoderDef
     :: Text  -- ^ Type name
     -> [Text] -- ^ List of type variables

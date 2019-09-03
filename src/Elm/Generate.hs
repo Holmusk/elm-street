@@ -133,7 +133,7 @@ generateElm Settings{..} = do
         , "import Json.Encode as E exposing (..)"
         , ""
         , "import " <> streetModule <> " exposing (..)"
-        , "import " <> typesModule <> " exposing (..)"
+        , "import " <> typesModule <> " as T"
         ]
 
     decoderHeader :: Text
@@ -145,7 +145,7 @@ generateElm Settings{..} = do
         , "import Json.Decode.Pipeline as D exposing (required)"
         , ""
         , "import " <> streetModule <> " exposing (..)"
-        , "import " <> typesModule <> " exposing (..)"
+        , "import " <> typesModule <> " as T"
         ]
 
     elmStreetDefinitions :: [Text]

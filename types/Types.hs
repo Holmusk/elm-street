@@ -39,10 +39,10 @@ data Prims = Prims
     , primsChar   :: !Char
     , primsInt    :: !Int
     , primsFloat  :: !Double
-    , primsString :: !String
+    , primsText   :: !Text
     , primsTime   :: !UTCTime
     , primsMaybe  :: !(Maybe Word)
-    , primsResult :: !(Either Int String)
+    , primsResult :: !(Either Int Text)
     , primsPair   :: !(Char, Bool)
     , primsList   :: ![Int]
     } deriving (Generic, Eq, Show)
@@ -164,7 +164,7 @@ defaultOneType = OneType
         , primsChar   = 'a'
         , primsInt    = 42
         , primsFloat  = 36.6
-        , primsString = "heh"
+        , primsText   = "heh"
         , primsTime   = UTCTime (fromGregorian 2019 2 22) 0
         , primsMaybe  = Just 12
         , primsResult = Left 666
