@@ -5,6 +5,9 @@ The changelog is available [on GitHub][2].
 
 ## Unreleased: 0.0.2.0
 
+* [#80](https://github.com/holmusk/elm-street/issues/80):
+  *All* encoders for constructors with fields now have `tag`
+  due to aeson decoder on Haskell side.
 * [#74](https://github.com/holmusk/elm-street/issues/74):
   Fix unit type `typeRef` encoder and decoder printers.
 * [#72](https://github.com/holmusk/elm-street/issues/72):
