@@ -115,10 +115,18 @@ instance ToJSON   MyUnit where toJSON = elmStreetToJson
 instance FromJSON MyUnit where parseJSON = elmStreetParseJson
 #endif
 
+-- | For name clashes testing.
+data MyResult
+    = Ok
+    | Error Text
+    deriving (Generic, Eq, Show)
+    deriving anyclass (Elm, FromJSON, ToJSON)
+
 -- | All test types together in one type to play with.
 data OneType = OneType
     { oneTypePrims         :: !Prims
     , oneTypeMyUnit        :: !MyUnit
+    , oneTypeResult        :: !MyResult
     , oneTypeId            :: !(Id OneType)
     , oneTypeAge           :: !Age
     , oneTypeRequestStatus :: !RequestStatus
@@ -135,6 +143,7 @@ instance FromJSON OneType where parseJSON = elmStreetParseJson
 type Types =
    '[ Prims
     , MyUnit
+    , MyResult
     , Id ()
     , Age
     , RequestStatus
@@ -149,6 +158,7 @@ defaultOneType :: OneType
 defaultOneType = OneType
     { oneTypePrims = defaultPrims
     , oneTypeMyUnit = MyUnit ()
+    , oneTypeResult = Error "clashing test"
     , oneTypeId = Id "myId"
     , oneTypeAge = Age 18
     , oneTypeRequestStatus = Reviewing

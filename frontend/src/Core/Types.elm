@@ -20,6 +20,10 @@ type alias Prims =
 type MyUnit
     = MyUnit ()
 
+type MyResult
+    = Ok
+    | Error String
+
 type alias Id =
     { unId : String
     }
@@ -70,6 +74,7 @@ type alias UserRequest =
 type alias OneType =
     { prims : Prims
     , myUnit : MyUnit
+    , result : MyResult
     , id : Id
     , age : Age
     , requestStatus : RequestStatus
