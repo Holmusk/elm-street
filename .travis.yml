@@ -39,6 +39,7 @@ matrix:
       - npm install
     script:
       - elm-app build
+      - elm-app test
 
 install:
   - |
