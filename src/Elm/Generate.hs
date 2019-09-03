@@ -22,8 +22,8 @@ import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((<.>), (</>))
 
 import Elm.Generic (Elm (..))
-import Elm.Print (decodeChar, decodeEither, decodeEnum, decodePair, encodeEither, encodeMaybe,
-                  encodePair, prettyShowDecoder, prettyShowDefinition, prettyShowEncoder)
+import Elm.Print (decodeChar, decodeEither, decodeEnum, decodePair, decodeTriple, encodeEither, encodeMaybe,
+                  encodePair, encodeTriple, prettyShowDecoder, prettyShowDefinition, prettyShowEncoder)
 
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -160,9 +160,11 @@ generateElm Settings{..} = do
         , encodeMaybe
         , encodeEither
         , encodePair
+        , encodeTriple
 
         , decodeEnum
         , decodeChar
         , decodeEither
         , decodePair
+        , decodeTriple
         ]

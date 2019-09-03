@@ -53,6 +53,7 @@ defaultOneType =
         , maybe  = Just 12
         , result = R.Err 666
         , pair   = ('o', False)
+        , triple = ('o', False, 0)
         , list   = [1, 2, 3, 4, 5]
         }
     , myUnit = MyUnit ()

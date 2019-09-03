@@ -16,6 +16,9 @@ elmStreetEncodeEither encA encB res = E.object <| case res of
 elmStreetEncodePair : (a -> Value) -> (b -> Value) -> (a, b) -> Value
 elmStreetEncodePair encA encB (a, b) = E.list identity [encA a, encB b]
 
+elmStreetEncodeTriple : (a -> Value) -> (b -> Value) -> (c -> Value) -> (a, b, c) -> Value
+elmStreetEncodeTriple encA encB encC (a, b, c) = E.list identity [encA a, encB b, encC c]
+
 decodeStr : (String -> Maybe a) -> String -> Decoder a
 decodeStr readX x = case readX x of
     Just a  -> D.succeed a
@@ -35,4 +38,7 @@ elmStreetDecodeEither decA decB = D.oneOf
 
 elmStreetDecodePair : Decoder a -> Decoder b -> Decoder (a, b)
 elmStreetDecodePair decA decB = D.map2 Tuple.pair (D.index 0 decA) (D.index 1 decB)
+
+elmStreetDecodeTriple : Decoder a -> Decoder b -> Decoder c -> Decoder (a, b, c)
+elmStreetDecodeTriple decA decB decC = D.map3 (\a b c -> (a,b,c)) (D.index 0 decA) (D.index 1 decB) (D.index 2 decC)
 

@@ -20,6 +20,7 @@ decodePrims = D.succeed T.Prims
     |> required "maybe" (nullable D.int)
     |> required "result" (elmStreetDecodeEither D.int D.string)
     |> required "pair" (elmStreetDecodePair elmStreetDecodeChar D.bool)
+    |> required "triple" (elmStreetDecodeTriple elmStreetDecodeChar D.bool D.int)
     |> required "list" (D.list D.int)
 
 decodeMyUnit : Decoder T.MyUnit

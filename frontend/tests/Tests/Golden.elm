@@ -24,6 +24,11 @@ goldenOneTypeJson =
                 "o",
                 false
             ],
+            "triple": [
+                "o",
+                false,
+                0
+            ],
             "float": 36.6,
             "char": "a",
             "int": 42,

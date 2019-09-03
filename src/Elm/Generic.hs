@@ -134,6 +134,9 @@ instance (Elm a, Elm b) => Elm (Either a b) where
 instance (Elm a, Elm b) => Elm (a, b) where
     toElmDefinition _ = DefPrim $ ElmPair (elmRef @a) (elmRef @b)
 
+instance (Elm a, Elm b, Elm c) => Elm (a, b, c) where
+    toElmDefinition _ = DefPrim $ ElmTriple (elmRef @a) (elmRef @b) (elmRef @c)
+
 instance Elm a => Elm [a] where
     toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
 
