@@ -58,10 +58,10 @@ import Data.Time.Clock (UTCTime)
 import Data.Type.Bool (If, type (||))
 import Data.Void (Void)
 import Data.Word (Word16, Word32, Word8)
-import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..), Meta (..),
-                     Rec0, S1, Selector (..), U1)
+import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..),
+                     Meta (..), Rec0, S1, Selector (..), U1)
 import GHC.TypeLits (ErrorMessage (..), Nat, TypeError)
-import GHC.TypeNats (type (<=?), type (+))
+import GHC.TypeNats (type (+), type (<=?))
 
 import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), definitionToRef)
@@ -114,8 +114,6 @@ instance Elm Word32 where toElmDefinition _ = DefPrim ElmInt
 
 instance Elm Float  where toElmDefinition _ = DefPrim ElmFloat
 instance Elm Double where toElmDefinition _ = DefPrim ElmFloat
-
-instance {-# OVERLAPPING #-} Elm String where toElmDefinition _ = DefPrim ElmString
 
 instance Elm Text    where toElmDefinition _ = DefPrim ElmString
 instance Elm LT.Text where toElmDefinition _ = DefPrim ElmString
