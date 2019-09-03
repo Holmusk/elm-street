@@ -9,7 +9,8 @@ import Core.Types exposing (..)
 
 encodePrims : Prims -> Value
 encodePrims x = E.object
-    [ ("unit", (always <| E.list identity []) x.unit)
+    [ ("tag", E.string "Prims")
+    , ("unit", (always <| E.list identity []) x.unit)
     , ("bool", E.bool x.bool)
     , ("char", (E.string << String.fromChar) x.char)
     , ("int", E.int x.int)
@@ -37,7 +38,8 @@ encodeRequestStatus = E.string << showRequestStatus
 
 encodeUser : User -> Value
 encodeUser x = E.object
-    [ ("id", encodeId x.id)
+    [ ("tag", E.string "User")
+    , ("id", encodeId x.id)
     , ("name", E.string x.name)
     , ("age", encodeAge x.age)
     , ("status", encodeRequestStatus x.status)
@@ -51,14 +53,16 @@ encodeGuest x = E.object <| case x of
 
 encodeUserRequest : UserRequest -> Value
 encodeUserRequest x = E.object
-    [ ("ids", E.list encodeId x.ids)
+    [ ("tag", E.string "UserRequest")
+    , ("ids", E.list encodeId x.ids)
     , ("limit", E.int x.limit)
     , ("example", (elmStreetEncodeMaybe (elmStreetEncodeEither encodeUser encodeGuest)) x.example)
     ]
 
 encodeOneType : OneType -> Value
 encodeOneType x = E.object
-    [ ("prims", encodePrims x.prims)
+    [ ("tag", E.string "OneType")
+    , ("prims", encodePrims x.prims)
     , ("myUnit", encodeMyUnit x.myUnit)
     , ("id", encodeId x.id)
     , ("age", encodeAge x.age)

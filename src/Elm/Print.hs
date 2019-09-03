@@ -332,9 +332,8 @@ typeEncoderDoc t@ElmType{..} =
 
     -- | Create case clouse for each of the sum Constructors.
     mkCase :: ElmConstructor -> Doc ann
-    mkCase ElmConstructor{..} =
-        conName <+> vars <+> arrow
-            <+> brackets (parens (dquotes "tag" <> comma <+> "E.string" <+> dquotes conName) <> contents)
+    mkCase ElmConstructor{..} = conName <+> vars <+> arrow
+        <+> brackets (mkTag elmConstructorName <> contents)
       where
         -- | Constructor name
         conName :: Doc ann
@@ -388,9 +387,9 @@ aliasEncoderDoc ElmAlias{..} =
     leftPart = encoderName elmAliasName <+> "x" <+> equals
 
     fieldsEncode :: NonEmpty ElmRecordField -> [Doc ann]
-    fieldsEncode (fstR :| rest) =
-        lbracket <+> recordFieldDoc fstR
-      : map ((comma <+>) . recordFieldDoc) rest
+    fieldsEncode fields =
+        lbracket <+> mkTag elmAliasName
+      : map ((comma <+>) . recordFieldDoc) (NE.toList fields)
      ++ [rbracket]
 
     recordFieldDoc :: ElmRecordField -> Doc ann
@@ -402,6 +401,10 @@ aliasEncoderDoc ElmAlias{..} =
     fieldEncoderDoc :: ElmRecordField -> Doc ann
     fieldEncoderDoc ElmRecordField{..} =
         typeRefEncoder elmRecordFieldType <+> "x." <> pretty elmRecordFieldName
+
+-- | Create pair of view: @("tag", E.string "SomeName")@.
+mkTag :: Text -> Doc ann
+mkTag txt = parens $ dquotes "tag" <> comma <+> "E.string" <+> dquotes (pretty txt)
 
 -- | The definition of the @encodeTYPENAME@ function.
 encoderDef
