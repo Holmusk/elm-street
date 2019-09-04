@@ -88,6 +88,9 @@ executable generate-elm
 
   build-depends:       elm-street
                      , types
+                     , directory
+                     , filepath
+                     , text
 
   ghc-options:         -threaded
                        -rtsopts

@@ -13,6 +13,7 @@ import Core.Decoder exposing (decodeOneType)
 import Core.Encoder exposing (encodeOneType)
 import Core.Types exposing (..)
 import Core.Types as T exposing (MyResult (..))
+import Tests.Golden exposing (goldenOneTypeJson)
 
 -- Check out http://package.elm-lang.org/packages/elm-community/elm-test/latest to learn more about testing in Elm!
 
@@ -22,15 +23,14 @@ all =
     let oneTypeE : String
         oneTypeE = encode 0 <| encodeOneType defaultOneType
     in
-    describe "A Test Suite"
+    describe "Encode / Decode Golden Test"
         [ test "Elm Type -> Json -> Elm Type == default" <| \_ -> Expect.equal
-            (R.Ok defaultOneType)
             (decodeString decodeOneType oneTypeE)
+            (R.Ok defaultOneType)
+        , test "Golden Json -> Elm == default" <| \_ -> Expect.equal
+            (decodeString decodeOneType goldenOneTypeJson)
+            (R.Ok defaultOneType)
         ]
-
--- goldenOneType : Task Http.Error OneType
--- goldenOneType = Http.get decodeOneType
---     ("https://raw.githubusercontent.com/Holmusk/elm-street/master/test/golden/oneType.json")
 
 defaultOneType : OneType
 defaultOneType =
@@ -49,7 +49,7 @@ defaultOneType =
         , int    = 42
         , float  = 36.6
         , text   = "heh"
-        , time   = millisToPosix 1550779200000 -- UTCTime (fromGregorian 2019 2 22) 0
+        , time   = millisToPosix 1550793600000  -- UTCTime (fromGregorian 2019 2 22) 0
         , maybe  = Just 12
         , result = R.Err 666
         , pair   = ('o', False)
