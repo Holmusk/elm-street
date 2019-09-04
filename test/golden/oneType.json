@@ -11,7 +11,7 @@
         ],
         "tag": "Prims",
         "time": "2019-02-22T00:00:00Z",
-        "string": "heh",
+        "text": "heh",
         "result": {
             "Left": 666
         },
@@ -24,6 +24,14 @@
         "int": 42,
         "bool": true,
         "unit": []
+    },
+    "myUnit": {
+        "tag": "MyUnit",
+        "contents": []
+    },
+    "myResult": {
+        "tag": "Err",
+        "contents": "clashing test"
     },
     "userRequest": {
         "tag": "UserRequest",
