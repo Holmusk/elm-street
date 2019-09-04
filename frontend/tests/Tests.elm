@@ -7,10 +7,12 @@ import Json.Decode exposing (decodeString)
 import Task exposing (Task)
 import Test exposing (..)
 import Time exposing (millisToPosix)
+import Result as R
 
 import Core.Decoder exposing (decodeOneType)
 import Core.Encoder exposing (encodeOneType)
 import Core.Types exposing (..)
+import Core.Types as T exposing (MyResult (..))
 
 -- Check out http://package.elm-lang.org/packages/elm-community/elm-test/latest to learn more about testing in Elm!
 
@@ -22,7 +24,7 @@ all =
     in
     describe "A Test Suite"
         [ test "Elm Type -> Json -> Elm Type == default" <| \_ -> Expect.equal
-            (Ok defaultOneType)
+            (R.Ok defaultOneType)
             (decodeString decodeOneType oneTypeE)
         ]
 
@@ -46,14 +48,15 @@ defaultOneType =
         , char   = 'a'
         , int    = 42
         , float  = 36.6
-        , string = "heh"
+        , text   = "heh"
         , time   = millisToPosix 1550779200000 -- UTCTime (fromGregorian 2019 2 22) 0
         , maybe  = Just 12
-        , result = Err 666
+        , result = R.Err 666
         , pair   = ('o', False)
         , list   = [1, 2, 3, 4, 5]
         }
     , myUnit = MyUnit ()
+    , myResult = T.Err "clashing test"
     , id = Id "myId"
     , age = Age 18
     , requestStatus = Reviewing
@@ -62,6 +65,6 @@ defaultOneType =
     , userRequest =
         { ids     = [Id "1", Id "2"]
         , limit   = 123
-        , example = Just (Ok Blocked)
+        , example = Just (R.Ok Blocked)
         }
     }

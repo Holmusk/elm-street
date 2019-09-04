@@ -30,7 +30,7 @@ encodeMyUnit x = E.object <| case x of
 encodeMyResult : T.MyResult -> Value
 encodeMyResult x = E.object <| case x of
     T.Ok  -> [("tag", E.string "Ok"), ("contents", E.list identity [])]
-    T.Error x1 -> [("tag", E.string "Error"), ("contents", E.string x1)]
+    T.Err x1 -> [("tag", E.string "Err"), ("contents", E.string x1)]
 
 encodeId : T.Id -> Value
 encodeId x = E.string x.unId
@@ -69,7 +69,7 @@ encodeOneType x = E.object
     [ ("tag", E.string "OneType")
     , ("prims", encodePrims x.prims)
     , ("myUnit", encodeMyUnit x.myUnit)
-    , ("result", encodeMyResult x.result)
+    , ("myResult", encodeMyResult x.myResult)
     , ("id", encodeId x.id)
     , ("age", encodeAge x.age)
     , ("requestStatus", encodeRequestStatus x.requestStatus)

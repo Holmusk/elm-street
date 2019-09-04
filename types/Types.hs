@@ -118,7 +118,7 @@ instance FromJSON MyUnit where parseJSON = elmStreetParseJson
 -- | For name clashes testing.
 data MyResult
     = Ok
-    | Error Text
+    | Err Text
     deriving (Generic, Eq, Show)
     deriving anyclass (Elm, FromJSON, ToJSON)
 
@@ -126,7 +126,7 @@ data MyResult
 data OneType = OneType
     { oneTypePrims         :: !Prims
     , oneTypeMyUnit        :: !MyUnit
-    , oneTypeResult        :: !MyResult
+    , oneTypeMyResult        :: !MyResult
     , oneTypeId            :: !(Id OneType)
     , oneTypeAge           :: !Age
     , oneTypeRequestStatus :: !RequestStatus
@@ -158,7 +158,7 @@ defaultOneType :: OneType
 defaultOneType = OneType
     { oneTypePrims = defaultPrims
     , oneTypeMyUnit = MyUnit ()
-    , oneTypeResult = Error "clashing test"
+    , oneTypeMyResult = Err "clashing test"
     , oneTypeId = Id "myId"
     , oneTypeAge = Age 18
     , oneTypeRequestStatus = Reviewing

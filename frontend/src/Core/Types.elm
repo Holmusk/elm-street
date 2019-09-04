@@ -22,7 +22,7 @@ type MyUnit
 
 type MyResult
     = Ok
-    | Error String
+    | Err String
 
 type alias Id =
     { unId : String
@@ -74,7 +74,7 @@ type alias UserRequest =
 type alias OneType =
     { prims : Prims
     , myUnit : MyUnit
-    , result : MyResult
+    , myResult : MyResult
     , id : Id
     , age : Age
     , requestStatus : RequestStatus

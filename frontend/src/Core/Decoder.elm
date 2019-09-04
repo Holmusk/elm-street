@@ -35,7 +35,7 @@ decodeMyResult =
     let decide : String -> Decoder T.MyResult
         decide x = case x of
             "Ok" -> D.succeed T.Ok
-            "Error" -> D.field "contents" <| D.map T.Error D.string
+            "Err" -> D.field "contents" <| D.map T.Err D.string
             c -> D.fail <| "MyResult doesn't have such constructor: " ++ c
     in D.andThen decide (D.field "tag" D.string)
 
@@ -75,7 +75,7 @@ decodeOneType : Decoder T.OneType
 decodeOneType = D.succeed T.OneType
     |> required "prims" decodePrims
     |> required "myUnit" decodeMyUnit
-    |> required "result" decodeMyResult
+    |> required "myResult" decodeMyResult
     |> required "id" decodeId
     |> required "age" decodeAge
     |> required "requestStatus" decodeRequestStatus
