@@ -16,7 +16,8 @@ The changelog is available [on GitHub][2].
   **Breaking change:** Remove **overlapping** instance for `String`.
 
   **Migration guide:** Use `Text` instead.
-
+* [#70](https://github.com/holmusk/elm-street/issues/70):
+  Use qualified imports of generated types and function in Elm generated files.
 * [#76](https://github.com/holmusk/elm-street/issues/76):
   Support GHC-8.6.5. Use common stanzas.
 * [#73](https://github.com/holmusk/elm-street/issues/73):

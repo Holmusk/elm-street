@@ -39,10 +39,10 @@ data Prims = Prims
     , primsChar   :: !Char
     , primsInt    :: !Int
     , primsFloat  :: !Double
-    , primsString :: !String
+    , primsText   :: !Text
     , primsTime   :: !UTCTime
     , primsMaybe  :: !(Maybe Word)
-    , primsResult :: !(Either Int String)
+    , primsResult :: !(Either Int Text)
     , primsPair   :: !(Char, Bool)
     , primsList   :: ![Int]
     } deriving (Generic, Eq, Show)
@@ -115,10 +115,18 @@ instance ToJSON   MyUnit where toJSON = elmStreetToJson
 instance FromJSON MyUnit where parseJSON = elmStreetParseJson
 #endif
 
+-- | For name clashes testing.
+data MyResult
+    = Ok
+    | Err Text
+    deriving (Generic, Eq, Show)
+    deriving anyclass (Elm, FromJSON, ToJSON)
+
 -- | All test types together in one type to play with.
 data OneType = OneType
     { oneTypePrims         :: !Prims
     , oneTypeMyUnit        :: !MyUnit
+    , oneTypeMyResult        :: !MyResult
     , oneTypeId            :: !(Id OneType)
     , oneTypeAge           :: !Age
     , oneTypeRequestStatus :: !RequestStatus
@@ -135,6 +143,7 @@ instance FromJSON OneType where parseJSON = elmStreetParseJson
 type Types =
    '[ Prims
     , MyUnit
+    , MyResult
     , Id ()
     , Age
     , RequestStatus
@@ -149,6 +158,7 @@ defaultOneType :: OneType
 defaultOneType = OneType
     { oneTypePrims = defaultPrims
     , oneTypeMyUnit = MyUnit ()
+    , oneTypeMyResult = Err "clashing test"
     , oneTypeId = Id "myId"
     , oneTypeAge = Age 18
     , oneTypeRequestStatus = Reviewing
@@ -164,7 +174,7 @@ defaultOneType = OneType
         , primsChar   = 'a'
         , primsInt    = 42
         , primsFloat  = 36.6
-        , primsString = "heh"
+        , primsText   = "heh"
         , primsTime   = UTCTime (fromGregorian 2019 2 22) 0
         , primsMaybe  = Just 12
         , primsResult = Left 666

@@ -9,7 +9,7 @@ type alias Prims =
     , char : Char
     , int : Int
     , float : Float
-    , string : String
+    , text : String
     , time : Posix
     , maybe : Maybe Int
     , result : Result Int String
@@ -19,6 +19,10 @@ type alias Prims =
 
 type MyUnit
     = MyUnit ()
+
+type MyResult
+    = Ok
+    | Err String
 
 type alias Id =
     { unId : String
@@ -70,6 +74,7 @@ type alias UserRequest =
 type alias OneType =
     { prims : Prims
     , myUnit : MyUnit
+    , myResult : MyResult
     , id : Id
     , age : Age
     , requestStatus : RequestStatus
