@@ -31,7 +31,6 @@ matrix:
       directories:
       - "$HOME/.npm"
       - "$TRAVIS_BUILD_DIR/frontend/node_modules"
-      - "$TRAVIS_BUILD_DIR/frontend/elm-stuff"
 
     install:
       - cd frontend/
@@ -39,6 +38,7 @@ matrix:
       - npm install
     script:
       - elm-app build
+      - elm-app test
 
 install:
   - |
