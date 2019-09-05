@@ -1,4 +1,9 @@
 module Main (main) where
 
+import Test.Hspec (hspec)
+
+import Test.Golden (goldenSpec)
+
+
 main :: IO ()
-main = putStrLn ("Test suite not yet implemented" :: String)
+main = hspec goldenSpec

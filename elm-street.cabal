@@ -121,8 +121,13 @@ test-suite elm-street-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
+  other-modules:       Test.Golden
 
   build-depends:       elm-street
+                     , types
+                     , aeson
+                     , bytestring ^>= 0.10
+                     , hspec ^>= 2.7.1
 
   ghc-options:         -threaded
                        -rtsopts
