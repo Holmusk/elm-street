@@ -63,6 +63,10 @@ library
                          Elm.Generate
                          Elm.Generic
                          Elm.Print
+                           Elm.Print.Common
+                           Elm.Print.Decoder
+                           Elm.Print.Encoder
+                           Elm.Print.Types
 
   build-depends:       aeson >= 1.3
                      , directory ^>= 1.3
