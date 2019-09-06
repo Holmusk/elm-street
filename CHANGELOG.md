@@ -22,6 +22,8 @@ The changelog is available [on GitHub][2].
   Support GHC-8.6.5. Use common stanzas.
 * [#73](https://github.com/holmusk/elm-street/issues/73):
   Clarify the restriction with reserved words in documentation.
+* [#90](https://github.com/Holmusk/elm-street/issues/90)
+  Support converting 3-tuples
 
 ## 0.0.1 — Mar 29, 2019
 

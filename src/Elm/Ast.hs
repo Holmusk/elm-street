@@ -72,18 +72,19 @@ getConstructorNames ElmType{..} = map elmConstructorName $ toList elmTypeConstru
 
 -- | Primitive elm types; hardcoded by the language.
 data ElmPrim
-    = ElmUnit                      -- ^ @()@ type in elm
-    | ElmNever                     -- ^ @Never@ type in elm, analogous to Void in Haskell
-    | ElmBool                      -- ^ @Bool@
-    | ElmChar                      -- ^ @Char@
-    | ElmInt                       -- ^ @Int@
-    | ElmFloat                     -- ^ @Float@
-    | ElmString                    -- ^ @String@
-    | ElmTime                      -- ^ @Posix@ in elm, @UTCTime@ in Haskell
-    | ElmMaybe !TypeRef            -- ^ @Maybe T@
-    | ElmResult !TypeRef !TypeRef  -- ^ @Result A B@ in elm
-    | ElmPair !TypeRef !TypeRef    -- ^ @(A, B)@ in elm
-    | ElmList !TypeRef             -- ^ @List A@ in elm
+    = ElmUnit                               -- ^ @()@ type in elm
+    | ElmNever                              -- ^ @Never@ type in elm, analogous to Void in Haskell
+    | ElmBool                               -- ^ @Bool@
+    | ElmChar                               -- ^ @Char@
+    | ElmInt                                -- ^ @Int@
+    | ElmFloat                              -- ^ @Float@
+    | ElmString                             -- ^ @String@
+    | ElmTime                               -- ^ @Posix@ in elm, @UTCTime@ in Haskell
+    | ElmMaybe !TypeRef                     -- ^ @Maybe T@
+    | ElmResult !TypeRef !TypeRef           -- ^ @Result A B@ in elm
+    | ElmPair !TypeRef !TypeRef             -- ^ @(A, B)@ in elm
+    | ElmTriple !TypeRef !TypeRef !TypeRef  -- ^ @(A, B, C)@ in elm
+    | ElmList !TypeRef                      -- ^ @List A@ in elm
     deriving (Show)
 
 -- | Reference to another existing type.

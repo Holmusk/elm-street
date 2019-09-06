@@ -9,6 +9,7 @@ module Elm.Print.Encoder
        , encodeMaybe
        , encodeEither
        , encodePair
+       , encodeTriple
        ) where
 
 import Data.List.NonEmpty (NonEmpty, toList)
@@ -170,18 +171,19 @@ encoderName typeName = "encode" <> pretty typeName
 typeRefEncoder :: TypeRef -> Doc ann
 typeRefEncoder (RefCustom TypeName{..}) = "encode" <> pretty (T.takeWhile (/= ' ') unTypeName)
 typeRefEncoder (RefPrim elmPrim) = case elmPrim of
-    ElmUnit       -> "(always <| E.list identity [])"
-    ElmNever      -> "never"
-    ElmBool       -> "E.bool"
-    ElmChar       -> parens "E.string << String.fromChar"
-    ElmInt        -> "E.int"
-    ElmFloat      -> "E.float"
-    ElmString     -> "E.string"
-    ElmTime       -> "Iso.encode"
-    ElmMaybe t    -> parens $ "elmStreetEncodeMaybe" <+> typeRefEncoder t
-    ElmResult l r -> parens $ "elmStreetEncodeEither" <+> typeRefEncoder l <+> typeRefEncoder r
-    ElmPair a b   -> parens $ "elmStreetEncodePair" <+> typeRefEncoder a <+> typeRefEncoder b
-    ElmList l     -> "E.list" <+> typeRefEncoder l
+    ElmUnit         -> "(always <| E.list identity [])"
+    ElmNever        -> "never"
+    ElmBool         -> "E.bool"
+    ElmChar         -> parens "E.string << String.fromChar"
+    ElmInt          -> "E.int"
+    ElmFloat        -> "E.float"
+    ElmString       -> "E.string"
+    ElmTime         -> "Iso.encode"
+    ElmMaybe t      -> parens $ "elmStreetEncodeMaybe" <+> typeRefEncoder t
+    ElmResult l r   -> parens $ "elmStreetEncodeEither" <+> typeRefEncoder l <+> typeRefEncoder r
+    ElmPair a b     -> parens $ "elmStreetEncodePair" <+> typeRefEncoder a <+> typeRefEncoder b
+    ElmTriple a b c -> parens $ "elmStreetEncodeTriple" <+> typeRefEncoder a <+> typeRefEncoder b <+> typeRefEncoder c
+    ElmList l       -> "E.list" <+> typeRefEncoder l
 
 -- | @JSON@ encoder Elm help function for 'Maybe's.
 encodeMaybe :: Text
@@ -199,9 +201,16 @@ encodeEither = T.unlines
     , "    Ok b  -> [(\"Right\", encB b)]"
     ]
 
--- | @JSON@ encoder Elm help function for tuples.
+-- | @JSON@ encoder Elm help function for 2-tuples.
 encodePair :: Text
 encodePair = T.unlines
     [ "elmStreetEncodePair : (a -> Value) -> (b -> Value) -> (a, b) -> Value"
     , "elmStreetEncodePair encA encB (a, b) = E.list identity [encA a, encB b]"
+    ]
+
+-- | @JSON@ encoder Elm help function for 3-tuples.
+encodeTriple :: Text
+encodeTriple = T.unlines
+    [ "elmStreetEncodeTriple : (a -> Value) -> (b -> Value) -> (c -> Value) -> (a, b, c) -> Value"
+    , "elmStreetEncodeTriple encA encB encC (a, b, c) = E.list identity [encA a, encB b, encC c]"
     ]

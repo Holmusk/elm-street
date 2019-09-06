@@ -14,6 +14,7 @@ type alias Prims =
     , maybe : Maybe Int
     , result : Result Int String
     , pair : (Char, Bool)
+    , triple : (Char, Bool, Int)
     , list : List Int
     }
 

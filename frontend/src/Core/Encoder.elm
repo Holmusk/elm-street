@@ -20,6 +20,7 @@ encodePrims x = E.object
     , ("maybe", (elmStreetEncodeMaybe E.int) x.maybe)
     , ("result", (elmStreetEncodeEither E.int E.string) x.result)
     , ("pair", (elmStreetEncodePair (E.string << String.fromChar) E.bool) x.pair)
+    , ("triple", (elmStreetEncodeTriple (E.string << String.fromChar) E.bool E.int) x.triple)
     , ("list", E.list E.int x.list)
     ]
 

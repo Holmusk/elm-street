@@ -44,6 +44,7 @@ data Prims = Prims
     , primsMaybe  :: !(Maybe Word)
     , primsResult :: !(Either Int Text)
     , primsPair   :: !(Char, Bool)
+    , primsTriple :: !(Char, Bool, Int)
     , primsList   :: ![Int]
     } deriving (Generic, Eq, Show)
 #if ( __GLASGOW_HASKELL__ >= 806 )
@@ -179,6 +180,7 @@ defaultOneType = OneType
         , primsMaybe  = Just 12
         , primsResult = Left 666
         , primsPair   = ('o', False)
+        , primsTriple = ('o', False, 0)
         , primsList   = [1..5]
         }
 

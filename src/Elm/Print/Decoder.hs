@@ -10,6 +10,7 @@ module Elm.Print.Decoder
        , decodeChar
        , decodeEither
        , decodePair
+       , decodeTriple
        ) where
 
 import Data.List.NonEmpty (toList)
@@ -179,18 +180,19 @@ typeDecoderDoc  t@ElmType{..} =
 typeRefDecoder :: TypeRef -> Doc ann
 typeRefDecoder (RefCustom TypeName{..}) = "decode" <> pretty (T.takeWhile (/= ' ') unTypeName)
 typeRefDecoder (RefPrim elmPrim) = case elmPrim of
-    ElmUnit       -> "(D.map (always ()) (D.list D.string))"
-    ElmNever      -> "(D.fail \"Never is not possible\")"
-    ElmBool       -> "D.bool"
-    ElmChar       -> "elmStreetDecodeChar"
-    ElmInt        -> "D.int"
-    ElmFloat      -> "D.float"
-    ElmString     -> "D.string"
-    ElmTime       -> "Iso.decoder"
-    ElmMaybe t    -> parens $ "nullable" <+> typeRefDecoder t
-    ElmResult l r -> parens $ "elmStreetDecodeEither" <+> typeRefDecoder l <+> typeRefDecoder r
-    ElmPair a b   -> parens $ "elmStreetDecodePair" <+> typeRefDecoder a <+> typeRefDecoder b
-    ElmList l     -> parens $ "D.list" <+> typeRefDecoder l
+    ElmUnit         -> "(D.map (always ()) (D.list D.string))"
+    ElmNever        -> "(D.fail \"Never is not possible\")"
+    ElmBool         -> "D.bool"
+    ElmChar         -> "elmStreetDecodeChar"
+    ElmInt          -> "D.int"
+    ElmFloat        -> "D.float"
+    ElmString       -> "D.string"
+    ElmTime         -> "Iso.decoder"
+    ElmMaybe t      -> parens $ "nullable" <+> typeRefDecoder t
+    ElmResult l r   -> parens $ "elmStreetDecodeEither" <+> typeRefDecoder l <+> typeRefDecoder r
+    ElmPair a b     -> parens $ "elmStreetDecodePair" <+> typeRefDecoder a <+> typeRefDecoder b
+    ElmTriple a b c -> parens $ "elmStreetDecodeTriple" <+> typeRefDecoder a <+> typeRefDecoder b <+> typeRefDecoder c
+    ElmList l       -> parens $ "D.list" <+> typeRefDecoder l
 
 -- | The definition of the @decodeTYPENAME@ function.
 decoderDef
@@ -233,9 +235,16 @@ decodeEither = T.unlines
     , "    ]"
     ]
 
--- | @JSON@ decoder Elm help function for tuples.
+-- | @JSON@ decoder Elm help function for 2-tuples.
 decodePair :: Text
 decodePair = T.unlines
     [ "elmStreetDecodePair : Decoder a -> Decoder b -> Decoder (a, b)"
     , "elmStreetDecodePair decA decB = D.map2 Tuple.pair (D.index 0 decA) (D.index 1 decB)"
+    ]
+
+-- | @JSON@ decoder Elm help function for 3-tuples.
+decodeTriple :: Text
+decodeTriple = T.unlines
+    [ "elmStreetDecodeTriple : Decoder a -> Decoder b -> Decoder c -> Decoder (a, b, c)"
+    , "elmStreetDecodeTriple decA decB decC = D.map3 (\\a b c -> (a,b,c)) (D.index 0 decA) (D.index 1 decB) (D.index 2 decC)"
     ]
