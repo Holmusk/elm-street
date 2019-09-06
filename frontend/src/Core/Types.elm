@@ -33,6 +33,27 @@ type alias Age =
     { age : Int
     }
 
+type Newtype
+    = Newtype Int
+
+unNewtype : Newtype -> Int
+unNewtype (Newtype x) = x
+
+type OneConstructor
+    = OneConstructor
+
+showOneConstructor : OneConstructor -> String
+showOneConstructor x = case x of
+    OneConstructor -> "OneConstructor"
+
+readOneConstructor : String -> Maybe OneConstructor
+readOneConstructor x = case x of
+    "OneConstructor" -> Just OneConstructor
+    _ -> Nothing
+
+universeOneConstructor : List OneConstructor
+universeOneConstructor = [OneConstructor]
+
 type RequestStatus
     = Approved
     | Rejected
@@ -78,6 +99,8 @@ type alias OneType =
     , myResult : MyResult
     , id : Id
     , age : Age
+    , newtype : Newtype
+    , oneConstructor : OneConstructor
     , requestStatus : RequestStatus
     , user : User
     , guests : List Guest

@@ -39,6 +39,12 @@ encodeId x = E.string x.unId
 encodeAge : T.Age -> Value
 encodeAge x = E.int x.age
 
+encodeNewtype : T.Newtype -> Value
+encodeNewtype = E.int << T.unNewtype
+
+encodeOneConstructor : T.OneConstructor -> Value
+encodeOneConstructor = E.string << T.showOneConstructor
+
 encodeRequestStatus : T.RequestStatus -> Value
 encodeRequestStatus = E.string << T.showRequestStatus
 
@@ -73,6 +79,8 @@ encodeOneType x = E.object
     , ("myResult", encodeMyResult x.myResult)
     , ("id", encodeId x.id)
     , ("age", encodeAge x.age)
+    , ("newtype", encodeNewtype x.newtype)
+    , ("oneConstructor", encodeOneConstructor x.oneConstructor)
     , ("requestStatus", encodeRequestStatus x.requestStatus)
     , ("user", encodeUser x.user)
     , ("guests", E.list encodeGuest x.guests)

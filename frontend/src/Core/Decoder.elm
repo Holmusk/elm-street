@@ -46,6 +46,12 @@ decodeId = D.map T.Id D.string
 decodeAge : Decoder T.Age
 decodeAge = D.map T.Age D.int
 
+decodeNewtype : Decoder T.Newtype
+decodeNewtype = D.map T.Newtype D.int
+
+decodeOneConstructor : Decoder T.OneConstructor
+decodeOneConstructor = elmStreetDecodeEnum T.readOneConstructor
+
 decodeRequestStatus : Decoder T.RequestStatus
 decodeRequestStatus = elmStreetDecodeEnum T.readRequestStatus
 
@@ -79,6 +85,8 @@ decodeOneType = D.succeed T.OneType
     |> required "myResult" decodeMyResult
     |> required "id" decodeId
     |> required "age" decodeAge
+    |> required "newtype" decodeNewtype
+    |> required "oneConstructor" decodeOneConstructor
     |> required "requestStatus" decodeRequestStatus
     |> required "user" decodeUser
     |> required "guests" (D.list decodeGuest)

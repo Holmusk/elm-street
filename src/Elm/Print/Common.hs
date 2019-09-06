@@ -8,6 +8,7 @@ module Elm.Print.Common
        , arrow
        , mkQualified
        , typeWithVarsDoc
+       , qualifiedTypeWithVarsDoc
        ) where
 
 import Data.Text (Text)
@@ -49,15 +50,29 @@ for @Types as T@ module.
 mkQualified :: Text -> Doc ann
 mkQualified = pretty . ("T." <>)
 
-{- | Creates a 'Doc' of the qualified type with its type variables (if any).
+{- | Creates a 'Doc' of the type with its type variables (if any).
 -}
 typeWithVarsDoc
-    :: Text  -- ^ Type name
+    :: Bool  -- ^ Is qualified
+    -> Text  -- ^ Type name
     -> [Text] -- ^ List of type variables
     -> Doc ann
-typeWithVarsDoc (mkQualified -> qTypeName) = \case
-    []   -> qTypeName
-    vars -> qTypeName <+> typeVarsDoc vars
+typeWithVarsDoc isQualified typeName = \case
+    []   -> tName
+    vars -> tName <+> typeVarsDoc vars
   where
     typeVarsDoc :: [Text] -> Doc ann
     typeVarsDoc = concatWith (surround " ") . map pretty
+    tName :: Doc ann
+    tName =
+        if isQualified
+        then mkQualified typeName
+        else pretty typeName
+
+{- | Creates a 'Doc' of the qualified type with its type variables (if any).
+-}
+qualifiedTypeWithVarsDoc
+    :: Text  -- ^ Type name
+    -> [Text] -- ^ List of type variables
+    -> Doc ann
+qualifiedTypeWithVarsDoc = typeWithVarsDoc True
