@@ -161,6 +161,12 @@ limitations, specifically:
    * `as`
    * `port`
    * `tag` (reserved for constructor name due to `aeson` options)
+9. For newtypes `FromJSON` and `ToJSON` instances should be derived using `newtype` strategy. And `Elm` should be derived using `anyclass` strategy:
+   ```haskell
+   newtype Newtype = Newtype Int
+       deriving newtype (FromJSON, ToJSON)
+       deriving anyclass (Elm)
+   ```
 
 ## Play with frontend example
 

@@ -18,6 +18,8 @@ module Types
        , Prims (..)
        , Id (..)
        , Age (..)
+       , Newtype (..)
+       , OneConstructor (..)
        , RequestStatus (..)
        , User (..)
        , Guest (..)
@@ -70,12 +72,27 @@ newtype Age = Age
       deriving anyclass (Elm)
       deriving newtype (FromJSON, ToJSON)
 
+newtype Newtype = Newtype Int
+    deriving stock (Generic, Eq, Show)
+    deriving newtype (FromJSON, ToJSON)
+    deriving anyclass (Elm)
+
+data OneConstructor = OneConstructor
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (Elm)
+
+instance ToJSON   OneConstructor where toJSON = elmStreetToJson
+instance FromJSON OneConstructor where parseJSON = elmStreetParseJson
+
 data RequestStatus
     = Approved
     | Rejected
     | Reviewing
     deriving (Generic, Eq, Show)
-    deriving anyclass (Elm, FromJSON, ToJSON)
+    deriving anyclass (Elm)
+
+instance ToJSON   RequestStatus where toJSON = elmStreetToJson
+instance FromJSON RequestStatus where parseJSON = elmStreetParseJson
 
 data User = User
     { userId     :: !(Id User)
@@ -93,7 +110,10 @@ data Guest
     | Visitor Text
     | Blocked
     deriving (Generic, Eq, Show)
-    deriving anyclass (Elm, FromJSON, ToJSON)
+    deriving anyclass (Elm)
+
+instance ToJSON   Guest where toJSON = elmStreetToJson
+instance FromJSON Guest where parseJSON = elmStreetParseJson
 
 data UserRequest = UserRequest
     { userRequestIds     :: ![Id User]
@@ -121,19 +141,24 @@ data MyResult
     = Ok
     | Err Text
     deriving (Generic, Eq, Show)
-    deriving anyclass (Elm, FromJSON, ToJSON)
+    deriving anyclass (Elm)
+
+instance ToJSON   MyResult where toJSON = elmStreetToJson
+instance FromJSON MyResult where parseJSON = elmStreetParseJson
 
 -- | All test types together in one type to play with.
 data OneType = OneType
-    { oneTypePrims         :: !Prims
-    , oneTypeMyUnit        :: !MyUnit
-    , oneTypeMyResult        :: !MyResult
-    , oneTypeId            :: !(Id OneType)
-    , oneTypeAge           :: !Age
-    , oneTypeRequestStatus :: !RequestStatus
-    , oneTypeUser          :: !User
-    , oneTypeGuests        :: ![Guest]
-    , oneTypeUserRequest   :: !UserRequest
+    { oneTypePrims          :: !Prims
+    , oneTypeMyUnit         :: !MyUnit
+    , oneTypeMyResult       :: !MyResult
+    , oneTypeId             :: !(Id OneType)
+    , oneTypeAge            :: !Age
+    , oneTypeNewtype        :: !Newtype
+    , oneTypeOneConstructor :: !OneConstructor
+    , oneTypeRequestStatus  :: !RequestStatus
+    , oneTypeUser           :: !User
+    , oneTypeGuests         :: ![Guest]
+    , oneTypeUserRequest    :: !UserRequest
     } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
 
@@ -147,6 +172,8 @@ type Types =
     , MyResult
     , Id ()
     , Age
+    , Newtype
+    , OneConstructor
     , RequestStatus
     , User
     , Guest
@@ -162,6 +189,8 @@ defaultOneType = OneType
     , oneTypeMyResult = Err "clashing test"
     , oneTypeId = Id "myId"
     , oneTypeAge = Age 18
+    , oneTypeNewtype = Newtype 666
+    , oneTypeOneConstructor = OneConstructor
     , oneTypeRequestStatus = Reviewing
     , oneTypeUser = User (Id "1") "not-me" (Age 100) Approved
     , oneTypeGuests = [guestRegular, guestVisitor, guestBlocked]

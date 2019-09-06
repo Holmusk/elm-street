@@ -20,7 +20,7 @@ import Data.Text.Prettyprint.Doc (Doc, colon, concatWith, dquotes, emptyDoc, equ
 
 import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), isEnum)
-import Elm.Print.Common (arrow, mkQualified, showDoc, typeWithVarsDoc, wrapParens)
+import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc, wrapParens)
 
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
@@ -200,7 +200,10 @@ decoderDef
     -> [Text] -- ^ List of type variables
     -> Doc ann
 decoderDef typeName vars =
-    decoderName typeName <+> colon <+> "Decoder" <+> wrapParens (typeWithVarsDoc typeName vars)
+    decoderName typeName
+    <+> colon
+    <+> "Decoder"
+    <+> wrapParens (qualifiedTypeWithVarsDoc typeName vars)
 
 -- | Create the name of the decoder function.
 decoderName :: Text -> Doc ann

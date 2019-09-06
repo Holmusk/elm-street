@@ -3,6 +3,11 @@
 `elm-street` uses [PVP Versioning][1].
 The changelog is available [on GitHub][2].
 
+##  0.1.0.1 — Sep 6, 2019
+
+* Fix newtype qualified import bug in `Types.elm` generated module.
+* Allow `pretty-printer-1.3` version.
+
 ## 0.1.0.0 — Sep 6, 2019
 
 * [#80](https://github.com/holmusk/elm-street/issues/80):

@@ -57,6 +57,8 @@ goldenOneTypeJson =
             "limit": 123
         },
         "age": 18,
+        "newtype":  666,
+        "oneConstructor":  "OneConstructor",
         "user": {
             "status": "Approved",
             "tag": "User",

@@ -20,7 +20,7 @@ import Data.Text.Prettyprint.Doc (Doc, brackets, colon, comma, concatWith, dquot
 
 import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), isEnum)
-import Elm.Print.Common (arrow, mkQualified, showDoc, typeWithVarsDoc)
+import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc)
 
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
@@ -64,7 +64,7 @@ typeEncoderDoc t@ElmType{..} =
 
     newtypeEncoder :: Doc ann
     newtypeEncoder =
-        name <+> equals <+> fieldEncoderDoc <+> "<< un" <> pretty elmTypeName
+        name <+> equals <+> fieldEncoderDoc <+> "<< T.un" <> pretty elmTypeName
       where
         fieldEncoderDoc :: Doc ann
         fieldEncoderDoc = case elmConstructorFields $ NE.head elmTypeConstructors of
@@ -161,7 +161,11 @@ encoderDef
     -> [Text] -- ^ List of type variables
     -> Doc ann
 encoderDef typeName vars =
-    encoderName typeName <+> colon <+> typeWithVarsDoc typeName vars <+> arrow <+> "Value"
+    encoderName typeName
+    <+> colon
+    <+> qualifiedTypeWithVarsDoc typeName vars
+    <+> arrow
+    <+> "Value"
 
 -- | Create the name of the encoder function.
 encoderName :: Text -> Doc ann

@@ -224,7 +224,7 @@ elmTypeDoc t@ElmType{..} =
 
 elmUnFuncDoc :: ElmType -> Doc ann
 elmUnFuncDoc ElmType{..} = line <> vsep
-    [ unName <+> colon <+> typeWithVarsDoc elmTypeName elmTypeVars <+> arrow <+> result
+    [ unName <+> colon <+> typeWithVarsDoc False elmTypeName elmTypeVars <+> arrow <+> result
     , unName <+> parens (ctorName <+> "x") <+> equals <+> "x"
     ]
   where
