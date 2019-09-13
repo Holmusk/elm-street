@@ -53,7 +53,7 @@ defaultOneType =
         , maybe  = Just 12
         , result = R.Err 666
         , pair   = ('o', False)
-        , triple = ('o', False, 0)
+        , triple = ('o', False, [0])
         , list   = [1, 2, 3, 4, 5]
         }
     , myUnit = MyUnit ()
@@ -61,6 +61,7 @@ defaultOneType =
     , id = Id "myId"
     , age = Age 18
     , newtype = Newtype 666
+    , newtypeList = NewtypeList [123]
     , oneConstructor = OneConstructor
     , requestStatus = Reviewing
     , user = User (Id "1") "not-me" (Age 100) Approved

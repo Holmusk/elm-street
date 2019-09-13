@@ -3,6 +3,12 @@
 `elm-street` uses [PVP Versioning][1].
 The changelog is available [on GitHub][2].
 
+##  0.1.0.2 — Sep 13, 2019
+
+* [#89](https://github.com/holmusk/elm-street/issues/89):
+  Regulate parenthesis on complicated types in encoder, decoder and type
+  generation.
+
 ##  0.1.0.1 — Sep 6, 2019
 
 * Fix newtype qualified import bug in `Types.elm` generated module.

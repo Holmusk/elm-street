@@ -14,7 +14,7 @@ type alias Prims =
     , maybe : Maybe Int
     , result : Result Int String
     , pair : (Char, Bool)
-    , triple : (Char, Bool, Int)
+    , triple : (Char, Bool, List Int)
     , list : List Int
     }
 
@@ -38,6 +38,12 @@ type Newtype
 
 unNewtype : Newtype -> Int
 unNewtype (Newtype x) = x
+
+type NewtypeList
+    = NewtypeList (List Int)
+
+unNewtypeList : NewtypeList -> List Int
+unNewtypeList (NewtypeList x) = x
 
 type OneConstructor
     = OneConstructor
@@ -85,6 +91,7 @@ type alias User =
 type Guest
     = Regular String Int
     | Visitor String
+    | Special (Maybe (List Int))
     | Blocked
 
 type alias UserRequest =
@@ -100,6 +107,7 @@ type alias OneType =
     , id : Id
     , age : Age
     , newtype : Newtype
+    , newtypeList : NewtypeList
     , oneConstructor : OneConstructor
     , requestStatus : RequestStatus
     , user : User

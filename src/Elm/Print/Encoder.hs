@@ -20,7 +20,7 @@ import Data.Text.Prettyprint.Doc (Doc, brackets, colon, comma, concatWith, dquot
 
 import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), isEnum)
-import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc)
+import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc, wrapParens)
 
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
@@ -69,7 +69,7 @@ typeEncoderDoc t@ElmType{..} =
         fieldEncoderDoc :: Doc ann
         fieldEncoderDoc = case elmConstructorFields $ NE.head elmTypeConstructors of
             []    -> "ERROR"
-            f : _ -> typeRefEncoder f
+            f : _ -> wrapParens (typeRefEncoder f)
 
     sumEncoder :: Doc ann
     sumEncoder = nest 4
@@ -105,7 +105,7 @@ typeEncoderDoc t@ElmType{..} =
         -- | @encoderA x1@
         fieldEncs :: Doc ann
         fieldEncs = concatWith (surround ", ") $
-            zipWith (<+>) (map typeRefEncoder elmConstructorFields) fields
+            zipWith (<+>) (map (wrapParens . typeRefEncoder) elmConstructorFields) fields
 
         -- | Makes variable like: @x11@ etc.
         mkText :: Text -> Int -> Text
@@ -149,7 +149,7 @@ aliasEncoderDoc ElmAlias{..} =
 
     fieldEncoderDoc :: ElmRecordField -> Doc ann
     fieldEncoderDoc ElmRecordField{..} =
-        typeRefEncoder elmRecordFieldType <+> "x." <> pretty elmRecordFieldName
+        wrapParens (typeRefEncoder elmRecordFieldType) <+> "x." <> pretty elmRecordFieldName
 
 -- | Create pair of view: @("tag", E.string "SomeName")@.
 mkTag :: Text -> Doc ann
@@ -175,19 +175,27 @@ encoderName typeName = "encode" <> pretty typeName
 typeRefEncoder :: TypeRef -> Doc ann
 typeRefEncoder (RefCustom TypeName{..}) = "encode" <> pretty (T.takeWhile (/= ' ') unTypeName)
 typeRefEncoder (RefPrim elmPrim) = case elmPrim of
-    ElmUnit         -> "(always <| E.list identity [])"
+    ElmUnit         -> "always <| E.list identity []"
     ElmNever        -> "never"
     ElmBool         -> "E.bool"
-    ElmChar         -> parens "E.string << String.fromChar"
+    ElmChar         -> "E.string << String.fromChar"
     ElmInt          -> "E.int"
     ElmFloat        -> "E.float"
     ElmString       -> "E.string"
     ElmTime         -> "Iso.encode"
-    ElmMaybe t      -> parens $ "elmStreetEncodeMaybe" <+> typeRefEncoder t
-    ElmResult l r   -> parens $ "elmStreetEncodeEither" <+> typeRefEncoder l <+> typeRefEncoder r
-    ElmPair a b     -> parens $ "elmStreetEncodePair" <+> typeRefEncoder a <+> typeRefEncoder b
-    ElmTriple a b c -> parens $ "elmStreetEncodeTriple" <+> typeRefEncoder a <+> typeRefEncoder b <+> typeRefEncoder c
-    ElmList l       -> "E.list" <+> typeRefEncoder l
+    ElmMaybe t      -> "elmStreetEncodeMaybe"
+        <+> wrapParens (typeRefEncoder t)
+    ElmResult l r   -> "elmStreetEncodeEither"
+        <+> wrapParens (typeRefEncoder l)
+        <+> wrapParens (typeRefEncoder r)
+    ElmPair a b     -> "elmStreetEncodePair"
+        <+> wrapParens (typeRefEncoder a)
+        <+> wrapParens (typeRefEncoder b)
+    ElmTriple a b c -> "elmStreetEncodeTriple"
+        <+> wrapParens (typeRefEncoder a)
+        <+> wrapParens (typeRefEncoder b)
+        <+> wrapParens (typeRefEncoder c)
+    ElmList l       -> "E.list" <+> wrapParens (typeRefEncoder l)
 
 -- | @JSON@ encoder Elm help function for 'Maybe's.
 encodeMaybe :: Text

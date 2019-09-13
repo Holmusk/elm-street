@@ -83,7 +83,7 @@ aliasDecoderDoc ElmAlias{..} =
   where
     newtypeDecoder :: Doc ann
     newtypeDecoder = name <+> "D.map" <+> qualifiedAliasName
-        <+> typeRefDecoder (elmRecordFieldType $ NE.head elmAliasFields)
+        <+> wrapParens (typeRefDecoder $ elmRecordFieldType $ NE.head elmAliasFields)
 
     recordDecoder :: Doc ann
     recordDecoder = nest 4
@@ -102,7 +102,7 @@ aliasDecoderDoc ElmAlias{..} =
         RefPrim ElmUnit -> "|> D.hardcoded ()"
         t -> "|> required"
             <+> dquotes (pretty elmRecordFieldName)
-            <+> typeRefDecoder t
+            <+> wrapParens (typeRefDecoder t)
 
 typeDecoderDoc :: ElmType -> Doc ann
 typeDecoderDoc  t@ElmType{..} =
@@ -136,7 +136,7 @@ typeDecoderDoc  t@ElmType{..} =
         fieldDecoderDoc :: Doc ann
         fieldDecoderDoc = case elmConstructorFields $ NE.head elmTypeConstructors of
             []    -> "(D.fail \"Unknown field type of the newtype constructor\")"
-            f : _ -> typeRefDecoder f
+            f : _ -> wrapParens $ typeRefDecoder f
 
     sumDecoder :: Doc ann
     sumDecoder = nest 4 $ vsep
@@ -155,7 +155,7 @@ typeDecoderDoc  t@ElmType{..} =
     cases ElmConstructor{..} = dquotes cName <+> arrow <+>
         case elmConstructorFields of
             []  -> "D.succeed" <+> qualifiedConName
-            [f] -> "D.field \"contents\" <| D.map" <+> qualifiedConName <+> typeRefDecoder f
+            [f] -> "D.field \"contents\" <| D.map" <+> qualifiedConName <+> wrapParens (typeRefDecoder f)
             l   -> "D.field \"contents\" <| D.map" <> mapNum (length l) <+> qualifiedConName <+> createIndexes
       where
         cName :: Doc ann
@@ -174,25 +174,35 @@ typeDecoderDoc  t@ElmType{..} =
 
         -- create @(D.index 0 D.string)@ etc.
         oneField :: Int -> TypeRef -> Doc ann
-        oneField i typeRef = parens $ "D.index" <+> pretty i <+> typeRefDecoder typeRef
+        oneField i typeRef = parens $ "D.index"
+            <+> pretty i
+            <+> wrapParens (typeRefDecoder typeRef)
 
 -- | Converts the reference to the existing type to the corresponding decoder.
 typeRefDecoder :: TypeRef -> Doc ann
 typeRefDecoder (RefCustom TypeName{..}) = "decode" <> pretty (T.takeWhile (/= ' ') unTypeName)
 typeRefDecoder (RefPrim elmPrim) = case elmPrim of
-    ElmUnit         -> "(D.map (always ()) (D.list D.string))"
-    ElmNever        -> "(D.fail \"Never is not possible\")"
+    ElmUnit         -> "D.map (always ()) (D.list D.string)"
+    ElmNever        -> "D.fail \"Never is not possible\""
     ElmBool         -> "D.bool"
     ElmChar         -> "elmStreetDecodeChar"
     ElmInt          -> "D.int"
     ElmFloat        -> "D.float"
     ElmString       -> "D.string"
     ElmTime         -> "Iso.decoder"
-    ElmMaybe t      -> parens $ "nullable" <+> typeRefDecoder t
-    ElmResult l r   -> parens $ "elmStreetDecodeEither" <+> typeRefDecoder l <+> typeRefDecoder r
-    ElmPair a b     -> parens $ "elmStreetDecodePair" <+> typeRefDecoder a <+> typeRefDecoder b
-    ElmTriple a b c -> parens $ "elmStreetDecodeTriple" <+> typeRefDecoder a <+> typeRefDecoder b <+> typeRefDecoder c
-    ElmList l       -> parens $ "D.list" <+> typeRefDecoder l
+    ElmMaybe t      -> "nullable"
+        <+> wrapParens (typeRefDecoder t)
+    ElmResult l r   -> "elmStreetDecodeEither"
+        <+> wrapParens (typeRefDecoder l)
+        <+> wrapParens (typeRefDecoder r)
+    ElmPair a b     -> "elmStreetDecodePair"
+        <+> wrapParens (typeRefDecoder a)
+        <+> wrapParens (typeRefDecoder b)
+    ElmTriple a b c -> "elmStreetDecodeTriple"
+        <+> wrapParens (typeRefDecoder a)
+        <+> wrapParens (typeRefDecoder b)
+        <+> wrapParens (typeRefDecoder c)
+    ElmList l       -> "D.list" <+> wrapParens (typeRefDecoder l)
 
 -- | The definition of the @decodeTYPENAME@ function.
 decoderDef

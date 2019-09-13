@@ -207,7 +207,7 @@ elmTypeDoc t@ElmType{..} =
 
     constructorDoc :: ElmConstructor -> Doc ann
     constructorDoc ElmConstructor{..} = sep $
-        pretty elmConstructorName : map elmTypeRefDoc elmConstructorFields
+        pretty elmConstructorName : map (wrapParens . elmTypeRefDoc) elmConstructorFields
 
     -- Generates 'unTYPENAME' function for newtype
     unFunc :: Doc ann

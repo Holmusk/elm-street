@@ -27,7 +27,7 @@ goldenOneTypeJson =
             "triple": [
                 "o",
                 false,
-                0
+                [0]
             ],
             "float": 36.6,
             "char": "a",
@@ -58,6 +58,7 @@ goldenOneTypeJson =
         },
         "age": 18,
         "newtype":  666,
+        "newtypeList": [123],
         "oneConstructor":  "OneConstructor",
         "user": {
             "status": "Approved",
