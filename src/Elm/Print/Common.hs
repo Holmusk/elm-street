@@ -12,7 +12,7 @@ module Elm.Print.Common
        ) where
 
 import Data.Text (Text)
-import Data.Text.Prettyprint.Doc (Doc, concatWith, lparen, pretty, rparen, surround, (<+>))
+import Data.Text.Prettyprint.Doc (Doc, concatWith, parens, pretty, surround, (<+>))
 
 import qualified Data.Text as T
 
@@ -24,13 +24,10 @@ showDoc = T.pack . show
 {- | Wraps given document in parens if it contains more than single word.
 -}
 wrapParens :: Doc ann -> Doc ann
-wrapParens = wordsDoc . T.words . showDoc
-  where
-    wordsDoc :: [Text] -> Doc ann
-    wordsDoc = \case
-        []  -> ""
-        [x] -> pretty x
-        xs  -> lparen <> pretty (T.unwords xs) <> rparen
+wrapParens doc = case T.words $ showDoc doc of
+    []  -> doc
+    [_] -> doc
+    _   -> parens doc
 
 -- | Pretty printed arrow (@->@).
 arrow :: Doc ann

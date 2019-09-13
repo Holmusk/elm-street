@@ -19,6 +19,7 @@ module Types
        , Id (..)
        , Age (..)
        , Newtype (..)
+       , NewtypeList (..)
        , OneConstructor (..)
        , RequestStatus (..)
        , User (..)
@@ -46,7 +47,7 @@ data Prims = Prims
     , primsMaybe  :: !(Maybe Word)
     , primsResult :: !(Either Int Text)
     , primsPair   :: !(Char, Bool)
-    , primsTriple :: !(Char, Bool, Int)
+    , primsTriple :: !(Char, Bool, [Int])
     , primsList   :: ![Int]
     } deriving (Generic, Eq, Show)
 #if ( __GLASGOW_HASKELL__ >= 806 )
@@ -73,6 +74,11 @@ newtype Age = Age
       deriving newtype (FromJSON, ToJSON)
 
 newtype Newtype = Newtype Int
+    deriving stock (Generic, Eq, Show)
+    deriving newtype (FromJSON, ToJSON)
+    deriving anyclass (Elm)
+
+newtype NewtypeList = NewtypeList [Int]
     deriving stock (Generic, Eq, Show)
     deriving newtype (FromJSON, ToJSON)
     deriving anyclass (Elm)
@@ -108,6 +114,7 @@ instance FromJSON User where parseJSON = elmStreetParseJson
 data Guest
     = Regular Text Int
     | Visitor Text
+    | Special (Maybe [Int])
     | Blocked
     deriving (Generic, Eq, Show)
     deriving anyclass (Elm)
@@ -154,6 +161,7 @@ data OneType = OneType
     , oneTypeId             :: !(Id OneType)
     , oneTypeAge            :: !Age
     , oneTypeNewtype        :: !Newtype
+    , oneTypeNewtypeList    :: !NewtypeList
     , oneTypeOneConstructor :: !OneConstructor
     , oneTypeRequestStatus  :: !RequestStatus
     , oneTypeUser           :: !User
@@ -173,6 +181,7 @@ type Types =
     , Id ()
     , Age
     , Newtype
+    , NewtypeList
     , OneConstructor
     , RequestStatus
     , User
@@ -190,6 +199,7 @@ defaultOneType = OneType
     , oneTypeId = Id "myId"
     , oneTypeAge = Age 18
     , oneTypeNewtype = Newtype 666
+    , oneTypeNewtypeList = NewtypeList [123]
     , oneTypeOneConstructor = OneConstructor
     , oneTypeRequestStatus = Reviewing
     , oneTypeUser = User (Id "1") "not-me" (Age 100) Approved
@@ -209,7 +219,7 @@ defaultOneType = OneType
         , primsMaybe  = Just 12
         , primsResult = Left 666
         , primsPair   = ('o', False)
-        , primsTriple = ('o', False, 0)
+        , primsTriple = ('o', False, [0])
         , primsList   = [1..5]
         }
 

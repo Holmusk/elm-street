@@ -20,7 +20,7 @@ decodePrims = D.succeed T.Prims
     |> required "maybe" (nullable D.int)
     |> required "result" (elmStreetDecodeEither D.int D.string)
     |> required "pair" (elmStreetDecodePair elmStreetDecodeChar D.bool)
-    |> required "triple" (elmStreetDecodeTriple elmStreetDecodeChar D.bool D.int)
+    |> required "triple" (elmStreetDecodeTriple elmStreetDecodeChar D.bool (D.list D.int))
     |> required "list" (D.list D.int)
 
 decodeMyUnit : Decoder T.MyUnit
@@ -49,6 +49,9 @@ decodeAge = D.map T.Age D.int
 decodeNewtype : Decoder T.Newtype
 decodeNewtype = D.map T.Newtype D.int
 
+decodeNewtypeList : Decoder T.NewtypeList
+decodeNewtypeList = D.map T.NewtypeList (D.list D.int)
+
 decodeOneConstructor : Decoder T.OneConstructor
 decodeOneConstructor = elmStreetDecodeEnum T.readOneConstructor
 
@@ -68,6 +71,7 @@ decodeGuest =
         decide x = case x of
             "Regular" -> D.field "contents" <| D.map2 T.Regular (D.index 0 D.string) (D.index 1 D.int)
             "Visitor" -> D.field "contents" <| D.map T.Visitor D.string
+            "Special" -> D.field "contents" <| D.map T.Special (nullable (D.list D.int))
             "Blocked" -> D.succeed T.Blocked
             c -> D.fail <| "Guest doesn't have such constructor: " ++ c
     in D.andThen decide (D.field "tag" D.string)
@@ -86,6 +90,7 @@ decodeOneType = D.succeed T.OneType
     |> required "id" decodeId
     |> required "age" decodeAge
     |> required "newtype" decodeNewtype
+    |> required "newtypeList" decodeNewtypeList
     |> required "oneConstructor" decodeOneConstructor
     |> required "requestStatus" decodeRequestStatus
     |> required "user" decodeUser

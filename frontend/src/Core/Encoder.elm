@@ -20,8 +20,8 @@ encodePrims x = E.object
     , ("maybe", (elmStreetEncodeMaybe E.int) x.maybe)
     , ("result", (elmStreetEncodeEither E.int E.string) x.result)
     , ("pair", (elmStreetEncodePair (E.string << String.fromChar) E.bool) x.pair)
-    , ("triple", (elmStreetEncodeTriple (E.string << String.fromChar) E.bool E.int) x.triple)
-    , ("list", E.list E.int x.list)
+    , ("triple", (elmStreetEncodeTriple (E.string << String.fromChar) E.bool (E.list E.int)) x.triple)
+    , ("list", (E.list E.int) x.list)
     ]
 
 encodeMyUnit : T.MyUnit -> Value
@@ -42,6 +42,9 @@ encodeAge x = E.int x.age
 encodeNewtype : T.Newtype -> Value
 encodeNewtype = E.int << T.unNewtype
 
+encodeNewtypeList : T.NewtypeList -> Value
+encodeNewtypeList = (E.list E.int) << T.unNewtypeList
+
 encodeOneConstructor : T.OneConstructor -> Value
 encodeOneConstructor = E.string << T.showOneConstructor
 
@@ -61,12 +64,13 @@ encodeGuest : T.Guest -> Value
 encodeGuest x = E.object <| case x of
     T.Regular x1 x2 -> [("tag", E.string "Regular"), ("contents", E.list identity [E.string x1, E.int x2])]
     T.Visitor x1 -> [("tag", E.string "Visitor"), ("contents", E.string x1)]
+    T.Special x1 -> [("tag", E.string "Special"), ("contents", (elmStreetEncodeMaybe (E.list E.int)) x1)]
     T.Blocked  -> [("tag", E.string "Blocked"), ("contents", E.list identity [])]
 
 encodeUserRequest : T.UserRequest -> Value
 encodeUserRequest x = E.object
     [ ("tag", E.string "UserRequest")
-    , ("ids", E.list encodeId x.ids)
+    , ("ids", (E.list encodeId) x.ids)
     , ("limit", E.int x.limit)
     , ("example", (elmStreetEncodeMaybe (elmStreetEncodeEither encodeUser encodeGuest)) x.example)
     ]
@@ -80,9 +84,10 @@ encodeOneType x = E.object
     , ("id", encodeId x.id)
     , ("age", encodeAge x.age)
     , ("newtype", encodeNewtype x.newtype)
+    , ("newtypeList", encodeNewtypeList x.newtypeList)
     , ("oneConstructor", encodeOneConstructor x.oneConstructor)
     , ("requestStatus", encodeRequestStatus x.requestStatus)
     , ("user", encodeUser x.user)
-    , ("guests", E.list encodeGuest x.guests)
+    , ("guests", (E.list encodeGuest) x.guests)
     , ("userRequest", encodeUserRequest x.userRequest)
     ]
