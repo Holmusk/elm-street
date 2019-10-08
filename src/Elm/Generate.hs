@@ -22,8 +22,8 @@ import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((<.>), (</>))
 
 import Elm.Generic (Elm (..))
-import Elm.Print (decodeChar, decodeEither, decodeEnum, decodePair, decodeTriple, encodeEither, encodeMaybe,
-                  encodePair, encodeTriple, prettyShowDecoder, prettyShowDefinition, prettyShowEncoder)
+import Elm.Print (decodeChar, decodeEither, decodeEnum, decodePair, decodeTriple, decodeDict, encodeEither, encodeMaybe,
+                  encodePair, encodeTriple, encodeDict, prettyShowDecoder, prettyShowDefinition, prettyShowEncoder)
 
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -123,6 +123,7 @@ generateElm Settings{..} = do
         [ "module " <> typesModule <> " exposing (..)"
         , ""
         , "import Time exposing (Posix)"
+        , "import Dict exposing (Dict)"
         ]
 
     encoderHeader :: Text
@@ -131,6 +132,7 @@ generateElm Settings{..} = do
         , ""
         , "import Iso8601 as Iso"
         , "import Json.Encode as E exposing (..)"
+        , "import Dict exposing (Dict)"
         , ""
         , "import " <> streetModule <> " exposing (..)"
         , "import " <> typesModule <> " as T"
@@ -143,6 +145,7 @@ generateElm Settings{..} = do
         , "import Iso8601 as Iso"
         , "import Json.Decode as D exposing (..)"
         , "import Json.Decode.Pipeline as D exposing (required)"
+        , "import Dict exposing (Dict)"
         , ""
         , "import " <> streetModule <> " exposing (..)"
         , "import " <> typesModule <> " as T"
@@ -155,16 +158,19 @@ generateElm Settings{..} = do
         , "import Json.Encode as E exposing (Value)"
         , "import Json.Decode as D exposing (Decoder)"
         , "import Json.Decode.Pipeline as D exposing (..)"
+        , "import Dict exposing (Dict)"
         , ""
         , ""
         , encodeMaybe
         , encodeEither
         , encodePair
         , encodeTriple
+        , encodeDict
 
         , decodeEnum
         , decodeChar
         , decodeEither
         , decodePair
         , decodeTriple
+        , decodeDict
         ]

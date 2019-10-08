@@ -2,6 +2,7 @@ module Core.Encoder exposing (..)
 
 import Iso8601 as Iso
 import Json.Encode as E exposing (..)
+import Dict exposing (Dict)
 
 import Core.ElmStreet exposing (..)
 import Core.Types as T
@@ -22,6 +23,8 @@ encodePrims x = E.object
     , ("pair", (elmStreetEncodePair (E.string << String.fromChar) E.bool) x.pair)
     , ("triple", (elmStreetEncodeTriple (E.string << String.fromChar) E.bool (E.list E.int)) x.triple)
     , ("list", (E.list E.int) x.list)
+    , ("textDict", (elmStreetEncodeDict E.string E.int) x.textDict)
+    , ("enumDict", (elmStreetEncodeDict encodeRequestStatus E.int) x.enumDict)
     ]
 
 encodeMyUnit : T.MyUnit -> Value

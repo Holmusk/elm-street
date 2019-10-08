@@ -10,6 +10,7 @@ module Elm.Print.Encoder
        , encodeEither
        , encodePair
        , encodeTriple
+       , encodeDict
        ) where
 
 import Data.List.NonEmpty (NonEmpty, toList)
@@ -196,6 +197,9 @@ typeRefEncoder (RefPrim elmPrim) = case elmPrim of
         <+> wrapParens (typeRefEncoder b)
         <+> wrapParens (typeRefEncoder c)
     ElmList l       -> "E.list" <+> wrapParens (typeRefEncoder l)
+    ElmDict k v     -> "elmStreetEncodeDict"
+        <+> wrapParens (typeRefEncoder k)
+        <+> wrapParens (typeRefEncoder v)
 
 -- | @JSON@ encoder Elm help function for 'Maybe's.
 encodeMaybe :: Text
@@ -225,4 +229,10 @@ encodeTriple :: Text
 encodeTriple = T.unlines
     [ "elmStreetEncodeTriple : (a -> Value) -> (b -> Value) -> (c -> Value) -> (a, b, c) -> Value"
     , "elmStreetEncodeTriple encA encB encC (a, b, c) = E.list identity [encA a, encB b, encC c]"
+    ]
+
+encodeDict :: Text
+encodeDict = T.unlines
+    [ "elmStreetEncodeDict : (k -> Value) -> (v -> Value) -> Dict k v -> Value"
+    , "elmStreetEncodeDict encK encV = E.dict (E.encode 0 << encK) encV"
     ]

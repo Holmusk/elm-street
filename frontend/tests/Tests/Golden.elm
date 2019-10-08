@@ -33,7 +33,11 @@ goldenOneTypeJson =
             "char": "a",
             "int": 42,
             "bool": true,
-            "unit": []
+            "unit": [],
+            "textDict": {
+                "hello": 0,
+                "world": 1
+            }
         },
         "myUnit": {
             "tag": "MyUnit",

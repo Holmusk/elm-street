@@ -3,6 +3,7 @@ module Core.ElmStreet exposing (..)
 import Json.Encode as E exposing (Value)
 import Json.Decode as D exposing (Decoder)
 import Json.Decode.Pipeline as D exposing (..)
+import Dict exposing (Dict)
 
 
 elmStreetEncodeMaybe : (a -> Value) -> Maybe a -> Value
@@ -18,6 +19,9 @@ elmStreetEncodePair encA encB (a, b) = E.list identity [encA a, encB b]
 
 elmStreetEncodeTriple : (a -> Value) -> (b -> Value) -> (c -> Value) -> (a, b, c) -> Value
 elmStreetEncodeTriple encA encB encC (a, b, c) = E.list identity [encA a, encB b, encC c]
+
+elmStreetEncodeDict : (k -> Value) -> (v -> Value) -> Dict k v -> Value
+elmStreetEncodeDict encK encV = E.dict (E.encode 0 << encK) encV
 
 decodeStr : (String -> Maybe a) -> String -> Decoder a
 decodeStr readX x = case readX x of
@@ -41,4 +45,13 @@ elmStreetDecodePair decA decB = D.map2 Tuple.pair (D.index 0 decA) (D.index 1 de
 
 elmStreetDecodeTriple : Decoder a -> Decoder b -> Decoder c -> Decoder (a, b, c)
 elmStreetDecodeTriple decA decB decC = D.map3 (\a b c -> (a,b,c)) (D.index 0 decA) (D.index 1 decB) (D.index 2 decC)
+
+elmStreetDecodeDict : Decoder comparable -> Decoder v -> Decoder (Dict comparable v)
+elmStreetDecodeDict decK decV = D.dict decV |> D.andThen (elmStreetDecodeKeys decK)
+
+elmStreetDecodeKeys : Decoder comparable -> Dict String v -> Decoder (Dict comparable v)
+elmStreetDecodeKeys decK vDict =
+    let resultList     = List.map (\(kStr, v) -> (D.decodeString decK kStr, v)) (Dict.toList vDict)
+        filteredResult = List.filterMap (\(kRes, v) -> Maybe.map (\k -> (k,v)) <| Result.toMaybe kRes) resultList
+    in D.succeed <| Dict.fromList filteredResult
 

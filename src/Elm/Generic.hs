@@ -48,6 +48,7 @@ module Elm.Generic
        , stripTypeNamePrefix
        ) where
 
+import Data.Aeson.Types (ToJSONKey, FromJSONKey)
 import Data.Char (isLower, toLower)
 import Data.Int (Int16, Int32, Int8)
 import Data.Kind (Constraint, Type)
@@ -66,6 +67,7 @@ import GHC.TypeNats (type (+), type (<=?))
 import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), definitionToRef)
 
+import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT (Text)
 import qualified GHC.Generics as Generic (from)
@@ -142,6 +144,12 @@ instance Elm a => Elm [a] where
 
 instance Elm a => Elm (NonEmpty a) where
     toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
+
+instance (Enum k, Bounded k, ToJSONKey k, FromJSONKey k, Elm k, Elm v) => Elm (M.Map k v) where
+    toElmDefinition _ = DefPrim $ ElmDict (elmRef @k) (elmRef @v)
+
+instance {-# OVERLAPPING #-} Elm a => Elm (M.Map Text a) where
+    toElmDefinition _ = DefPrim $ ElmDict (elmRef @Text) (elmRef @a)
 
 ----------------------------------------------------------------------------
 -- Smart constructors

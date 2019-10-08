@@ -1,6 +1,7 @@
 module Core.Types exposing (..)
 
 import Time exposing (Posix)
+import Dict exposing (Dict)
 
 
 type alias Prims =
@@ -16,6 +17,8 @@ type alias Prims =
     , pair : (Char, Bool)
     , triple : (Char, Bool, List Int)
     , list : List Int
+    , textDict : Dict String Int
+    , enumDict : Dict RequestStatus Int
     }
 
 type MyUnit

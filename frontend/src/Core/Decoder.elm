@@ -3,6 +3,7 @@ module Core.Decoder exposing (..)
 import Iso8601 as Iso
 import Json.Decode as D exposing (..)
 import Json.Decode.Pipeline as D exposing (required)
+import Dict exposing (Dict)
 
 import Core.ElmStreet exposing (..)
 import Core.Types as T
@@ -22,6 +23,8 @@ decodePrims = D.succeed T.Prims
     |> required "pair" (elmStreetDecodePair elmStreetDecodeChar D.bool)
     |> required "triple" (elmStreetDecodeTriple elmStreetDecodeChar D.bool (D.list D.int))
     |> required "list" (D.list D.int)
+    |> required "textDict" (elmStreetDecodeDict D.string D.int)
+    |> required "enumDict" (elmStreetDecodeDict decodeRequestStatus D.int)
 
 decodeMyUnit : Decoder T.MyUnit
 decodeMyUnit =

@@ -110,6 +110,7 @@ elmPrimDoc = \case
     ElmPair a b     -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> rparen
     ElmTriple a b c -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> comma <+> elmTypeRefDoc c <> rparen
     ElmList l       -> "List" <+> elmTypeParenDoc l
+    ElmDict k v     -> "Dict" <+> elmTypeParenDoc k <+> elmTypeParenDoc v
 
 {- | Pretty-printer for types. Adds parens for both sides when needed (when type
 contains of multiple words).

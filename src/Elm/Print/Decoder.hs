@@ -11,6 +11,7 @@ module Elm.Print.Decoder
        , decodeEither
        , decodePair
        , decodeTriple
+       , decodeDict
        ) where
 
 import Data.List.NonEmpty (toList)
@@ -203,6 +204,9 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
         <+> wrapParens (typeRefDecoder b)
         <+> wrapParens (typeRefDecoder c)
     ElmList l       -> "D.list" <+> wrapParens (typeRefDecoder l)
+    ElmDict a b     -> "elmStreetDecodeDict"
+        <+> wrapParens (typeRefDecoder a)
+        <+> wrapParens (typeRefDecoder b)
 
 -- | The definition of the @decodeTYPENAME@ function.
 decoderDef
@@ -260,4 +264,16 @@ decodeTriple :: Text
 decodeTriple = T.unlines
     [ "elmStreetDecodeTriple : Decoder a -> Decoder b -> Decoder c -> Decoder (a, b, c)"
     , "elmStreetDecodeTriple decA decB decC = D.map3 (\\a b c -> (a,b,c)) (D.index 0 decA) (D.index 1 decB) (D.index 2 decC)"
+    ]
+
+decodeDict :: Text
+decodeDict = T.unlines
+    [ "elmStreetDecodeDict : Decoder comparable -> Decoder v -> Decoder (Dict comparable v)"
+    , "elmStreetDecodeDict decK decV = D.dict decV |> D.andThen (elmStreetDecodeKeys decK)"
+    , ""
+    , "elmStreetDecodeKeys : Decoder comparable -> Dict String v -> Decoder (Dict comparable v)"
+    , "elmStreetDecodeKeys decK vDict ="
+    , "    let resultList     = List.map (\\(kStr, v) -> (D.decodeString decK kStr, v)) (Dict.toList vDict)"
+    , "        filteredResult = List.filterMap (\\(kRes, v) -> Maybe.map (\\k -> (k,v)) <| Result.toMaybe kRes) resultList"
+    , "    in D.succeed <| Dict.fromList filteredResult"
     ]

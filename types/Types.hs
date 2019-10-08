@@ -28,6 +28,7 @@ module Types
        ) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..))
+import Data.Aeson.Types (FromJSONKey, ToJSONKey)
 import Data.Text (Text)
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Clock (UTCTime (..))
@@ -35,6 +36,7 @@ import Data.Word (Word32)
 import Elm (Elm (..), ElmStreet (..), elmNewtype, elmStreetParseJson, elmStreetToJson)
 import GHC.Generics (Generic)
 
+import qualified Data.Map as Map
 
 data Prims = Prims
     { primsUnit   :: !()
@@ -49,6 +51,8 @@ data Prims = Prims
     , primsPair   :: !(Char, Bool)
     , primsTriple :: !(Char, Bool, [Int])
     , primsList   :: ![Int]
+    , primsTextDict :: !(Map.Map Text Int)
+    , primsEnumDict :: !(Map.Map RequestStatus Int)
     } deriving (Generic, Eq, Show)
 #if ( __GLASGOW_HASKELL__ >= 806 )
       deriving (Elm, ToJSON, FromJSON) via ElmStreet Prims
@@ -94,7 +98,7 @@ data RequestStatus
     = Approved
     | Rejected
     | Reviewing
-    deriving (Generic, Eq, Show)
+    deriving (Generic, Eq, Show, Ord, Enum, Bounded, ToJSONKey, FromJSONKey)
     deriving anyclass (Elm)
 
 instance ToJSON   RequestStatus where toJSON = elmStreetToJson
@@ -221,6 +225,8 @@ defaultOneType = OneType
         , primsPair   = ('o', False)
         , primsTriple = ('o', False, [0])
         , primsList   = [1..5]
+        , primsTextDict = Map.fromList [("hello", 0), ("world", 1)]
+        , primsEnumDict = Map.fromList [(Approved, 0), (Rejected, 1)]
         }
 
     guestRegular, guestVisitor, guestBlocked :: Guest
