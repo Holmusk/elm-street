@@ -37,7 +37,7 @@ matrix:
 
     install:
       - cd frontend/
-      - npm install -g create-elm-app@2.2.0
+      - npm install -g create-elm-app
       - npm install
     script:
       - elm-app build
