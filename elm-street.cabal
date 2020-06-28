@@ -110,7 +110,7 @@ executable run-backend
                      , servant-server >= 0.14 && < 0.17
                      , types
                      , wai ^>= 3.2
-                     , warp ^>= 3.3
+                     , warp < 3.4
 
   ghc-options:         -threaded
                        -rtsopts
