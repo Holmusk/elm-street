@@ -18,11 +18,14 @@ matrix:
   # Cabal
   - ghc: 8.4.4
   - ghc: 8.6.5
+  - ghc: 8.8.3
 
   # stack
   - ghc: 8.4.4
     env: STACK_YAML="$TRAVIS_BUILD_DIR/stack-8.4.4.yaml"
   - ghc: 8.6.5
+    env: STACK_YAML="$TRAVIS_BUILD_DIR/stack-8.6.5.yaml"
+  - ghc: 8.8.3
     env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
 
   # elm
@@ -34,7 +37,7 @@ matrix:
 
     install:
       - cd frontend/
-      - npm install -g create-elm-app@2.2.0
+      - npm install -g create-elm-app@4.2.4
       - npm install
     script:
       - elm-app build
