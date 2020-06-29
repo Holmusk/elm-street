@@ -141,7 +141,7 @@ instance Elm a => Elm [a] where
     toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
 
 instance Elm a => Elm (NonEmpty a) where
-    toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
+    toElmDefinition _ = DefPrim $ ElmNonEmptyPair (elmRef @a)
 
 ----------------------------------------------------------------------------
 -- Smart constructors

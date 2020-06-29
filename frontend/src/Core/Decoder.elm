@@ -96,3 +96,4 @@ decodeOneType = D.succeed T.OneType
     |> required "user" decodeUser
     |> required "guests" (D.list decodeGuest)
     |> required "userRequest" decodeUserRequest
+    |> required "nonEmpty" (elmStreetDecodeNonEmpty decodeMyUnit)

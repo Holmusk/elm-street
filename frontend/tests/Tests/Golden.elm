@@ -4,6 +4,11 @@ goldenOneTypeJson : String
 goldenOneTypeJson =
     """
     {
+        "nonEmpty": {
+            {
+                "tag": ":"
+            }
+        }
         "tag": "OneType",
         "prims": {
             "maybe": 12,
@@ -83,6 +88,16 @@ goldenOneTypeJson =
             },
             {
                 "tag": "Blocked"
+            }
+        ],
+        "nonEmpty": [
+            {
+                "tag": "MyUnit",
+                "contents": []
+            },
+            {
+                "tag": "MyUnit",
+                "contents": []
             }
         ]
     }

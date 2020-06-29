@@ -113,4 +113,5 @@ type alias OneType =
     , user : User
     , guests : List Guest
     , userRequest : UserRequest
+    , nonEmpty : (MyUnit, List MyUnit)
     }

@@ -28,6 +28,7 @@ module Types
        ) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..))
+import Data.List.NonEmpty (NonEmpty(..))
 import Data.Text (Text)
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Clock (UTCTime (..))
@@ -37,18 +38,19 @@ import GHC.Generics (Generic)
 
 
 data Prims = Prims
-    { primsUnit   :: !()
-    , primsBool   :: !Bool
-    , primsChar   :: !Char
-    , primsInt    :: !Int
-    , primsFloat  :: !Double
-    , primsText   :: !Text
-    , primsTime   :: !UTCTime
-    , primsMaybe  :: !(Maybe Word)
-    , primsResult :: !(Either Int Text)
-    , primsPair   :: !(Char, Bool)
-    , primsTriple :: !(Char, Bool, [Int])
-    , primsList   :: ![Int]
+    { primsUnit     :: !()
+    , primsBool     :: !Bool
+    , primsChar     :: !Char
+    , primsInt      :: !Int
+    , primsFloat    :: !Double
+    , primsText     :: !Text
+    , primsTime     :: !UTCTime
+    , primsMaybe    :: !(Maybe Word)
+    , primsResult   :: !(Either Int Text)
+    , primsPair     :: !(Char, Bool)
+    , primsTriple   :: !(Char, Bool, [Int])
+    , primsList     :: ![Int]
+    , primsNonEmpty :: !(NonEmpty Int)
     } deriving (Generic, Eq, Show)
 #if ( __GLASGOW_HASKELL__ >= 806 )
       deriving (Elm, ToJSON, FromJSON) via ElmStreet Prims
@@ -167,6 +169,7 @@ data OneType = OneType
     , oneTypeUser           :: !User
     , oneTypeGuests         :: ![Guest]
     , oneTypeUserRequest    :: !UserRequest
+    , oneTypeNonEmpty       :: !(NonEmpty MyUnit)
     } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
 
@@ -205,22 +208,24 @@ defaultOneType = OneType
     , oneTypeUser = User (Id "1") "not-me" (Age 100) Approved
     , oneTypeGuests = [guestRegular, guestVisitor, guestBlocked]
     , oneTypeUserRequest = defaultUserRequest
+    , oneTypeNonEmpty = MyUnit () :| [ MyUnit () ]
     }
   where
     defaultPrims :: Prims
     defaultPrims = Prims
-        { primsUnit   = ()
-        , primsBool   = True
-        , primsChar   = 'a'
-        , primsInt    = 42
-        , primsFloat  = 36.6
-        , primsText   = "heh"
-        , primsTime   = UTCTime (fromGregorian 2019 2 22) 0
-        , primsMaybe  = Just 12
-        , primsResult = Left 666
-        , primsPair   = ('o', False)
-        , primsTriple = ('o', False, [0])
-        , primsList   = [1..5]
+        { primsUnit     = ()
+        , primsBool     = True
+        , primsChar     = 'a'
+        , primsInt      = 42
+        , primsFloat    = 36.6
+        , primsText     = "heh"
+        , primsTime     = UTCTime (fromGregorian 2019 2 22) 0
+        , primsMaybe    = Just 12
+        , primsResult   = Left 666
+        , primsPair     = ('o', False)
+        , primsTriple   = ('o', False, [0])
+        , primsList     = [1..5]
+        , primsNonEmpty = 1 :| []
         }
 
     guestRegular, guestVisitor, guestBlocked :: Guest

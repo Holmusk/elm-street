@@ -97,19 +97,20 @@ display types of fields.
 -}
 elmPrimDoc :: ElmPrim -> Doc ann
 elmPrimDoc = \case
-    ElmUnit         -> "()"
-    ElmNever        -> "Never"
-    ElmBool         -> "Bool"
-    ElmChar         -> "Char"
-    ElmInt          -> "Int"
-    ElmFloat        -> "Float"
-    ElmString       -> "String"
-    ElmTime         -> "Posix"
-    ElmMaybe t      -> "Maybe" <+> elmTypeParenDoc t
-    ElmResult l r   -> "Result" <+> elmTypeParenDoc l <+> elmTypeParenDoc r
-    ElmPair a b     -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> rparen
-    ElmTriple a b c -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> comma <+> elmTypeRefDoc c <> rparen
-    ElmList l       -> "List" <+> elmTypeParenDoc l
+    ElmUnit           -> "()"
+    ElmNever          -> "Never"
+    ElmBool           -> "Bool"
+    ElmChar           -> "Char"
+    ElmInt            -> "Int"
+    ElmFloat          -> "Float"
+    ElmString         -> "String"
+    ElmTime           -> "Posix"
+    ElmMaybe t        -> "Maybe" <+> elmTypeParenDoc t
+    ElmResult l r     -> "Result" <+> elmTypeParenDoc l <+> elmTypeParenDoc r
+    ElmPair a b       -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> rparen
+    ElmTriple a b c   -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> comma <+> elmTypeRefDoc c <> rparen
+    ElmList l         -> "List" <+> elmTypeParenDoc l
+    ElmNonEmptyPair a -> lparen <> elmTypeRefDoc a <> comma <+> "List" <+> elmTypeRefDoc a <> rparen
 
 {- | Pretty-printer for types. Adds parens for both sides when needed (when type
 contains of multiple words).
