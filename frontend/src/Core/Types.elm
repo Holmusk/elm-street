@@ -16,6 +16,7 @@ type alias Prims =
     , pair : (Char, Bool)
     , triple : (Char, Bool, List Int)
     , list : List Int
+    , nonEmpty : (Int, List Int)
     }
 
 type MyUnit

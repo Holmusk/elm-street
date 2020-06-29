@@ -43,18 +43,19 @@ defaultOneType =
         guestBlocked = Blocked
     in
     { prims =
-        { unit   = ()
-        , bool   = True
-        , char   = 'a'
-        , int    = 42
-        , float  = 36.6
-        , text   = "heh"
-        , time   = millisToPosix 1550793600000  -- UTCTime (fromGregorian 2019 2 22) 0
-        , maybe  = Just 12
-        , result = R.Err 666
-        , pair   = ('o', False)
-        , triple = ('o', False, [0])
-        , list   = [1, 2, 3, 4, 5]
+        { unit     = ()
+        , bool     = True
+        , char     = 'a'
+        , int      = 42
+        , float    = 36.6
+        , text     = "heh"
+        , time     = millisToPosix 1550793600000  -- UTCTime (fromGregorian 2019 2 22) 0
+        , maybe    = Just 12
+        , result   = R.Err 666
+        , pair     = ('o', False)
+        , triple   = ('o', False, [0])
+        , list     = [1, 2, 3, 4, 5]
+        , nonEmpty = (1, [])
         }
     , myUnit = MyUnit ()
     , myResult = T.Err "clashing test"
@@ -71,4 +72,5 @@ defaultOneType =
         , limit   = 123
         , example = Just (R.Ok Blocked)
         }
+    , nonEmpty = (MyUnit (), [MyUnit ()])
     }
