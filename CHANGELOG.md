@@ -3,6 +3,10 @@
 `elm-street` uses [PVP Versioning][1].
 The changelog is available [on GitHub][2].
 
+##  0.1.0.3 - Jun 29, 2020
+
+Update to LTS 16.2
+
 ##  0.1.0.2 — Sep 13, 2019
 
 * [#89](https://github.com/holmusk/elm-street/issues/89):
