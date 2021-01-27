@@ -118,6 +118,6 @@ jobs:
     - name: Build and test
       working-directory: frontend
       run: |
-          npm ci
-          npx elm-app build
-          npx elm-app test
+          npm install -g create-elm-app@5.22.0
+          elm-app build
+          elm-app test

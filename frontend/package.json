@@ -1,8 +1,0 @@
-{
-  "name": "frontend",
-  "version": "1.0.0",
-  "author": "Holmusk <tech@holmusk.com>",
-  "devDependencies": {
-    "create-elm-app": "^5.22.0"
-  }
-}
