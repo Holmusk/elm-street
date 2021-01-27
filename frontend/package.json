@@ -1,15 +1,7 @@
 {
   "name": "frontend",
   "version": "1.0.0",
-  "main": "elmapp.config.js",
-  "directories": {
-    "test": "tests"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
+  "author": "Holmusk <tech@holmusk.com>",
   "devDependencies": {
     "create-elm-app": "^5.22.0"
   }
