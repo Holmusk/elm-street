@@ -3,9 +3,13 @@
 `elm-street` uses [PVP Versioning][1].
 The changelog is available [on GitHub][2].
 
+##  0.1.0.4 - Jan 28, 2020
+
+* Bump prettyprinter upper bound to allow building with lts-17.0
+
 ##  0.1.0.3 - Jun 29, 2020
 
-Update to LTS 16.2
+* Update to lts-16.2
 
 ##  0.1.0.2 — Sep 13, 2019
 
