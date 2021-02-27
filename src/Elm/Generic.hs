@@ -48,6 +48,7 @@ module Elm.Generic
        , stripTypeNamePrefix
        ) where
 
+import Data.Aeson (Value)
 import Data.Char (isLower, toLower)
 import Data.Int (Int16, Int32, Int8)
 import Data.Kind (Constraint, Type)
@@ -117,6 +118,8 @@ instance Elm Double where toElmDefinition _ = DefPrim ElmFloat
 
 instance Elm Text    where toElmDefinition _ = DefPrim ElmString
 instance Elm LT.Text where toElmDefinition _ = DefPrim ElmString
+
+instance Elm Value where toElmDefinition _ = DefPrim ElmValue
 
 -- TODO: should it be 'Bytes' from @bytes@ package?
 -- https://package.elm-lang.org/packages/elm/bytes/latest/Bytes

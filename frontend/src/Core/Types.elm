@@ -1,6 +1,7 @@
 module Core.Types exposing (..)
 
 import Time exposing (Posix)
+import Json.Decode exposing (Value)
 
 
 type alias Prims =
@@ -11,6 +12,7 @@ type alias Prims =
     , float : Float
     , text : String
     , time : Posix
+    , value : Value
     , maybe : Maybe Int
     , result : Result Int String
     , pair : (Char, Bool)

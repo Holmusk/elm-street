@@ -17,7 +17,7 @@ jobs:
           - "8.4.4"
           - "8.6.5"
           - "8.8.4"
-          - "8.10.3"
+          - "8.10.4"
         exclude:
           # Test only with latest GHC on windows and macOS
           - os: macOS-latest
@@ -76,7 +76,7 @@ jobs:
     strategy:
       matrix:
         stack: ["2.5.1"]
-        ghc: ["8.10.3"]
+        ghc: ["8.10.4"]
 
     steps:
     - uses: actions/checkout@v2

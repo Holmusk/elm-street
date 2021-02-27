@@ -15,16 +15,19 @@ import Elm.Print.Encoder
 import Elm.Print.Types
 
 {-
-putStrLn $ T.unpack $ prettyShowDefinition $ DefAlias $ ElmAlias "User" $ (ElmRecordField (TypeName "String") "userHeh") :| [ElmRecordField (TypeName "Int") "userMeh"]
+import qualified Data.Text as T
+import Elm.Ast
+import Data.List.NonEmpty
 
-ENUM:
-putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] $ (ElmConstructor "Approved" []) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" []]
-putStrLn $ T.unpack $ prettyShowEncoder $ DefType $ ElmType "Status" [] $ (ElmConstructor "Approved" []) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" []]
+test :: IO ()
+test = do
+    putStrLn $ T.unpack $ prettyShowDefinition $ DefAlias $ ElmAlias "User"  (ElmRecordField (RefPrim ElmString) "userHeh" :| [ElmRecordField (RefPrim ElmInt) "userMeh"]) False
 
-putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] $ (ElmConstructor "Approved" [TypeName "String", TypeName "Int"]) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" [TypeName "a"]]
-
-putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" ["a"] $ (ElmConstructor "Approved" [TypeName "String", TypeName "Int"]) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" [TypeName "a"]]
-
-putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] ((ElmConstructor "Approved" []) :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" [], ElmConstructor "OneMore" [], ElmConstructor "AndAnother" []])
+    --ENUM:
+    putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] False $ ElmConstructor "Approved" [] :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" []]
+    putStrLn $ T.unpack $ prettyShowEncoder    $ DefType $ ElmType "Status" [] False $ ElmConstructor "Approved" [] :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" []]
+    putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] False $ ElmConstructor "Approved" [RefPrim ElmString, RefPrim ElmInt] :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" [RefCustom $ TypeName "a"]]
+    putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" ["a"] False $ ElmConstructor "Approved" [RefPrim ElmString, RefPrim ElmInt] :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" [RefCustom $ TypeName "a"]]
+    putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] False (ElmConstructor "Approved" [] :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" [], ElmConstructor "OneMore" [], ElmConstructor "AndAnother" []])
 
 -}

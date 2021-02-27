@@ -33,7 +33,15 @@ goldenOneTypeJson =
             "char": "a",
             "int": 42,
             "bool": true,
-            "unit": []
+            "unit": [],
+            "value" : {
+                "boolField": true,
+                "numberField": 1,
+                "stringField": "hi",
+                "objectField": {},
+                "arrayField": [1,2,3],
+                "nullField": null
+            }        
         },
         "myUnit": {
             "tag": "MyUnit",

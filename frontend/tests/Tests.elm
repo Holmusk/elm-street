@@ -2,7 +2,7 @@ module Tests exposing (..)
 
 import Expect
 import Http
-import Json.Encode exposing (encode)
+import Json.Encode as E exposing (encode)
 import Json.Decode exposing (decodeString)
 import Task exposing (Task)
 import Test exposing (..)
@@ -49,6 +49,14 @@ defaultOneType =
         , int    = 42
         , float  = 36.6
         , text   = "heh"
+        , value  = E.object
+            [ ("nullField", E.null)
+            , ("boolField", E.bool True)
+            , ("numberField", E.int 1)
+            , ("stringField", E.string "hi")
+            , ("arrayField", E.list E.int [1,2,3])
+            , ("objectField", E.object [])
+            ]
         , time   = millisToPosix 1550793600000  -- UTCTime (fromGregorian 2019 2 22) 0
         , maybe  = Just 12
         , result = R.Err 666

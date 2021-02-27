@@ -123,6 +123,7 @@ generateElm Settings{..} = do
         [ "module " <> typesModule <> " exposing (..)"
         , ""
         , "import Time exposing (Posix)"
+        , "import Json.Decode exposing (Value)"
         ]
 
     encoderHeader :: Text
