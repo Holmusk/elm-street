@@ -1,10 +1,8 @@
 module Tests exposing (..)
 
 import Expect
-import Http
 import Json.Encode as E exposing (encode)
 import Json.Decode exposing (decodeString)
-import Task exposing (Task)
 import Test exposing (..)
 import Time exposing (millisToPosix)
 import Result as R
@@ -15,7 +13,7 @@ import Core.Types exposing (..)
 import Core.Types as T exposing (MyResult (..))
 import Tests.Golden exposing (goldenOneTypeJson)
 
--- Check out http://package.elm-lang.org/packages/elm-community/elm-test/latest to learn more about testing in Elm!
+-- Check out https://package.elm-lang.org/packages/elm-explorations/test/latest to learn more about testing in Elm!
 
 
 all : Test
