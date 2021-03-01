@@ -27,7 +27,7 @@ module Types
        , UserRequest (..)
        ) where
 
-import Data.Aeson (FromJSON (..), ToJSON (..))
+import Data.Aeson (FromJSON (..), ToJSON (..), Value(..), object, (.=))
 import Data.Text (Text)
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Clock (UTCTime (..))
@@ -44,6 +44,7 @@ data Prims = Prims
     , primsFloat  :: !Double
     , primsText   :: !Text
     , primsTime   :: !UTCTime
+    , primsValue  :: !Value
     , primsMaybe  :: !(Maybe Word)
     , primsResult :: !(Either Int Text)
     , primsPair   :: !(Char, Bool)
@@ -215,6 +216,14 @@ defaultOneType = OneType
         , primsInt    = 42
         , primsFloat  = 36.6
         , primsText   = "heh"
+        , primsValue  = object
+            [ "nullField"   .= Null
+            , "boolField"   .= True
+            , "numberField" .= (1::Int)
+            , "stringField" .= ("hi"::String)
+            , "arrayField"  .= [1::Int,2,3]
+            , "objectField" .= object []
+            ]
         , primsTime   = UTCTime (fromGregorian 2019 2 22) 0
         , primsMaybe  = Just 12
         , primsResult = Left 666

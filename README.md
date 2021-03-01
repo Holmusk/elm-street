@@ -9,7 +9,7 @@
 
 Crossing the road between Haskell and Elm.
 
-## What this library about?
+## What is this library about?
 
 `Elm-street` allows you to generate automatically derived from Haskell types
 definitions of Elm data types, JSON encoders and decoders. This helps to avoid

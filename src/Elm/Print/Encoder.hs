@@ -47,7 +47,7 @@ prettyShowEncoder def = showDoc $ case def of
 -- | Encoder for 'ElmType' (which is either enum or the Sum type).
 typeEncoderDoc :: ElmType -> Doc ann
 typeEncoderDoc t@ElmType{..} =
-    -- function defenition: @encodeTypeName : TypeName -> Value@.
+    -- function definition: @encodeTypeName : TypeName -> Value@.
        encoderDef elmTypeName elmTypeVars
     <> line
     <> if isEnum t
@@ -56,7 +56,7 @@ typeEncoderDoc t@ElmType{..} =
        else if elmTypeIsNewtype
             -- if this is type with one constructor and one field then it should just call encoder for wrapped type
             then newtypeEncoder
-            -- If it sum type then it should look like: @{"tag": "Foo", "contents" : ["string", 1]}@
+            -- If it's sum type then it should look like: @{"tag": "Foo", "contents" : ["string", 1]}@
             else sumEncoder
   where
     enumEncoder :: Doc ann
@@ -81,7 +81,7 @@ typeEncoderDoc t@ElmType{..} =
     name :: Doc ann
     name = encoderName elmTypeName
 
-    -- | Create case clouse for each of the sum Constructors.
+    -- | Create case clause for each of the sum Constructors.
     mkCase :: ElmConstructor -> Doc ann
     mkCase ElmConstructor{..} = mkQualified elmConstructorName
         <+> vars
@@ -90,8 +90,7 @@ typeEncoderDoc t@ElmType{..} =
       where
         -- | Creates variables: @x1@ to @xN@, where N is the number of the constructor fields.
         fields :: [Doc ann]
-        fields = take (length elmConstructorFields) $
-            map (pretty . mkText "x") [1..]
+        fields = map (pretty . mkText "x") [1 .. length elmConstructorFields]
 
         contents :: Doc ann
         contents = "," <+> parens (dquotes "contents" <> comma <+> contentsEnc)
@@ -183,6 +182,7 @@ typeRefEncoder (RefPrim elmPrim) = case elmPrim of
     ElmFloat        -> "E.float"
     ElmString       -> "E.string"
     ElmTime         -> "Iso.encode"
+    ElmValue        -> "Basics.identity"
     ElmMaybe t      -> "elmStreetEncodeMaybe"
         <+> wrapParens (typeRefEncoder t)
     ElmResult l r   -> "elmStreetEncodeEither"

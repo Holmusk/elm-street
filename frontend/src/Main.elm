@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Html exposing (Html, text, div, h1, h2, button)
-import Html.Attributes exposing (src, class, disabled)
+import Html.Attributes exposing (class, disabled)
 import Html.Events exposing (onClick)
 
 import Api exposing (ResultErr, getOneType, postOneType)
@@ -38,12 +38,12 @@ update msg model = case msg of
     GetOneType -> (model, getOneType GetOneTypeRes)
     GetOneTypeRes res -> case res of
         Ok oneType -> ({model| oneType = Just oneType}, Cmd.none)
-        Err err -> ({model| getErr = True}, Cmd.none)
+        Err _ -> ({model| getErr = True}, Cmd.none)
     PostOneType (Just t) -> (model, postOneType t PostOneTypeRes)
     PostOneType _ -> (model, Cmd.none)
     PostOneTypeRes res -> case res of
         Ok isSame -> ({model| postResult = Just isSame}, Cmd.none)
-        Err err -> ({model| postErr = True}, Cmd.none)
+        Err _ -> ({model| postErr = True}, Cmd.none)
     Refresh -> init
 
 ---- VIEW ----

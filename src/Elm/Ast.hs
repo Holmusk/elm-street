@@ -80,6 +80,7 @@ data ElmPrim
     | ElmFloat                              -- ^ @Float@
     | ElmString                             -- ^ @String@
     | ElmTime                               -- ^ @Posix@ in elm, @UTCTime@ in Haskell
+    | ElmValue                              -- ^ @Json.Encode.Value@ in elm, @Data.Aeson.Value@ in Haskell
     | ElmMaybe !TypeRef                     -- ^ @Maybe T@
     | ElmResult !TypeRef !TypeRef           -- ^ @Result A B@ in elm
     | ElmPair !TypeRef !TypeRef             -- ^ @(A, B)@ in elm

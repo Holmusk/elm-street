@@ -6,7 +6,6 @@ module Api exposing
 
 import Http exposing (Error)
 import Json.Decode as D
-import Url exposing (Url)
 
 import Core.Decoder exposing (decodeOneType)
 import Core.Encoder exposing (encodeOneType)

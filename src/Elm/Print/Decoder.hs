@@ -190,6 +190,7 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
     ElmFloat        -> "D.float"
     ElmString       -> "D.string"
     ElmTime         -> "Iso.decoder"
+    ElmValue        -> "D.value"
     ElmMaybe t      -> "nullable"
         <+> wrapParens (typeRefDecoder t)
     ElmResult l r   -> "elmStreetDecodeEither"

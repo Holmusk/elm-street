@@ -17,6 +17,7 @@ encodePrims x = E.object
     , ("float", E.float x.float)
     , ("text", E.string x.text)
     , ("time", Iso.encode x.time)
+    , ("value", Basics.identity x.value)
     , ("maybe", (elmStreetEncodeMaybe E.int) x.maybe)
     , ("result", (elmStreetEncodeEither E.int E.string) x.result)
     , ("pair", (elmStreetEncodePair (E.string << String.fromChar) E.bool) x.pair)
