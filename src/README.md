@@ -123,8 +123,15 @@ and parentheses.
 ## Generating Elm type modules
 
 We next jump to `Elm.Generate`. We will not focus on the highly 
-technical `Elm.Generic`, and refer to it as-needed to explain 
-how it is used in the generation process. The central thing we
-must know about the `Elm.Generic` module is that it both declares
-and instantiates a type class `Elm`, which equips a Haskell type 
-`a` with a method that maps it to `ElmDefinition`.
+technical `Elm.Generic`. The central thing we must know about it
+is that it both declares and instantiates a type class `Elm`, 
+which equips a Haskell type `a` with a method `toElmDefinition` 
+that maps a type to `ElmDefinition`. In `Elm.Generate`, we define 
+a new typeclass, `RenderElm`, which uses this method to produce
+the source code text for a type (and encoder/decoder) declaration.
+
+The central function in this module is `generateElm`, which given
+some settings---consisting of file paths in which to place the newly
+generated Elm modules---performs the `IO` action of writing the
+generated source code for a set of `RenderElm` constrained types, 
+with appended headers, to some correctly placed `.elm` files. 
