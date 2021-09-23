@@ -13,7 +13,6 @@ module Elm.Print.Encoder
        , encodeNonEmpty
        ) where
 
-import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text (Text)
 import Data.Text.Prettyprint.Doc (Doc, brackets, colon, comma, concatWith, dquotes, emptyDoc,
                                   equals, lbracket, line, nest, parens, pretty, rbracket, surround,
@@ -24,6 +23,7 @@ import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord
 import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc, wrapParens)
 
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Maybe as Maybe
 import qualified Data.Text as T
 
 
@@ -76,7 +76,7 @@ typeEncoderDoc t@ElmType{..} =
     sumEncoder = nest 4
         $ vsep
         $ (name <+> "x" <+> equals <+> "E.object <| case x of")
-        : map mkCase (toList elmTypeConstructors)
+        : map mkCase (NE.toList elmTypeConstructors)
 
     -- | Encoder function name
     name :: Doc ann
@@ -124,7 +124,7 @@ recordEncoderDoc ElmRecord{..} =
        else recordEncoder
   where
     newtypeEncoder :: Doc ann
-    newtypeEncoder = leftPart <+> fieldEncoderDoc (NE.head elmRecordFields)
+    newtypeEncoder = leftPart <+> Maybe.fromMaybe "ERROR" (fieldEncoderDoc <$> (Maybe.listToMaybe elmRecordFields))
 
     recordEncoder :: Doc ann
     recordEncoder = nest 4
@@ -135,10 +135,10 @@ recordEncoderDoc ElmRecord{..} =
     leftPart :: Doc ann
     leftPart = encoderName elmRecordName <+> "x" <+> equals
 
-    fieldsEncode :: NonEmpty ElmRecordField -> [Doc ann]
+    fieldsEncode :: [ElmRecordField] -> [Doc ann]
     fieldsEncode fields =
         lbracket <+> mkTag elmRecordName
-      : map ((comma <+>) . recordFieldDoc) (NE.toList fields)
+      : map ((comma <+>) . recordFieldDoc) fields
      ++ [rbracket]
 
     recordFieldDoc :: ElmRecordField -> Doc ann

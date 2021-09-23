@@ -33,7 +33,7 @@ data ElmDefinition
 -- | AST for @record type alias@ in Elm.
 data ElmRecord = ElmRecord
     { elmRecordName      :: !Text  -- ^ Name of the record
-    , elmRecordFields    :: !(NonEmpty ElmRecordField)  -- ^ List of fields
+    , elmRecordFields    :: ![ElmRecordField]  -- ^ List of fields
     , elmRecordIsNewtype :: !Bool  -- ^ 'True' if Haskell type is a @newtype@
     } deriving (Show)
 
