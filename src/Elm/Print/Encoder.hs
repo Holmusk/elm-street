@@ -68,7 +68,7 @@ typeEncoderDoc t@ElmType{..} =
       where
         fieldEncoderDoc :: Doc ann
         fieldEncoderDoc = case elmConstructorFields $ NE.head elmTypeConstructors of
-            []    -> "{}"
+            []    -> "ERROR"
             f : _ -> wrapParens (typeRefEncoder f)
 
     sumEncoder :: Doc ann
