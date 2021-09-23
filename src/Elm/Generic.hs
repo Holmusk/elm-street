@@ -119,12 +119,12 @@ instance Elm Double where toElmDefinition _ = DefPrim ElmFloat
 instance Elm Text    where toElmDefinition _ = DefPrim ElmString
 instance Elm LT.Text where toElmDefinition _ = DefPrim ElmString
 
-instance Elm Value where toElmDefinition _ = DefBuiltin ElmValue
-
 -- TODO: should it be 'Bytes' from @bytes@ package?
 -- https://package.elm-lang.org/packages/elm/bytes/latest/Bytes
 -- instance Elm B.ByteString  where toElmDefinition _ = DefPrim ElmString
 -- instance Elm LB.ByteString where toElmDefinition _ = DefPrim ElmString
+
+instance Elm Value where toElmDefinition _ = DefBuiltin ElmValue
 
 instance (Elm a, Elm b) => Elm (a, b) where
     toElmDefinition _ = DefPrim $ ElmPair (elmRef @a) (elmRef @b)
@@ -139,7 +139,6 @@ instance Elm a => Elm (Maybe a) where
 
 instance (Elm a, Elm b) => Elm (Either a b) where
     toElmDefinition _ = DefBuiltin $ ElmResult (elmRef @a) (elmRef @b)
-
 
 instance Elm a => Elm [a] where
     toElmDefinition _ = DefBuiltin $ ElmList (elmRef @a)
