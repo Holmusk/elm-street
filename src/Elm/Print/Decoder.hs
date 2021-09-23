@@ -18,7 +18,7 @@ import Data.Text (Text)
 import Data.Text.Prettyprint.Doc (Doc, colon, concatWith, dquotes, emptyDoc, equals, line, nest,
                                   parens, pretty, surround, vsep, (<+>))
 
-import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
+import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), isEnum)
 import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc, wrapParens)
 
@@ -69,33 +69,33 @@ userDecoder =
 -}
 prettyShowDecoder :: ElmDefinition -> Text
 prettyShowDecoder def = showDoc $ case def of
-    DefAlias elmAlias -> aliasDecoderDoc elmAlias
-    DefType elmType   -> typeDecoderDoc elmType
-    DefPrim _         -> emptyDoc
+    DefRecord elmRecord -> aliasDecoderDoc elmRecord
+    DefType elmType     -> typeDecoderDoc elmType
+    DefPrim _           -> emptyDoc
 
-aliasDecoderDoc :: ElmAlias -> Doc ann
-aliasDecoderDoc ElmAlias{..} =
-    decoderDef elmAliasName []
+aliasDecoderDoc :: ElmRecord -> Doc ann
+aliasDecoderDoc ElmRecord{..} =
+    decoderDef elmRecordName []
     <> line
-    <> if elmAliasIsNewtype
+    <> if elmRecordIsNewtype
        then newtypeDecoder
        else recordDecoder
   where
     newtypeDecoder :: Doc ann
     newtypeDecoder = name <+> "D.map" <+> qualifiedAliasName
-        <+> wrapParens (typeRefDecoder $ elmRecordFieldType $ NE.head elmAliasFields)
+        <+> wrapParens (typeRefDecoder $ elmRecordFieldType $ NE.head elmRecordFields)
 
     recordDecoder :: Doc ann
     recordDecoder = nest 4
         $ vsep
         $ (name <+> "D.succeed" <+> qualifiedAliasName)
-        : map fieldDecode (toList elmAliasFields)
+        : map fieldDecode (toList elmRecordFields)
 
     name :: Doc ann
-    name = decoderName elmAliasName <+> equals
+    name = decoderName elmRecordName <+> equals
 
     qualifiedAliasName :: Doc ann
-    qualifiedAliasName = mkQualified elmAliasName
+    qualifiedAliasName = mkQualified elmRecordName
 
     fieldDecode :: ElmRecordField -> Doc ann
     fieldDecode ElmRecordField{..} = case elmRecordFieldType of
