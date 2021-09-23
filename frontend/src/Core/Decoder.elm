@@ -99,3 +99,7 @@ decodeOneType = D.succeed T.OneType
     |> required "guests" (D.list decodeGuest)
     |> required "userRequest" decodeUserRequest
     |> required "nonEmpty" (elmStreetDecodeNonEmpty decodeMyUnit)
+    |> required "recordUnit" decodeRecordUnit
+
+decodeRecordUnit : Decoder T.RecordUnit
+decodeRecordUnit = succeed {}
