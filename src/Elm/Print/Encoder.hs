@@ -127,8 +127,7 @@ recordEncoderDoc ElmRecord{..} =
             else recordEncoder
   where
     isEmptyRecord :: Bool
-    isEmptyRecord =
-        null elmRecordFields
+    isEmptyRecord = null elmRecordFields
 
     newtypeEncoder :: Doc ann
     newtypeEncoder =
@@ -137,8 +136,7 @@ recordEncoderDoc ElmRecord{..} =
           Nothing        -> emptyRecordEncoder
 
     emptyRecordEncoder :: Doc ann
-    emptyRecordEncoder =
-        leftPart <+> "list (\\_ -> null) []"
+    emptyRecordEncoder = leftPart <+> "list (\\_ -> null) []"
 
     recordEncoder :: Doc ann
     recordEncoder = nest 4
