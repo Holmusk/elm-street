@@ -40,7 +40,7 @@ TODO
 -}
 prettyShowEncoder :: ElmDefinition -> Text
 prettyShowEncoder def = showDoc $ case def of
-    DefRecord elmRecord -> aliasEncoderDoc elmRecord
+    DefRecord elmRecord -> recordEncoderDoc elmRecord
     DefType elmType     -> typeEncoderDoc elmType
     DefPrim _           -> emptyDoc
 
@@ -114,8 +114,8 @@ typeEncoderDoc t@ElmType{..} =
         vars =  concatWith (surround " ") fields
 
 
-aliasEncoderDoc :: ElmRecord -> Doc ann
-aliasEncoderDoc ElmRecord{..} =
+recordEncoderDoc :: ElmRecord -> Doc ann
+recordEncoderDoc ElmRecord{..} =
     encoderDef elmRecordName []
     <> line
     <> if elmRecordIsNewtype

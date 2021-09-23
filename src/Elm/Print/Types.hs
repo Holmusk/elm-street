@@ -74,7 +74,7 @@ import qualified Data.List.NonEmpty as NE
 
 {- | Pretty shows Elm types.
 
-* See 'elmAliasDoc' for examples of generated @type alias@.
+* See 'elmRecordDoc' for examples of generated @record type alias@.
 * See 'elmTypeDoc' for examples of generated @type@.
 -}
 prettyShowDefinition :: ElmDefinition -> Text
@@ -118,7 +118,7 @@ consists of multiple words).
 elmTypeParenDoc :: TypeRef -> Doc ann
 elmTypeParenDoc = wrapParens . elmTypeRefDoc
 
-{- | Pretty printer for Elm aliases:
+{- | Pretty printer for Elm records:
 
 @
 type alias User =

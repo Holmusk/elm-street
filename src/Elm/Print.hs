@@ -21,7 +21,7 @@ import Data.List.NonEmpty
 
 test :: IO ()
 test = do
-    putStrLn $ T.unpack $ prettyShowDefinition $ DefAlias $ ElmAlias "User"  (ElmRecordField (RefPrim ElmString) "userHeh" :| [ElmRecordField (RefPrim ElmInt) "userMeh"]) False
+    putStrLn $ T.unpack $ prettyShowDefinition $ DefRecord $ ElmRecord "User"  (ElmRecordField (RefPrim ElmString) "userHeh" :| [ElmRecordField (RefPrim ElmInt) "userMeh"]) False
 
     --ENUM:
     putStrLn $ T.unpack $ prettyShowDefinition $ DefType $ ElmType "Status" [] False $ ElmConstructor "Approved" [] :| [ElmConstructor  "Yoyoyo" [], ElmConstructor "Wow" []]
