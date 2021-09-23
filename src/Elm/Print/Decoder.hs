@@ -85,8 +85,7 @@ recordDecoderDoc ElmRecord{..} =
        else recordDecoder
   where
     isEmptyRecord :: Bool
-    isEmptyRecord =
-        null elmRecordFields
+    isEmptyRecord = null elmRecordFields
 
     emptyRecordDecoder :: Doc ann
     emptyRecordDecoder = name <+> "D.succeed {}"
