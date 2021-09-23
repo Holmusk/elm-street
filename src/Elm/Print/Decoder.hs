@@ -70,12 +70,12 @@ userDecoder =
 -}
 prettyShowDecoder :: ElmDefinition -> Text
 prettyShowDecoder def = showDoc $ case def of
-    DefRecord elmRecord -> recordDecoderDoc elmRecord
+    DefRecord elmRecord -> aliasDecoderDoc elmRecord
     DefType elmType     -> typeDecoderDoc elmType
     DefPrim _           -> emptyDoc
 
-recordDecoderDoc :: ElmRecord -> Doc ann
-recordDecoderDoc ElmRecord{..} =
+aliasDecoderDoc :: ElmRecord -> Doc ann
+aliasDecoderDoc ElmRecord{..} =
     decoderDef elmRecordName []
     <> line
     <> if elmRecordIsNewtype
@@ -83,20 +83,20 @@ recordDecoderDoc ElmRecord{..} =
        else recordDecoder
   where
     newtypeDecoder :: Doc ann
-    newtypeDecoder = name <+> "D.map" <+> qualifiedRecordName
+    newtypeDecoder = name <+> "D.map" <+> qualifiedAliasName
         <+> wrapParens (typeRefDecoder $ elmRecordFieldType $ NE.head elmRecordFields)
 
     recordDecoder :: Doc ann
     recordDecoder = nest 4
         $ vsep
-        $ (name <+> "D.succeed" <+> qualifiedRecordName)
+        $ (name <+> "D.succeed" <+> qualifiedAliasName)
         : map fieldDecode (toList elmRecordFields)
 
     name :: Doc ann
     name = decoderName elmRecordName <+> equals
 
-    qualifiedRecordName :: Doc ann
-    qualifiedRecordName = mkQualified elmRecordName
+    qualifiedAliasName :: Doc ann
+    qualifiedAliasName = mkQualified elmRecordName
 
     fieldDecode :: ElmRecordField -> Doc ann
     fieldDecode ElmRecordField{..} = case elmRecordFieldType of

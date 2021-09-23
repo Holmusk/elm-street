@@ -30,9 +30,9 @@ data ElmDefinition
     | DefPrim   !ElmPrim
     deriving (Show)
 
--- | AST for @record type alias@ in Elm.
+-- | AST for @type alias@ in Elm.
 data ElmRecord = ElmRecord
-    { elmRecordName      :: !Text  -- ^ Name of the record
+    { elmRecordName      :: !Text  -- ^ Name of the alias
     , elmRecordFields    :: !(NonEmpty ElmRecordField)  -- ^ List of fields
     , elmRecordIsNewtype :: !Bool  -- ^ 'True' if Haskell type is a @newtype@
     } deriving (Show)
