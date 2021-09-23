@@ -77,4 +77,5 @@ defaultOneType =
         , limit   = 123
         , example = Just (R.Ok Blocked)
         }
+    , recordUnit = {}
     }

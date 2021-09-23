@@ -23,6 +23,7 @@ import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord
 import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc, wrapParens)
 
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Maybe as Maybe
 import qualified Data.Text as T
 
 
@@ -77,19 +78,31 @@ recordDecoderDoc :: ElmRecord -> Doc ann
 recordDecoderDoc ElmRecord{..} =
     decoderDef elmRecordName []
     <> line
-    <> if elmRecordIsNewtype
+    <> if isEmptyRecord
+       then emptyRecordDecoder
+       else if elmRecordIsNewtype
        then newtypeDecoder
        else recordDecoder
   where
+    isEmptyRecord :: Bool
+    isEmptyRecord = null elmRecordFields
+
+    emptyRecordDecoder :: Doc ann
+    emptyRecordDecoder = name <+> "D.succeed {}"
+
     newtypeDecoder :: Doc ann
-    newtypeDecoder = name <+> "D.map" <+> qualifiedRecordName
-        <+> wrapParens (typeRefDecoder $ elmRecordFieldType $ NE.head elmRecordFields)
+    newtypeDecoder =
+        case typeRefDecoder <$> elmRecordFieldType <$> Maybe.listToMaybe elmRecordFields of
+          Just field ->
+                name <+> "D.map" <+> qualifiedRecordName
+                <+> wrapParens field
+          Nothing -> emptyRecordDecoder
 
     recordDecoder :: Doc ann
     recordDecoder = nest 4
         $ vsep
         $ (name <+> "D.succeed" <+> qualifiedRecordName)
-        : map fieldDecode (toList elmRecordFields)
+        : map fieldDecode elmRecordFields
 
     name :: Doc ann
     name = decoderName elmRecordName <+> equals

@@ -97,3 +97,7 @@ decodeOneType = D.succeed T.OneType
     |> required "user" decodeUser
     |> required "guests" (D.list decodeGuest)
     |> required "userRequest" decodeUserRequest
+    |> required "recordUnit" decodeRecordUnit
+
+decodeRecordUnit : Decoder T.RecordUnit
+decodeRecordUnit = D.succeed {}

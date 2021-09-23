@@ -115,4 +115,8 @@ type alias OneType =
     , user : User
     , guests : List Guest
     , userRequest : UserRequest
+    , recordUnit : RecordUnit
     }
+
+type alias RecordUnit =
+    { }
