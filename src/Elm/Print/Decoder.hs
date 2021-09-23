@@ -19,8 +19,9 @@ import Data.Text (Text)
 import Data.Text.Prettyprint.Doc (Doc, colon, concatWith, dquotes, emptyDoc, equals, line, nest,
                                   parens, pretty, surround, vsep, (<+>))
 
-import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),
-                ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), isEnum)
+import Elm.Ast (ElmBuiltin (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
+                ElmRecord (..), ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..),
+                isEnum)
 import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc, wrapParens)
 
 import qualified Data.List.NonEmpty as NE
@@ -73,6 +74,7 @@ prettyShowDecoder def = showDoc $ case def of
     DefRecord elmRecord -> recordDecoderDoc elmRecord
     DefType elmType     -> typeDecoderDoc elmType
     DefPrim _           -> emptyDoc
+    DefBuiltin _        -> emptyDoc
 
 recordDecoderDoc :: ElmRecord -> Doc ann
 recordDecoderDoc ElmRecord{..} =
@@ -190,13 +192,6 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
     ElmInt          -> "D.int"
     ElmFloat        -> "D.float"
     ElmString       -> "D.string"
-    ElmTime         -> "Iso.decoder"
-    ElmValue        -> "D.value"
-    ElmMaybe t      -> "nullable"
-        <+> wrapParens (typeRefDecoder t)
-    ElmResult l r     -> "elmStreetDecodeEither"
-        <+> wrapParens (typeRefDecoder l)
-        <+> wrapParens (typeRefDecoder r)
     ElmPair a b       -> "elmStreetDecodePair"
         <+> wrapParens (typeRefDecoder a)
         <+> wrapParens (typeRefDecoder b)
@@ -204,6 +199,14 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
         <+> wrapParens (typeRefDecoder a)
         <+> wrapParens (typeRefDecoder b)
         <+> wrapParens (typeRefDecoder c)
+typeRefDecoder (RefBuiltin elmBuiltin) = case elmBuiltin of
+    ElmTime         -> "Iso.decoder"
+    ElmValue        -> "D.value"
+    ElmMaybe t      -> "nullable"
+        <+> wrapParens (typeRefDecoder t)
+    ElmResult l r     -> "elmStreetDecodeEither"
+        <+> wrapParens (typeRefDecoder l)
+        <+> wrapParens (typeRefDecoder r)
     ElmList l         -> "D.list" <+> wrapParens (typeRefDecoder l)
     ElmNonEmptyPair a -> "elmStreetDecodeNonEmpty" <+> wrapParens (typeRefDecoder a)
 

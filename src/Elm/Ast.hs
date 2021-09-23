@@ -5,9 +5,10 @@ converted to this AST which later is going to be pretty-printed.
 module Elm.Ast
        ( ElmDefinition (..)
 
+       , ElmPrim (..)
        , ElmRecord (..)
        , ElmType (..)
-       , ElmPrim (..)
+       , ElmBuiltin (..)
 
        , ElmRecordField (..)
        , ElmConstructor (..)
@@ -25,9 +26,10 @@ import Data.Text (Text)
 
 -- | Elm data type definition.
 data ElmDefinition
-    = DefRecord !ElmRecord
+    = DefPrim   !ElmPrim
+    | DefRecord !ElmRecord
+    | DefBuiltin !ElmBuiltin
     | DefType   !ElmType
-    | DefPrim   !ElmPrim
     deriving (Show)
 
 -- | AST for @record type alias@ in Elm.
@@ -70,7 +72,7 @@ isEnum ElmType{..} = null elmTypeVars && null (foldMap elmConstructorFields elmT
 getConstructorNames :: ElmType -> [Text]
 getConstructorNames ElmType{..} = map elmConstructorName $ toList elmTypeConstructors
 
--- | Primitive elm types; hardcoded by the language.
+-- | Primitive elm types which are parts of a language
 data ElmPrim
     = ElmUnit                               -- ^ @()@ type in elm
     | ElmNever                              -- ^ @Never@ type in elm, analogous to Void in Haskell
@@ -79,25 +81,31 @@ data ElmPrim
     | ElmInt                                -- ^ @Int@
     | ElmFloat                              -- ^ @Float@
     | ElmString                             -- ^ @String@
-    | ElmTime                               -- ^ @Posix@ in elm, @UTCTime@ in Haskell
-    | ElmValue                              -- ^ @Json.Encode.Value@ in elm, @Data.Aeson.Value@ in Haskell
-    | ElmMaybe !TypeRef                     -- ^ @Maybe T@
-    | ElmResult !TypeRef !TypeRef           -- ^ @Result A B@ in elm
     | ElmPair !TypeRef !TypeRef             -- ^ @(A, B)@ in elm
     | ElmTriple !TypeRef !TypeRef !TypeRef  -- ^ @(A, B, C)@ in elm
-    | ElmList !TypeRef                      -- ^ @List A@ in elm
-    | ElmNonEmptyPair !TypeRef              -- ^ @NonEmpty A@ represented by @(A, List A)@ in elm
+    deriving (Show)
+
+-- | Buitin types defined by core or 3rd party libraries
+data ElmBuiltin
+    = ElmMaybe !TypeRef                     -- ^ @Maybe T@ part of @elm/core@
+    | ElmResult !TypeRef !TypeRef           -- ^ @Result A B@ part of @elm/core@
+    | ElmList !TypeRef                      -- ^ @List A@ part of @elm/core@
+    | ElmTime                               -- ^ @Posix@ in elm, @UTCTime@ in Haskell use @elm/time@
+    | ElmValue                              -- ^ @Json.Encode.Value@ in elm, @Data.Aeson.Value@ in Haskell use @elm/json@
+    | ElmNonEmptyPair !TypeRef              -- ^ @NonEmpty A@ represented by @(A, List A)@ in elm see @turboMaCk/non-empty-list-alias@
     deriving (Show)
 
 -- | Reference to another existing type.
 data TypeRef
     = RefPrim !ElmPrim
     | RefCustom !TypeName
+    | RefBuiltin !ElmBuiltin
     deriving (Show)
 
 -- | Extracts reference to the existing data type type from some other type elm defintion.
 definitionToRef :: ElmDefinition -> TypeRef
 definitionToRef = \case
     DefRecord ElmRecord{..} -> RefCustom $ TypeName elmRecordName
-    DefType ElmType{..} -> RefCustom $ TypeName elmTypeName
-    DefPrim elmPrim -> RefPrim elmPrim
+    DefType ElmType{..}     -> RefCustom $ TypeName elmTypeName
+    DefPrim elmPrim         -> RefPrim elmPrim
+    DefBuiltin elmBuiltIn   -> RefBuiltin elmBuiltIn
