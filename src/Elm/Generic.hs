@@ -163,7 +163,7 @@ __instance__ Elm (Id a) __where__
 elmNewtype :: forall a . Elm a => Text -> Text -> ElmDefinition
 elmNewtype typeName fieldName = DefRecord $ ElmRecord
     { elmRecordName      = typeName
-    , elmRecordFields    = ElmRecordField (elmRef @a) fieldName :| []
+    , elmRecordFields    = ElmRecordField (elmRef @a) fieldName : []
     , elmRecordIsNewtype = True
     }
 
@@ -213,10 +213,14 @@ data GenericConstructor = GenericConstructor
 2. All fields have names: record constructor.
 3. Not all fields have names: plain constructor.
 -}
-toElmConstructor :: GenericConstructor -> Either (NonEmpty ElmRecordField) ElmConstructor
+toElmConstructor :: GenericConstructor -> Either [ElmRecordField] ElmConstructor
 toElmConstructor GenericConstructor{..} = case genericConstructorFields of
+    -- Even though elm supports records with no field {} we don't ever derive these
+    -- Haskell records are in fact just type field accessors so there is ambiguity for zero fields constructors
+    -- Usually it makes more sense to derive Single constructor type for the Elm side so that's what we do
+    -- However it's possible to manually define instance of Elm class that would produce empty records (the other unit) type on Elm side
     []   -> Right $ ElmConstructor genericConstructorName []
-    f:fs -> case traverse toRecordField (f :| fs) of
+    f:fs -> case traverse toRecordField (f : fs) of
         Nothing     -> Right $ ElmConstructor genericConstructorName $ map fst genericConstructorFields
         Just fields -> Left fields
   where

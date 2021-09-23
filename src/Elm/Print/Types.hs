@@ -132,11 +132,13 @@ elmRecordDoc ElmRecord{..} = nest 4 $
     vsep $ ("type alias" <+> pretty elmRecordName <+> equals)
          : fieldsDoc elmRecordFields
   where
-    fieldsDoc :: NonEmpty ElmRecordField -> [Doc ann]
-    fieldsDoc (fstR :| rest) =
-        lbrace <+> recordFieldDoc fstR
-      : map ((comma <+>) . recordFieldDoc) rest
-     ++ [rbrace]
+    fieldsDoc :: [ElmRecordField] -> [Doc ann]
+    fieldsDoc = \case
+                [] -> [lbrace <+> rbrace]
+                fstR : rest ->
+                    lbrace <+> recordFieldDoc fstR
+                    : map ((comma <+>) . recordFieldDoc) rest
+                    ++ [rbrace]
 
     recordFieldDoc :: ElmRecordField -> Doc ann
     recordFieldDoc ElmRecordField{..} =
