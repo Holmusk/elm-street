@@ -58,12 +58,12 @@ import Data.Time.Clock (UTCTime)
 import Data.Type.Bool (If, type (||))
 import Data.Void (Void)
 import Data.Word (Word16, Word32, Word8)
-import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..),
-                     Meta (..), Rec0, S1, Selector (..), U1)
+import GHC.Generics (C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..), Meta (..),
+                     Rec0, S1, Selector (..), U1, (:*:), (:+:))
 import GHC.TypeLits (ErrorMessage (..), Nat, TypeError)
 import GHC.TypeNats (type (+), type (<=?))
 
-import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
+import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), definitionToRef)
 
 import qualified Data.Text as T
@@ -161,10 +161,10 @@ __instance__ Elm (Id a) __where__
 @
 -}
 elmNewtype :: forall a . Elm a => Text -> Text -> ElmDefinition
-elmNewtype typeName fieldName = DefAlias $ ElmAlias
-    { elmAliasName      = typeName
-    , elmAliasFields    = ElmRecordField (elmRef @a) fieldName :| []
-    , elmAliasIsNewtype = True
+elmNewtype typeName fieldName = DefRecord $ ElmRecord
+    { elmRecordName      = typeName
+    , elmRecordFields    = ElmRecordField (elmRef @a) fieldName :| []
+    , elmRecordIsNewtype = True
     }
 
 ----------------------------------------------------------------------------
@@ -182,7 +182,7 @@ class GenericElmDefinition (f :: k -> Type) where
 instance (Datatype d, GenericElmConstructors f) => GenericElmDefinition (D1 d f) where
     genericToElmDefinition datatype = case genericToElmConstructors (TypeName typeName) (unM1 datatype) of
         c :| [] -> case toElmConstructor c of
-            Left fields -> DefAlias $ ElmAlias typeName fields elmIsNewtype
+            Left fields -> DefRecord $ ElmRecord typeName fields elmIsNewtype
             Right ctor  -> DefType $ ElmType typeName [] elmIsNewtype (ctor :| [])
         c :| cs -> case traverse (rightToMaybe . toElmConstructor) (c :| cs) of
             -- TODO: this should be error but dunno what to do here

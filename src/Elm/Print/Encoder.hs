@@ -18,7 +18,7 @@ import Data.Text.Prettyprint.Doc (Doc, brackets, colon, comma, concatWith, dquot
                                   equals, lbracket, line, nest, parens, pretty, rbracket, surround,
                                   vsep, (<+>))
 
-import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
+import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), isEnum)
 import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc, wrapParens)
 
@@ -40,9 +40,9 @@ TODO
 -}
 prettyShowEncoder :: ElmDefinition -> Text
 prettyShowEncoder def = showDoc $ case def of
-    DefAlias elmAlias -> aliasEncoderDoc elmAlias
-    DefType elmType   -> typeEncoderDoc elmType
-    DefPrim _         -> emptyDoc
+    DefRecord elmRecord -> recordEncoderDoc elmRecord
+    DefType elmType     -> typeEncoderDoc elmType
+    DefPrim _           -> emptyDoc
 
 -- | Encoder for 'ElmType' (which is either enum or the Sum type).
 typeEncoderDoc :: ElmType -> Doc ann
@@ -114,29 +114,29 @@ typeEncoderDoc t@ElmType{..} =
         vars =  concatWith (surround " ") fields
 
 
-aliasEncoderDoc :: ElmAlias -> Doc ann
-aliasEncoderDoc ElmAlias{..} =
-    encoderDef elmAliasName []
+recordEncoderDoc :: ElmRecord -> Doc ann
+recordEncoderDoc ElmRecord{..} =
+    encoderDef elmRecordName []
     <> line
-    <> if elmAliasIsNewtype
+    <> if elmRecordIsNewtype
        then newtypeEncoder
        else recordEncoder
   where
     newtypeEncoder :: Doc ann
-    newtypeEncoder = leftPart <+> fieldEncoderDoc (NE.head elmAliasFields)
+    newtypeEncoder = leftPart <+> fieldEncoderDoc (NE.head elmRecordFields)
 
     recordEncoder :: Doc ann
     recordEncoder = nest 4
         $ vsep
         $ (leftPart <+> "E.object")
-        : fieldsEncode elmAliasFields
+        : fieldsEncode elmRecordFields
 
     leftPart :: Doc ann
-    leftPart = encoderName elmAliasName <+> "x" <+> equals
+    leftPart = encoderName elmRecordName <+> "x" <+> equals
 
     fieldsEncode :: NonEmpty ElmRecordField -> [Doc ann]
     fieldsEncode fields =
-        lbracket <+> mkTag elmAliasName
+        lbracket <+> mkTag elmRecordName
       : map ((comma <+>) . recordFieldDoc) (NE.toList fields)
      ++ [rbracket]
 
