@@ -183,15 +183,16 @@ typeDecoderDoc  t@ElmType{..} =
 typeRefDecoder :: TypeRef -> Doc ann
 typeRefDecoder (RefCustom TypeName{..}) = "decode" <> pretty (T.takeWhile (/= ' ') unTypeName)
 typeRefDecoder (RefPrim elmPrim) = case elmPrim of
-    ElmUnit           -> "D.map (always ()) (D.list D.string)"
-    ElmNever          -> "D.fail \"Never is not possible\""
-    ElmBool           -> "D.bool"
-    ElmChar           -> "elmStreetDecodeChar"
-    ElmInt            -> "D.int"
-    ElmFloat          -> "D.float"
-    ElmString         -> "D.string"
-    ElmTime           -> "Iso.decoder"
-    ElmMaybe t        -> "nullable"
+    ElmUnit         -> "D.map (always ()) (D.list D.string)"
+    ElmNever        -> "D.fail \"Never is not possible\""
+    ElmBool         -> "D.bool"
+    ElmChar         -> "elmStreetDecodeChar"
+    ElmInt          -> "D.int"
+    ElmFloat        -> "D.float"
+    ElmString       -> "D.string"
+    ElmTime         -> "Iso.decoder"
+    ElmValue        -> "D.value"
+    ElmMaybe t      -> "nullable"
         <+> wrapParens (typeRefDecoder t)
     ElmResult l r     -> "elmStreetDecodeEither"
         <+> wrapParens (typeRefDecoder l)

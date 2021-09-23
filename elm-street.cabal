@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                elm-street
-version:             0.1.0.3
+version:             0.1.0.4
 synopsis:            Crossing the road between Haskell and Elm
 description:
     `Elm-street` allows you to generate automatically derived from Haskell types
@@ -21,7 +21,7 @@ extra-doc-files:     README.md
 tested-with:         GHC == 8.4.4
                      GHC == 8.6.5
                      GHC == 8.8.4
-                     GHC == 8.10.2
+                     GHC == 8.10.4
 
 source-repository head
   type:                git
@@ -73,7 +73,7 @@ library
   build-depends:       aeson >= 1.3
                      , directory ^>= 1.3
                      , filepath ^>= 1.4
-                     , prettyprinter >= 1.2.1 && < 1.7
+                     , prettyprinter >= 1.2.1 && < 1.8
                      , text ^>= 1.2
                      , time
 

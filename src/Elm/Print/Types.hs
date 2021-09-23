@@ -105,6 +105,7 @@ elmPrimDoc = \case
     ElmFloat          -> "Float"
     ElmString         -> "String"
     ElmTime           -> "Posix"
+    ElmValue        -> "Value"
     ElmMaybe t        -> "Maybe" <+> elmTypeParenDoc t
     ElmResult l r     -> "Result" <+> elmTypeParenDoc l <+> elmTypeParenDoc r
     ElmPair a b       -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> rparen
@@ -113,7 +114,7 @@ elmPrimDoc = \case
     ElmNonEmptyPair a -> lparen <> elmTypeRefDoc a <> comma <+> "List" <+> elmTypeRefDoc a <> rparen
 
 {- | Pretty-printer for types. Adds parens for both sides when needed (when type
-contains of multiple words).
+consists of multiple words).
 -}
 elmTypeParenDoc :: TypeRef -> Doc ann
 elmTypeParenDoc = wrapParens . elmTypeRefDoc
@@ -208,7 +209,7 @@ elmTypeDoc t@ElmType{..} =
 
     constructorDoc :: ElmConstructor -> Doc ann
     constructorDoc ElmConstructor{..} = sep $
-        pretty elmConstructorName : map (wrapParens . elmTypeRefDoc) elmConstructorFields
+        pretty elmConstructorName : map elmTypeParenDoc elmConstructorFields
 
     -- Generates 'unTYPENAME' function for newtype
     unFunc :: Doc ann

@@ -14,9 +14,9 @@ import Types (OneType, defaultOneType)
 
 
 type TypesApi
-    -- | Get 'OneType' from the backend side
+    -- Get 'OneType' from the backend side
        = "get" :> Get '[JSON] OneType
-    -- | Receive 'OneType' from the frontend side
+    -- Receive 'OneType' from the frontend side
     :<|> "post" :> ReqBody '[JSON] OneType :> Post '[JSON] Bool
 
 typesApi :: Proxy TypesApi
