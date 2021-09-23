@@ -47,7 +47,7 @@ defaultOneType =
         , int      = 42
         , float    = 36.6
         , text     = "heh"
-        , value  = E.object
+        , value    = E.object
             [ ("nullField", E.null)
             , ("boolField", E.bool True)
             , ("numberField", E.int 1)
@@ -62,7 +62,6 @@ defaultOneType =
         , triple   = ('o', False, [0])
         , list     = [1, 2, 3, 4, 5]
         , nonEmpty = (1, [])
-
         }
     , myUnit = MyUnit ()
     , myResult = T.Err "clashing test"
