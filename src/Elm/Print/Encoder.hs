@@ -118,15 +118,26 @@ recordEncoderDoc :: ElmRecord -> Doc ann
 recordEncoderDoc ElmRecord{..} =
     encoderDef elmRecordName []
     <> line
-    <> if elmRecordIsNewtype
-       then newtypeEncoder
-       else recordEncoder
+    <>
+       if isEmptyRecord
+       then emptyRecordEncoder
+       else if elmRecordIsNewtype
+            then newtypeEncoder
+            else recordEncoder
   where
+    isEmptyRecord :: Bool
+    isEmptyRecord =
+        null elmRecordFields
+
     newtypeEncoder :: Doc ann
-    newtypeEncoder = leftPart <+>
+    newtypeEncoder =
         case fieldEncoderDoc <$> (Maybe.listToMaybe elmRecordFields) of
-          Just rightPart -> rightPart
-          Nothing -> "list (\\_ -> null) []"
+          Just rightPart -> leftPart <+> rightPart
+          Nothing        -> emptyRecordEncoder
+
+    emptyRecordEncoder :: Doc ann
+    emptyRecordEncoder =
+        leftPart <+> "list (\\_ -> null) []"
 
     recordEncoder :: Doc ann
     recordEncoder = nest 4

@@ -78,19 +78,26 @@ recordDecoderDoc :: ElmRecord -> Doc ann
 recordDecoderDoc ElmRecord{..} =
     decoderDef elmRecordName []
     <> line
-    <> if elmRecordIsNewtype
+    <> if isEmptyRecord
+       then emptyRecordDecoder
+       else if elmRecordIsNewtype
        then newtypeDecoder
        else recordDecoder
   where
+    isEmptyRecord :: Bool
+    isEmptyRecord =
+        null elmRecordFields
+
+    emptyRecordDecoder :: Doc ann
+    emptyRecordDecoder = name <+> "D.succeed {}"
+
     newtypeDecoder :: Doc ann
-    newtypeDecoder = name <+>
+    newtypeDecoder =
         case typeRefDecoder <$> elmRecordFieldType <$> Maybe.listToMaybe elmRecordFields of
           Just field ->
-                "D.map" <+> qualifiedRecordName
+                name <+> "D.map" <+> qualifiedRecordName
                 <+> wrapParens field
-          Nothing ->
-              "succeed {}"
-
+          Nothing -> emptyRecordDecoder
 
     recordDecoder :: Doc ann
     recordDecoder = nest 4
