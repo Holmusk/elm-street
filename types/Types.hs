@@ -165,7 +165,7 @@ instance Elm RecordUnit where
     toElmDefinition _ = DefRecord $ ElmRecord
                             { elmRecordName = "RecordUnit"
                             , elmRecordFields = []
-                            , elmRecordIsNewtype = True
+                            , elmRecordIsNewtype = False
                             }
 
 

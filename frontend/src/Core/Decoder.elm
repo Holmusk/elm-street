@@ -102,4 +102,4 @@ decodeOneType = D.succeed T.OneType
     |> required "recordUnit" decodeRecordUnit
 
 decodeRecordUnit : Decoder T.RecordUnit
-decodeRecordUnit = succeed {}
+decodeRecordUnit = D.succeed {}
