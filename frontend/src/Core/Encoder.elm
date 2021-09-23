@@ -91,4 +91,8 @@ encodeOneType x = E.object
     , ("user", encodeUser x.user)
     , ("guests", (E.list encodeGuest) x.guests)
     , ("userRequest", encodeUserRequest x.userRequest)
+    , ("recordUnit", encodeRecordUnit x.recordUnit)
     ]
+
+encodeRecordUnit : T.RecordUnit -> Value
+encodeRecordUnit x = list (\_ -> null) []

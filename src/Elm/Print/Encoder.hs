@@ -68,7 +68,7 @@ typeEncoderDoc t@ElmType{..} =
       where
         fieldEncoderDoc :: Doc ann
         fieldEncoderDoc = case elmConstructorFields $ NE.head elmTypeConstructors of
-            []    -> "ERROR"
+            []    -> "{}"
             f : _ -> wrapParens (typeRefEncoder f)
 
     sumEncoder :: Doc ann
@@ -123,7 +123,10 @@ recordEncoderDoc ElmRecord{..} =
        else recordEncoder
   where
     newtypeEncoder :: Doc ann
-    newtypeEncoder = leftPart <+> Maybe.fromMaybe "ERROR" (fieldEncoderDoc <$> (Maybe.listToMaybe elmRecordFields))
+    newtypeEncoder = leftPart <+>
+        case fieldEncoderDoc <$> (Maybe.listToMaybe elmRecordFields) of
+          Just rightPart -> rightPart
+          Nothing -> "list (\\_ -> null) []"
 
     recordEncoder :: Doc ann
     recordEncoder = nest 4

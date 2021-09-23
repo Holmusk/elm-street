@@ -83,8 +83,14 @@ recordDecoderDoc ElmRecord{..} =
        else recordDecoder
   where
     newtypeDecoder :: Doc ann
-    newtypeDecoder = name <+> "D.map" <+> qualifiedRecordName
-        <+> wrapParens (Maybe.fromMaybe "ERROR" $ typeRefDecoder <$> elmRecordFieldType <$> Maybe.listToMaybe elmRecordFields)
+    newtypeDecoder = name <+>
+        case typeRefDecoder <$> elmRecordFieldType <$> Maybe.listToMaybe elmRecordFields of
+          Just field ->
+                "D.map" <+> qualifiedRecordName
+                <+> wrapParens field
+          Nothing ->
+              "succeed {}"
+
 
     recordDecoder :: Doc ann
     recordDecoder = nest 4

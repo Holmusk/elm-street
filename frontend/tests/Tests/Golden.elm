@@ -41,7 +41,7 @@ goldenOneTypeJson =
                 "objectField": {},
                 "arrayField": [1,2,3],
                 "nullField": null
-            }        
+            }
         },
         "myUnit": {
             "tag": "MyUnit",
@@ -92,6 +92,7 @@ goldenOneTypeJson =
             {
                 "tag": "Blocked"
             }
-        ]
+        ],
+        "recordUnit": []
     }
     """
