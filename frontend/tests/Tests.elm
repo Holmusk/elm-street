@@ -79,4 +79,5 @@ defaultOneType =
         , example = Just (R.Ok Blocked)
         }
     , nonEmpty = (MyUnit (), [MyUnit ()])
+    , recordUnit = {}
     }

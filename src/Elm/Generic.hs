@@ -58,12 +58,12 @@ import Data.Time.Clock (UTCTime)
 import Data.Type.Bool (If, type (||))
 import Data.Void (Void)
 import Data.Word (Word16, Word32, Word8)
-import GHC.Generics ((:*:), (:+:), C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..),
-                     Meta (..), Rec0, S1, Selector (..), U1)
+import GHC.Generics (C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..), Meta (..),
+                     Rec0, S1, Selector (..), U1, (:*:), (:+:))
 import GHC.TypeLits (ErrorMessage (..), Nat, TypeError)
 import GHC.TypeNats (type (+), type (<=?))
 
-import Elm.Ast (ElmAlias (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
+import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), definitionToRef)
 
 import qualified Data.Text as T
@@ -161,10 +161,10 @@ __instance__ Elm (Id a) __where__
 @
 -}
 elmNewtype :: forall a . Elm a => Text -> Text -> ElmDefinition
-elmNewtype typeName fieldName = DefAlias $ ElmAlias
-    { elmAliasName      = typeName
-    , elmAliasFields    = ElmRecordField (elmRef @a) fieldName :| []
-    , elmAliasIsNewtype = True
+elmNewtype typeName fieldName = DefRecord $ ElmRecord
+    { elmRecordName      = typeName
+    , elmRecordFields    = ElmRecordField (elmRef @a) fieldName : []
+    , elmRecordIsNewtype = True
     }
 
 ----------------------------------------------------------------------------
@@ -182,7 +182,7 @@ class GenericElmDefinition (f :: k -> Type) where
 instance (Datatype d, GenericElmConstructors f) => GenericElmDefinition (D1 d f) where
     genericToElmDefinition datatype = case genericToElmConstructors (TypeName typeName) (unM1 datatype) of
         c :| [] -> case toElmConstructor c of
-            Left fields -> DefAlias $ ElmAlias typeName fields elmIsNewtype
+            Left fields -> DefRecord $ ElmRecord typeName fields elmIsNewtype
             Right ctor  -> DefType $ ElmType typeName [] elmIsNewtype (ctor :| [])
         c :| cs -> case traverse (rightToMaybe . toElmConstructor) (c :| cs) of
             -- TODO: this should be error but dunno what to do here
@@ -213,10 +213,14 @@ data GenericConstructor = GenericConstructor
 2. All fields have names: record constructor.
 3. Not all fields have names: plain constructor.
 -}
-toElmConstructor :: GenericConstructor -> Either (NonEmpty ElmRecordField) ElmConstructor
+toElmConstructor :: GenericConstructor -> Either [ElmRecordField] ElmConstructor
 toElmConstructor GenericConstructor{..} = case genericConstructorFields of
+    -- Even though elm supports records with no field {} we don't ever derive these
+    -- Haskell records are in fact just type field accessors so there is ambiguity for zero fields constructors
+    -- Usually it makes more sense to derive Single constructor type for the Elm side so that's what we do
+    -- However it's possible to manually define instance of Elm class that would produce empty records (the other unit) type on Elm side
     []   -> Right $ ElmConstructor genericConstructorName []
-    f:fs -> case traverse toRecordField (f :| fs) of
+    f:fs -> case traverse toRecordField (f : fs) of
         Nothing     -> Right $ ElmConstructor genericConstructorName $ map fst genericConstructorFields
         Just fields -> Left fields
   where

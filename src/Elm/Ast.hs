@@ -5,7 +5,7 @@ converted to this AST which later is going to be pretty-printed.
 module Elm.Ast
        ( ElmDefinition (..)
 
-       , ElmAlias (..)
+       , ElmRecord (..)
        , ElmType (..)
        , ElmPrim (..)
 
@@ -25,19 +25,19 @@ import Data.Text (Text)
 
 -- | Elm data type definition.
 data ElmDefinition
-    = DefAlias !ElmAlias
-    | DefType  !ElmType
-    | DefPrim  !ElmPrim
+    = DefRecord !ElmRecord
+    | DefType   !ElmType
+    | DefPrim   !ElmPrim
     deriving (Show)
 
--- | AST for @type alias@ in Elm.
-data ElmAlias = ElmAlias
-    { elmAliasName      :: !Text  -- ^ Name of the alias
-    , elmAliasFields    :: !(NonEmpty ElmRecordField)  -- ^ List of fields
-    , elmAliasIsNewtype :: !Bool  -- ^ 'True' if Haskell type is a @newtype@
+-- | AST for @record type alias@ in Elm.
+data ElmRecord = ElmRecord
+    { elmRecordName      :: !Text  -- ^ Name of the record
+    , elmRecordFields    :: ![ElmRecordField]  -- ^ List of fields
+    , elmRecordIsNewtype :: !Bool  -- ^ 'True' if Haskell type is a @newtype@
     } deriving (Show)
 
--- | Single file of @type alias@.
+-- | Single field of @record type alias@.
 data ElmRecordField = ElmRecordField
     { elmRecordFieldType :: !TypeRef
     , elmRecordFieldName :: !Text
@@ -98,6 +98,6 @@ data TypeRef
 -- | Extracts reference to the existing data type type from some other type elm defintion.
 definitionToRef :: ElmDefinition -> TypeRef
 definitionToRef = \case
-    DefAlias ElmAlias{..} -> RefCustom $ TypeName elmAliasName
+    DefRecord ElmRecord{..} -> RefCustom $ TypeName elmRecordName
     DefType ElmType{..} -> RefCustom $ TypeName elmTypeName
     DefPrim elmPrim -> RefPrim elmPrim
