@@ -23,6 +23,7 @@ encodePrims x = E.object
     , ("pair", (elmStreetEncodePair (E.string << String.fromChar) E.bool) x.pair)
     , ("triple", (elmStreetEncodeTriple (E.string << String.fromChar) E.bool (E.list E.int)) x.triple)
     , ("list", (E.list E.int) x.list)
+    , ("nonEmpty", (elmStreetEncodeNonEmpty E.int) x.nonEmpty)
     ]
 
 encodeMyUnit : T.MyUnit -> Value
@@ -91,4 +92,5 @@ encodeOneType x = E.object
     , ("user", encodeUser x.user)
     , ("guests", (E.list encodeGuest) x.guests)
     , ("userRequest", encodeUserRequest x.userRequest)
+    , ("nonEmpty", (elmStreetEncodeNonEmpty encodeMyUnit) x.nonEmpty)
     ]

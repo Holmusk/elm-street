@@ -11,6 +11,7 @@ module Elm.Print.Decoder
        , decodeEither
        , decodePair
        , decodeTriple
+       , decodeNonEmpty
        ) where
 
 import Data.List.NonEmpty (toList)
@@ -193,17 +194,18 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
     ElmValue        -> "D.value"
     ElmMaybe t      -> "nullable"
         <+> wrapParens (typeRefDecoder t)
-    ElmResult l r   -> "elmStreetDecodeEither"
+    ElmResult l r     -> "elmStreetDecodeEither"
         <+> wrapParens (typeRefDecoder l)
         <+> wrapParens (typeRefDecoder r)
-    ElmPair a b     -> "elmStreetDecodePair"
+    ElmPair a b       -> "elmStreetDecodePair"
         <+> wrapParens (typeRefDecoder a)
         <+> wrapParens (typeRefDecoder b)
-    ElmTriple a b c -> "elmStreetDecodeTriple"
+    ElmTriple a b c   -> "elmStreetDecodeTriple"
         <+> wrapParens (typeRefDecoder a)
         <+> wrapParens (typeRefDecoder b)
         <+> wrapParens (typeRefDecoder c)
-    ElmList l       -> "D.list" <+> wrapParens (typeRefDecoder l)
+    ElmList l         -> "D.list" <+> wrapParens (typeRefDecoder l)
+    ElmNonEmptyPair a -> "elmStreetDecodeNonEmpty" <+> wrapParens (typeRefDecoder a)
 
 -- | The definition of the @decodeTYPENAME@ function.
 decoderDef
@@ -254,6 +256,15 @@ decodePair :: Text
 decodePair = T.unlines
     [ "elmStreetDecodePair : Decoder a -> Decoder b -> Decoder (a, b)"
     , "elmStreetDecodePair decA decB = D.map2 Tuple.pair (D.index 0 decA) (D.index 1 decB)"
+    ]
+
+-- | @JSON@ decoder Elm help function for List.NonEmpty.
+decodeNonEmpty :: Text
+decodeNonEmpty = T.unlines
+    [ "elmStreetDecodeNonEmpty : Decoder a -> Decoder (a, List a)"
+    , "elmStreetDecodeNonEmpty decA = D.list decA |> D.andThen (\\xs -> case xs of"
+    , "                                                 h::t -> D.succeed (h, t)"
+    , "                                                 _    -> D.fail \"Expecting non-empty array\")"
     ]
 
 -- | @JSON@ decoder Elm help function for 3-tuples.

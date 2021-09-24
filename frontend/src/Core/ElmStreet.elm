@@ -19,6 +19,9 @@ elmStreetEncodePair encA encB (a, b) = E.list identity [encA a, encB b]
 elmStreetEncodeTriple : (a -> Value) -> (b -> Value) -> (c -> Value) -> (a, b, c) -> Value
 elmStreetEncodeTriple encA encB encC (a, b, c) = E.list identity [encA a, encB b, encC c]
 
+elmStreetEncodeNonEmpty : (a -> Value) -> (a, List a) -> Value
+elmStreetEncodeNonEmpty encA (a, xs) = E.list encA <| a :: xs
+
 decodeStr : (String -> Maybe a) -> String -> Decoder a
 decodeStr readX x = case readX x of
     Just a  -> D.succeed a
@@ -41,4 +44,9 @@ elmStreetDecodePair decA decB = D.map2 Tuple.pair (D.index 0 decA) (D.index 1 de
 
 elmStreetDecodeTriple : Decoder a -> Decoder b -> Decoder c -> Decoder (a, b, c)
 elmStreetDecodeTriple decA decB decC = D.map3 (\a b c -> (a,b,c)) (D.index 0 decA) (D.index 1 decB) (D.index 2 decC)
+
+elmStreetDecodeNonEmpty : Decoder a -> Decoder (a, List a)
+elmStreetDecodeNonEmpty decA = D.list decA |> D.andThen (\xs -> case xs of
+                                                 h::t -> D.succeed (h, t)
+                                                 _    -> D.fail "Expecting non-empty array")
 

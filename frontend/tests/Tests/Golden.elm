@@ -34,6 +34,7 @@ goldenOneTypeJson =
             "int": 42,
             "bool": true,
             "unit": [],
+            "nonEmpty": [1],
             "value" : {
                 "boolField": true,
                 "numberField": 1,
@@ -41,7 +42,7 @@ goldenOneTypeJson =
                 "objectField": {},
                 "arrayField": [1,2,3],
                 "nullField": null
-            }        
+            }
         },
         "myUnit": {
             "tag": "MyUnit",
@@ -91,6 +92,16 @@ goldenOneTypeJson =
             },
             {
                 "tag": "Blocked"
+            }
+        ],
+        "nonEmpty": [
+            {
+                "tag": "MyUnit",
+                "contents": []
+            },
+            {
+                "tag": "MyUnit",
+                "contents": []
             }
         ]
     }

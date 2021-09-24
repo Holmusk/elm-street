@@ -23,6 +23,7 @@ decodePrims = D.succeed T.Prims
     |> required "pair" (elmStreetDecodePair elmStreetDecodeChar D.bool)
     |> required "triple" (elmStreetDecodeTriple elmStreetDecodeChar D.bool (D.list D.int))
     |> required "list" (D.list D.int)
+    |> required "nonEmpty" (elmStreetDecodeNonEmpty D.int)
 
 decodeMyUnit : Decoder T.MyUnit
 decodeMyUnit =
@@ -97,3 +98,4 @@ decodeOneType = D.succeed T.OneType
     |> required "user" decodeUser
     |> required "guests" (D.list decodeGuest)
     |> required "userRequest" decodeUserRequest
+    |> required "nonEmpty" (elmStreetDecodeNonEmpty decodeMyUnit)

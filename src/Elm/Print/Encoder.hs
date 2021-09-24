@@ -10,6 +10,7 @@ module Elm.Print.Encoder
        , encodeEither
        , encodePair
        , encodeTriple
+       , encodeNonEmpty
        ) where
 
 import Data.List.NonEmpty (NonEmpty, toList)
@@ -196,6 +197,8 @@ typeRefEncoder (RefPrim elmPrim) = case elmPrim of
         <+> wrapParens (typeRefEncoder b)
         <+> wrapParens (typeRefEncoder c)
     ElmList l       -> "E.list" <+> wrapParens (typeRefEncoder l)
+    ElmNonEmptyPair a -> "elmStreetEncodeNonEmpty"
+        <+> wrapParens (typeRefEncoder a)
 
 -- | @JSON@ encoder Elm help function for 'Maybe's.
 encodeMaybe :: Text
@@ -218,6 +221,13 @@ encodePair :: Text
 encodePair = T.unlines
     [ "elmStreetEncodePair : (a -> Value) -> (b -> Value) -> (a, b) -> Value"
     , "elmStreetEncodePair encA encB (a, b) = E.list identity [encA a, encB b]"
+    ]
+
+-- | @JSON@ encoder Elm help function for 2-tuples.
+encodeNonEmpty :: Text
+encodeNonEmpty = T.unlines
+    [ "elmStreetEncodeNonEmpty : (a -> Value) -> (a, List a) -> Value"
+    , "elmStreetEncodeNonEmpty encA (a, xs) = E.list encA <| a :: xs"
     ]
 
 -- | @JSON@ encoder Elm help function for 3-tuples.

@@ -29,6 +29,7 @@
         "int": 42,
         "bool": true,
         "unit": [],
+        "nonEmpty": [1],
         "value" : {
             "boolField": true,
             "numberField": 1,
@@ -86,6 +87,16 @@
         },
         {
             "tag": "Blocked"
+        }
+    ],
+    "nonEmpty": [
+        {
+            "tag": "MyUnit",
+            "contents": []
+        },
+        {
+            "tag": "MyUnit",
+            "contents": []
         }
     ]
 }

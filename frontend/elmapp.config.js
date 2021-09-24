@@ -1,5 +1,5 @@
 module.exports = {
     inline: true,
     historyApiFallback: true,
-    proxy:'http://localhost:8080'
+    proxy: 'http://localhost:8080'
 }

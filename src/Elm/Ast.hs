@@ -86,6 +86,7 @@ data ElmPrim
     | ElmPair !TypeRef !TypeRef             -- ^ @(A, B)@ in elm
     | ElmTriple !TypeRef !TypeRef !TypeRef  -- ^ @(A, B, C)@ in elm
     | ElmList !TypeRef                      -- ^ @List A@ in elm
+    | ElmNonEmptyPair !TypeRef              -- ^ @NonEmpty A@ represented by @(A, List A)@ in elm
     deriving (Show)
 
 -- | Reference to another existing type.
