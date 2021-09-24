@@ -119,32 +119,68 @@ instance Elm Double where toElmDefinition _ = DefPrim ElmFloat
 instance Elm Text    where toElmDefinition _ = DefPrim ElmString
 instance Elm LT.Text where toElmDefinition _ = DefPrim ElmString
 
--- TODO: should it be 'Bytes' from @bytes@ package?
--- https://package.elm-lang.org/packages/elm/bytes/latest/Bytes
--- instance Elm B.ByteString  where toElmDefinition _ = DefPrim ElmString
--- instance Elm LB.ByteString where toElmDefinition _ = DefPrim ElmString
-
-instance Elm Value where toElmDefinition _ = DefBuiltin ElmValue
-
 instance (Elm a, Elm b) => Elm (a, b) where
     toElmDefinition _ = DefPrim $ ElmPair (elmRef @a) (elmRef @b)
 
 instance (Elm a, Elm b, Elm c) => Elm (a, b, c) where
     toElmDefinition _ = DefPrim $ ElmTriple (elmRef @a) (elmRef @b) (elmRef @c)
 
-instance Elm UTCTime where toElmDefinition _ = DefBuiltin ElmTime
+-- TODO: should it be 'Bytes' from @bytes@ package?
+-- https://package.elm-lang.org/packages/elm/bytes/latest/Bytes
+-- instance Elm B.ByteString  where toElmDefinition _ = DefPrim ElmString
+-- instance Elm LB.ByteString where toElmDefinition _ = DefPrim ElmString
+
+----------------------------------------------------------------------------
+-- Builtin instances
+----------------------------------------------------------------------------
+
+instance Elm Value where
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "Value"
+        , builtinImplEncoder = "Basics.identity"
+        , builtinImplDecoder = "D.value"
+        , builtinImplParams = []
+        }
+
+instance Elm UTCTime where
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "Posix"
+        , builtinImplEncoder = "Iso.encode"
+        , builtinImplDecoder = "Iso.decoder"
+        , builtinImplParams = []
+        }
 
 instance Elm a => Elm (Maybe a) where
-    toElmDefinition _ = DefBuiltin $ ElmMaybe $ elmRef @a
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "Maybe"
+        , builtinImplEncoder = "elmStreetEncodeMaybe"
+        , builtinImplDecoder = "nullable"
+        , builtinImplParams = [elmRef @a]
+        }
 
 instance (Elm a, Elm b) => Elm (Either a b) where
-    toElmDefinition _ = DefBuiltin $ ElmResult (elmRef @a) (elmRef @b)
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "Result"
+        , builtinImplEncoder = "elmStreetEncodeEither"
+        , builtinImplDecoder = "elmStreetDecodeEither"
+        , builtinImplParams = [elmRef @a, elmRef @b]
+        }
 
 instance Elm a => Elm [a] where
-    toElmDefinition _ = DefBuiltin $ ElmList (elmRef @a)
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "List"
+        , builtinImplEncoder = "E.list"
+        , builtinImplDecoder = "D.list"
+        , builtinImplParams = [elmRef @a]
+        }
 
 instance Elm a => Elm (NonEmpty a) where
-    toElmDefinition _ = DefBuiltin $ ElmNonEmptyPair (elmRef @a)
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "ElmStreetNonEmptyList"
+        , builtinImplEncoder = "elmStreetEncodeNonEmpty"
+        , builtinImplDecoder = "elmStreetDecodeNonEmpty"
+        , builtinImplParams = [elmRef @a]
+        }
 
 ----------------------------------------------------------------------------
 -- Smart constructors

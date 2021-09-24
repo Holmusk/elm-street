@@ -86,14 +86,18 @@ data ElmPrim
     deriving (Show)
 
 -- | Buitin types defined by core or 3rd party libraries
-data ElmBuiltin
-    = ElmMaybe !TypeRef                     -- ^ @Maybe T@ part of @elm/core@
-    | ElmResult !TypeRef !TypeRef           -- ^ @Result A B@ part of @elm/core@
-    | ElmList !TypeRef                      -- ^ @List A@ part of @elm/core@
-    | ElmTime                               -- ^ @Posix@ in elm, @UTCTime@ in Haskell use @elm/time@
-    | ElmValue                              -- ^ @Json.Encode.Value@ in elm, @Data.Aeson.Value@ in Haskell use @elm/json@
-    | ElmNonEmptyPair !TypeRef              -- ^ @NonEmpty A@ represented by @(A, List A)@ in elm see @turboMaCk/non-empty-list-alias@
-    deriving (Show)
+-- Included definitions:
+-- * @Maybe a@
+-- * @Result a b@
+-- * @List a@
+-- * @Time.Posix@
+-- * @Json.Encode.Value@
+data ElmBuiltin = ElmBuiltin
+    { builtinImplType    :: !Text
+    , builtinImplEncoder :: !Text
+    , builtinImplDecoder :: !Text
+    , builtinImplParams  :: ![TypeRef]
+    } deriving (Show)
 
 -- | Reference to another existing type.
 data TypeRef

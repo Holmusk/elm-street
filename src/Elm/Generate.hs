@@ -124,6 +124,8 @@ generateElm Settings{..} = do
         , ""
         , "import Time exposing (Posix)"
         , "import Json.Decode exposing (Value)"
+        , ""
+        , "type alias ElmStreetNonEmptyList a = (a, List a)"
         ]
 
     encoderHeader :: Text

@@ -14,10 +14,12 @@ module Elm.Print.Decoder
        , decodeNonEmpty
        ) where
 
+import Data.List (intersperse)
 import Data.List.NonEmpty (toList)
 import Data.Text (Text)
 import Data.Text.Prettyprint.Doc (Doc, colon, concatWith, dquotes, emptyDoc, equals, line, nest,
                                   parens, pretty, surround, vsep, (<+>))
+import Prettyprinter.Util (reflow)
 
 import Elm.Ast (ElmBuiltin (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
                 ElmRecord (..), ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..),
@@ -199,16 +201,8 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
         <+> wrapParens (typeRefDecoder a)
         <+> wrapParens (typeRefDecoder b)
         <+> wrapParens (typeRefDecoder c)
-typeRefDecoder (RefBuiltin elmBuiltin) = case elmBuiltin of
-    ElmTime         -> "Iso.decoder"
-    ElmValue        -> "D.value"
-    ElmMaybe t      -> "nullable"
-        <+> wrapParens (typeRefDecoder t)
-    ElmResult l r     -> "elmStreetDecodeEither"
-        <+> wrapParens (typeRefDecoder l)
-        <+> wrapParens (typeRefDecoder r)
-    ElmList l         -> "D.list" <+> wrapParens (typeRefDecoder l)
-    ElmNonEmptyPair a -> "elmStreetDecodeNonEmpty" <+> wrapParens (typeRefDecoder a)
+typeRefDecoder (RefBuiltin ElmBuiltin{..}) =
+    reflow builtinImplDecoder <+> mconcat (intersperse " " (fmap (wrapParens . typeRefDecoder) builtinImplParams))
 
 -- | The definition of the @decodeTYPENAME@ function.
 decoderDef

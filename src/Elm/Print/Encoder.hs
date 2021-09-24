@@ -13,11 +13,13 @@ module Elm.Print.Encoder
        , encodeNonEmpty
        ) where
 
+import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text (Text)
 import Data.Text.Prettyprint.Doc (Doc, brackets, colon, comma, concatWith, dquotes, emptyDoc,
                                   equals, lbracket, line, nest, parens, pretty, rbracket, surround,
                                   vsep, (<+>))
+import Prettyprinter.Util (reflow)
 
 import Elm.Ast (ElmBuiltin (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
                 ElmRecord (..), ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..),
@@ -191,17 +193,8 @@ typeRefEncoder (RefPrim elmPrim) = case elmPrim of
         <+> wrapParens (typeRefEncoder a)
         <+> wrapParens (typeRefEncoder b)
         <+> wrapParens (typeRefEncoder c)
-typeRefEncoder (RefBuiltin elmBuiltin) = case elmBuiltin of
-    ElmTime         -> "Iso.encode"
-    ElmValue        -> "Basics.identity"
-    ElmMaybe t      -> "elmStreetEncodeMaybe"
-        <+> wrapParens (typeRefEncoder t)
-    ElmResult l r   -> "elmStreetEncodeEither"
-        <+> wrapParens (typeRefEncoder l)
-        <+> wrapParens (typeRefEncoder r)
-    ElmList l       -> "E.list" <+> wrapParens (typeRefEncoder l)
-    ElmNonEmptyPair a -> "elmStreetEncodeNonEmpty"
-        <+> wrapParens (typeRefEncoder a)
+typeRefEncoder (RefBuiltin ElmBuiltin{..}) =
+    reflow builtinImplEncoder <+> mconcat (intersperse " " (fmap (wrapParens . typeRefEncoder) builtinImplParams))
 
 -- | @JSON@ encoder Elm help function for 'Maybe's.
 encodeMaybe :: Text

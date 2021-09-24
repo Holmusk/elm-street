@@ -58,15 +58,17 @@ module Elm.Print.Types
        , elmTypeDoc
        ) where
 
+import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Text (Text)
 import Data.Text.Prettyprint.Doc (Doc, align, colon, comma, dquotes, emptyDoc, equals, lbrace, line,
                                   lparen, nest, parens, pipe, pretty, prettyList, rbrace, rparen,
                                   sep, space, vsep, (<+>))
+import Prettyprinter.Util (reflow)
 
-import Elm.Ast (ElmBuiltin (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
-                ElmRecord (..), ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..),
-                getConstructorNames, isEnum)
+import Elm.Ast (ElmBuiltin (..), ElmConstructor (..), ElmDefinition (..),
+                ElmPrim (..), ElmRecord (..), ElmRecordField (..), ElmType (..), TypeName (..),
+                TypeRef (..), getConstructorNames, isEnum)
 import Elm.Print.Common (arrow, showDoc, typeWithVarsDoc, wrapParens)
 
 import qualified Data.List.NonEmpty as NE
@@ -110,13 +112,8 @@ elmPrimDoc = \case
     ElmTriple a b c   -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> comma <+> elmTypeRefDoc c <> rparen
 
 elmBuiltinDoc :: ElmBuiltin -> Doc ann
-elmBuiltinDoc = \case
-    ElmTime           -> "Posix"
-    ElmValue          -> "Value"
-    ElmMaybe t        -> "Maybe" <+> elmTypeParenDoc t
-    ElmResult l r     -> "Result" <+> elmTypeParenDoc l <+> elmTypeParenDoc r
-    ElmList l         -> "List" <+> elmTypeParenDoc l
-    ElmNonEmptyPair a -> lparen <> elmTypeRefDoc a <> comma <+> "List" <+> elmTypeRefDoc a <> rparen
+elmBuiltinDoc ElmBuiltin{..} =
+    reflow builtinImplType <+> mconcat (intersperse " " (fmap elmTypeParenDoc builtinImplParams))
 
 {- | Pretty-printer for types. Adds parens for both sides when needed (when type
 consists of multiple words).
