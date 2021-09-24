@@ -27,8 +27,8 @@ module Types
        , UserRequest (..)
        ) where
 
-import Data.Aeson (FromJSON (..), ToJSON (..), Value(..), object, (.=))
-import Data.List.NonEmpty (NonEmpty(..))
+import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), object, (.=))
+import Data.List.NonEmpty (NonEmpty (..))
 import Data.Text (Text)
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Clock (UTCTime (..))
@@ -45,7 +45,7 @@ data Prims = Prims
     , primsFloat    :: !Double
     , primsText     :: !Text
     , primsTime     :: !UTCTime
-    , primsValue  :: !Value
+    , primsValue    :: !Value
     , primsMaybe    :: !(Maybe Word)
     , primsResult   :: !(Either Int Text)
     , primsPair     :: !(Char, Bool)
