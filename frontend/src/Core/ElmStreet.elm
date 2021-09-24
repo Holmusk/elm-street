@@ -48,5 +48,5 @@ elmStreetDecodeTriple decA decB decC = D.map3 (\a b c -> (a,b,c)) (D.index 0 dec
 elmStreetDecodeNonEmpty : Decoder a -> Decoder (a, List a)
 elmStreetDecodeNonEmpty decA = D.list decA |> D.andThen (\xs -> case xs of
                                                  h::t -> D.succeed (h, t)
-                                                 _    -> D.fail "Expecting at least ONE ELEMENT array")
+                                                 _    -> D.fail "Expecting non-empty array")
 
