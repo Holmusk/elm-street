@@ -264,7 +264,7 @@ decodeNonEmpty = T.unlines
     [ "elmStreetDecodeNonEmpty : Decoder a -> Decoder (a, List a)"
     , "elmStreetDecodeNonEmpty decA = D.list decA |> D.andThen (\\xs -> case xs of"
     , "                                                 h::t -> D.succeed (h, t)"
-    , "                                                 _    -> D.fail \"Expecting at least ONE ELEMENT array\")"
+    , "                                                 _    -> D.fail \"Expecting non-empty array\")"
     ]
 
 -- | @JSON@ decoder Elm help function for 3-tuples.
