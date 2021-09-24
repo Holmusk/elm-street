@@ -108,11 +108,11 @@ recordDecoderDoc ElmRecord{..} =
             <+> wrapParens (typeRefDecoder t)
 
 typeDecoderDoc :: ElmType -> Doc ann
-typeDecoderDoc  t@ElmType{..} =
+typeDecoderDoc  ElmType{..} =
     -- function defenition: @encodeTypeName : TypeName -> Value@.
        decoderDef elmTypeName elmTypeVars
     <> line
-    <> if isEnum t
+    <> if isEnum ElmType{..}
        -- if this is Enum just using the read instance we wrote.
        then enumDecoder
        else if elmTypeIsNewtype
