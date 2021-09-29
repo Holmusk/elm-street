@@ -85,7 +85,7 @@ data ElmPrim
     | ElmTriple !TypeRef !TypeRef !TypeRef  -- ^ @(A, B, C)@ in elm
     deriving (Show)
 
--- | Buitin types defined by core or 3rd party libraries
+-- | Builtin types defined by core or 3rd party libraries
 -- Included definitions:
 -- * @Maybe a@
 -- * @Result a b@
