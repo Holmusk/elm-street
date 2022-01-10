@@ -12,7 +12,7 @@ module Elm.Print.Common
        ) where
 
 import Data.Text (Text)
-import Data.Text.Prettyprint.Doc (Doc, concatWith, parens, pretty, surround, (<+>))
+import Internal.Prettyprinter.Compat (Doc, concatWith, parens, pretty, surround, (<+>))
 
 import qualified Data.Text as T
 

@@ -16,7 +16,7 @@ module Elm.Print.Decoder
 
 import Data.List.NonEmpty (toList)
 import Data.Text (Text)
-import Data.Text.Prettyprint.Doc (Doc, colon, concatWith, dquotes, emptyDoc, equals, line, nest,
+import Internal.Prettyprinter.Compat (Doc, colon, concatWith, dquotes, emptyDoc, equals, line, nest,
                                   parens, pretty, surround, vsep, (<+>))
 
 import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),

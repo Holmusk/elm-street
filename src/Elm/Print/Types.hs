@@ -60,7 +60,7 @@ module Elm.Print.Types
 
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Text (Text)
-import Data.Text.Prettyprint.Doc (Doc, align, colon, comma, dquotes, emptyDoc, equals, lbrace, line,
+import Internal.Prettyprinter.Compat (Doc, align, colon, comma, dquotes, emptyDoc, equals, lbrace, line,
                                   lparen, nest, parens, pipe, pretty, prettyList, rbrace, rparen,
                                   sep, space, vsep, (<+>))
 
