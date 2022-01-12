@@ -15,7 +15,7 @@ module Elm.Print.Encoder
 
 import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text (Text)
-import Data.Text.Prettyprint.Doc (Doc, brackets, colon, comma, concatWith, dquotes, emptyDoc,
+import Internal.Prettyprinter.Compat (Doc, brackets, colon, comma, concatWith, dquotes, emptyDoc,
                                   equals, lbracket, line, nest, parens, pretty, rbracket, surround,
                                   vsep, (<+>))
 

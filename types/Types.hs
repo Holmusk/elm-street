@@ -1,9 +1,6 @@
-{-# LANGUAGE CPP                #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveAnyClass     #-}
-#if ( __GLASGOW_HASKELL__ >= 806 )
 {-# LANGUAGE DerivingVia        #-}
-#endif
 {-# LANGUAGE DerivingStrategies #-}
 
 {- | Haskell types used for testing `elm-street` generated Elm types.
@@ -53,14 +50,7 @@ data Prims = Prims
     , primsList     :: ![Int]
     , primsNonEmpty :: !(NonEmpty Int)
     } deriving (Generic, Eq, Show)
-#if ( __GLASGOW_HASKELL__ >= 806 )
       deriving (Elm, ToJSON, FromJSON) via ElmStreet Prims
-#else
-      deriving anyclass Elm
-
-instance ToJSON   Prims where toJSON = elmStreetToJson
-instance FromJSON Prims where parseJSON = elmStreetParseJson
-#endif
 
 newtype Id a = Id
     { unId :: Text
@@ -137,14 +127,7 @@ instance FromJSON UserRequest where parseJSON = elmStreetParseJson
 
 data MyUnit = MyUnit ()
     deriving stock (Show, Eq, Ord, Generic)
-#if ( __GLASGOW_HASKELL__ >= 806 )
-      deriving (Elm, ToJSON, FromJSON) via ElmStreet MyUnit
-#else
-      deriving anyclass Elm
-
-instance ToJSON   MyUnit where toJSON = elmStreetToJson
-instance FromJSON MyUnit where parseJSON = elmStreetParseJson
-#endif
+    deriving (Elm, ToJSON, FromJSON) via ElmStreet MyUnit
 
 -- | For name clashes testing.
 data MyResult

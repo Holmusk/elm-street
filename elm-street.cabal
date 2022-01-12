@@ -18,17 +18,17 @@ category:            Language, Compiler, Elm
 build-type:          Simple
 extra-doc-files:     README.md
                      CHANGELOG.md
-tested-with:         GHC == 8.4.4
-                     GHC == 8.6.5
+tested-with:         GHC == 8.6.5
                      GHC == 8.8.4
-                     GHC == 8.10.4
+                     GHC == 8.10.7
+                     GHC == 9.0.2
 
 source-repository head
   type:                git
   location:            https://github.com/Holmusk/elm-street.git
 
 common common-options
-  build-depends:       base >= 4.11.1.0 && < 4.15
+  build-depends:       base >= 4.11.1.0 && < 4.16
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns
@@ -69,6 +69,7 @@ library
                            Elm.Print.Decoder
                            Elm.Print.Encoder
                            Elm.Print.Types
+  other-modules:      Internal.Prettyprinter.Compat
 
   build-depends:       aeson >= 1.3
                      , directory ^>= 1.3
@@ -128,7 +129,7 @@ test-suite elm-street-test
   build-depends:       elm-street
                      , types
                      , aeson
-                     , bytestring ^>= 0.10
+                     , bytestring >= 0.10 && <= 0.12
                      , hspec ^>= 2.7.1
 
   ghc-options:         -threaded
