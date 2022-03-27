@@ -4,10 +4,11 @@
 The changelog is available [on GitHub][2].
 ## Unreleased
 
-* Remove GHC 8.4.4 from CI / tested-with
+* Remove GHC 8.4.4 and 8.6.5 from CI / tested-with
 * Add GHC 8.10.7 and 9.0.2 to CI / tested-with
 * Support Json.Decode.Value as primitive
 * Add primitive to represent NonEmpty lists as (a, List a) on elm side
+* Add overlapping instance for Elm String, to ensure that Haskell `String`s are represented as `String` on Elm side (not as `List Char`)
 
 ##  0.1.0.4 - Jan 28, 2020
 
