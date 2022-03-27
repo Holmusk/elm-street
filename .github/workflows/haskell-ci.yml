@@ -20,16 +20,21 @@ jobs:
           - 8.8.4
           - 8.10.7
           - 9.0.2
+          - 9.2.2
         exclude:
           # Test only with latest GHC on windows and macOS
           - os: macOS-latest
             ghc: 8.8.4
           - os: macOS-latest
             ghc: 8.10.7
+          - os: macOS-latest
+            ghc: 9.0.2
           - os: windows-latest
             ghc: 8.8.4
           - os: windows-latest
             ghc: 8.10.7
+          - os: windows-latest
+            ghc: 9.0.2
 
     steps:
       - uses: actions/checkout@v2
