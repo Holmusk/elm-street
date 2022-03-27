@@ -142,6 +142,11 @@ instance (Elm a, Elm b, Elm c) => Elm (a, b, c) where
 instance Elm a => Elm [a] where
     toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
 
+-- Overlapping instance to ensure that Haskell @String@ is represented as Elm @String@
+-- and not as @List Char@ based based on @Elm a => Elm [a]@ instance
+instance {-# OVERLAPPING #-} Elm String where
+    toElmDefinition _ = DefPrim ElmString
+
 instance Elm a => Elm (NonEmpty a) where
     toElmDefinition _ = DefPrim $ ElmNonEmptyPair (elmRef @a)
 

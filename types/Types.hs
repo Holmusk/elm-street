@@ -41,8 +41,9 @@ data Prims = Prims
     , primsInt      :: !Int
     , primsFloat    :: !Double
     , primsText     :: !Text
+    , primsString   :: !String
     , primsTime     :: !UTCTime
-    , primsValue  :: !Value
+    , primsValue    :: !Value
     , primsMaybe    :: !(Maybe Word)
     , primsResult   :: !(Either Int Text)
     , primsPair     :: !(Char, Bool)
@@ -203,6 +204,7 @@ defaultOneType = OneType
         , primsInt      = 42
         , primsFloat    = 36.6
         , primsText     = "heh"
+        , primsString   = "bye"
         , primsValue    = object
             [ "nullField"   .= Null
             , "boolField"   .= True
