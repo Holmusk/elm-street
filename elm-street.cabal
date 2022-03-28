@@ -129,8 +129,8 @@ test-suite elm-street-test
   build-depends:       elm-street
                      , types
                      , aeson
-                     , bytestring >= 0.10 && <= 0.12
-                     , hspec >= 2.7.1 && <= 2.10
+                     , bytestring >= 0.10
+                     , hspec >= 2.7.1
 
   ghc-options:         -threaded
                        -rtsopts
