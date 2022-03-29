@@ -17,6 +17,7 @@ goldenOneTypeJson =
             "tag": "Prims",
             "time": "2019-02-22T00:00:00Z",
             "text": "heh",
+            "string": "bye",
             "result": {
                 "Left": 666
             },
