@@ -16,6 +16,7 @@ decodePrims = D.succeed T.Prims
     |> required "int" D.int
     |> required "float" D.float
     |> required "text" D.string
+    |> required "string" D.string
     |> required "time" Iso.decoder
     |> required "value" D.value
     |> required "maybe" (nullable D.int)
@@ -66,6 +67,9 @@ decodeUser = D.succeed T.User
     |> required "name" D.string
     |> required "age" decodeAge
     |> required "status" decodeRequestStatus
+    |> required "os" D.string
+    |> required "ipV6" D.string
+    |> required "httpHost" D.string
 
 decodeGuest : Decoder T.Guest
 decodeGuest =

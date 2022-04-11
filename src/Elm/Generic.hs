@@ -48,7 +48,7 @@ module Elm.Generic
        ) where
 
 import Data.Aeson (Value)
-import Data.Char (isLower, toLower)
+import Data.Char (isLower, isUpper)
 import Data.Int (Int16, Int32, Int8)
 import Data.Kind (Constraint, Type)
 import Data.List.NonEmpty (NonEmpty (..))
@@ -276,6 +276,9 @@ instance (Selector s, Elm a) => GenericElmFields (S1 s (Rec0 a)) where
 >>> stripTypeNamePrefix (TypeName "User") "userName"
 "name"
 
+>>> stripTypeNamePrefix (TypeName "User") "userOS"
+"os"
+
 >>> stripTypeNamePrefix (TypeName "HealthReading") "healthReadingId"
 "id"
 
@@ -290,18 +293,20 @@ instance (Selector s, Elm a) => GenericElmFields (S1 s (Rec0 a)) where
 -}
 stripTypeNamePrefix :: TypeName -> Text -> Text
 stripTypeNamePrefix (TypeName typeName) fieldName =
-    case T.stripPrefix (headToLower typeName) fieldName of
-        Just rest -> leaveIfEmpty rest
-        Nothing   -> leaveIfEmpty (T.dropWhile isLower fieldName)
-  where
-    headToLower :: Text -> Text
-    headToLower t = case T.uncons t of
-        Nothing      -> error "Cannot use 'headToLower' on empty Text"
-        Just (x, xs) -> T.cons (toLower x) xs
+    case T.stripPrefix (leadingToLower typeName) fieldName of
+        Just rest -> leaveIfEmpty fieldName rest
+        Nothing   -> leaveIfEmpty fieldName (T.dropWhile isLower fieldName)
 
-    -- if all lower case then leave field as it is
-    leaveIfEmpty :: Text -> Text
-    leaveIfEmpty rest = if T.null rest then fieldName else headToLower rest
+leadingToLower :: Text -> Text
+leadingToLower t
+    | T.length leading > 1 && T.length rest > 0 = T.concat [(T.toLower $ T.dropEnd 1 leading), (T.singleton $ T.last leading), rest]
+    | otherwise = T.append (T.toLower $ leading) rest
+  where
+    (leading, rest) = T.span isUpper t
+
+-- if all lower case then leave field as it is
+leaveIfEmpty :: Text -> Text -> Text
+leaveIfEmpty fieldName rest = if T.null rest then fieldName else leadingToLower rest
 
 ----------------------------------------------------------------------------
 -- ~Magic~

@@ -16,6 +16,7 @@ encodePrims x = E.object
     , ("int", E.int x.int)
     , ("float", E.float x.float)
     , ("text", E.string x.text)
+    , ("string", E.string x.string)
     , ("time", Iso.encode x.time)
     , ("value", Basics.identity x.value)
     , ("maybe", (elmStreetEncodeMaybe E.int) x.maybe)
@@ -60,6 +61,9 @@ encodeUser x = E.object
     , ("name", E.string x.name)
     , ("age", encodeAge x.age)
     , ("status", encodeRequestStatus x.status)
+    , ("os", E.string x.os)
+    , ("ipV6", E.string x.ipV6)
+    , ("httpHost", E.string x.httpHost)
     ]
 
 encodeGuest : T.Guest -> Value

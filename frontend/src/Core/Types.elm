@@ -11,6 +11,7 @@ type alias Prims =
     , int : Int
     , float : Float
     , text : String
+    , string : String
     , time : Posix
     , value : Value
     , maybe : Maybe Int
@@ -89,6 +90,9 @@ type alias User =
     , name : String
     , age : Age
     , status : RequestStatus
+    , os : String
+    , ipV6 : String
+    , httpHost : String
     }
 
 type Guest

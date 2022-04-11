@@ -95,10 +95,13 @@ instance ToJSON   RequestStatus where toJSON = elmStreetToJson
 instance FromJSON RequestStatus where parseJSON = elmStreetParseJson
 
 data User = User
-    { userId     :: !(Id User)
-    , userName   :: !Text
-    , userAge    :: !Age
-    , userStatus :: !RequestStatus
+    { userId       :: !(Id User)
+    , userName     :: !Text
+    , userAge      :: !Age
+    , userStatus   :: !RequestStatus
+    , userOS       :: !Text
+    , userIPV6     :: !Text
+    , userHTTPHost :: !Text
     } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
 
@@ -190,7 +193,7 @@ defaultOneType = OneType
     , oneTypeNewtypeList = NewtypeList [123]
     , oneTypeOneConstructor = OneConstructor
     , oneTypeRequestStatus = Reviewing
-    , oneTypeUser = User (Id "1") "not-me" (Age 100) Approved
+    , oneTypeUser = User (Id "1") "not-me" (Age 100) Approved "Linux" "2002:db8::8a3f:362:7897" "example.com"
     , oneTypeGuests = [guestRegular, guestVisitor, guestBlocked]
     , oneTypeUserRequest = defaultUserRequest
     , oneTypeNonEmpty = MyUnit () :| [ MyUnit () ]

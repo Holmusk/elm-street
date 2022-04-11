@@ -43,7 +43,7 @@ goldenOneTypeJson =
                 "objectField": {},
                 "arrayField": [1,2,3],
                 "nullField": null
-            }
+            }        
         },
         "myUnit": {
             "tag": "MyUnit",
@@ -75,7 +75,10 @@ goldenOneTypeJson =
             "tag": "User",
             "age": 100,
             "name": "not-me",
-            "id": "1"
+            "id": "1",
+            "os": "Linux",
+            "ipV6": "2002:db8::8a3f:362:7897",
+            "httpHost": "example.com"
         },
         "id": "myId",
         "requestStatus": "Reviewing",

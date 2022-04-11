@@ -4,6 +4,10 @@
 The changelog is available [on GitHub][2].
 ## Unreleased
 
+## 0.3.0.0 - Apr 9, 2022
+
+* Update field name generation: convert leading uppercase charaters to lowercase.
+
 ## 0.2.0.0 - Mar 29, 2022
 
 * Remove GHC 8.4.4 and 8.6.5 from CI / tested-with
