@@ -47,6 +47,7 @@ defaultOneType =
         , int      = 42
         , float    = 36.6
         , text     = "heh"
+        , string   = "bye"
         , value    = E.object
             [ ("nullField", E.null)
             , ("boolField", E.bool True)
@@ -71,7 +72,7 @@ defaultOneType =
     , newtypeList = NewtypeList [123]
     , oneConstructor = OneConstructor
     , requestStatus = Reviewing
-    , user = User (Id "1") "not-me" (Age 100) Approved
+    , user = User (Id "1") "not-me" (Age 100) Approved "Linux" "2002:db8::8a3f:362:7897" "example.com"
     , guests = [guestRegular, guestVisitor, guestBlocked]
     , userRequest =
         { ids     = [Id "1", Id "2"]
