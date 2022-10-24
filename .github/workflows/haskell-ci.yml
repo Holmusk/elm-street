@@ -20,7 +20,7 @@ jobs:
           - 8.8.4
           - 8.10.7
           - 9.0.2
-          - 9.2.2
+          - 9.2.4
         exclude:
           # Test only with latest GHC on windows and macOS
           - os: macOS-latest
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        stack: [2.7.3]
+        stack: [2.7.5]
         ghc: [8.10.7]
 
     steps:
@@ -108,7 +108,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
 
       - name: Build and test
         working-directory: frontend
