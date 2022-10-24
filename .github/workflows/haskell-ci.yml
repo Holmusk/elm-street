@@ -116,5 +116,5 @@ jobs:
         working-directory: frontend
         run: |
           npm install -g create-elm-app@5.22.0
-          npm elm-app build
-          npm elm-app test
+          elm-app build
+          elm-app test
