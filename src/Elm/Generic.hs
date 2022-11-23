@@ -63,8 +63,9 @@ import GHC.Generics (C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (
 import GHC.TypeLits (ErrorMessage (..), Nat, TypeError)
 import GHC.TypeNats (type (+), type (<=?))
 
-import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),
-                ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), definitionToRef)
+import Elm.Ast (ElmBuiltin (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
+                ElmRecord (..), ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..),
+                definitionToRef)
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT (Text)
@@ -118,29 +119,60 @@ instance Elm Double where toElmDefinition _ = DefPrim ElmFloat
 instance Elm Text    where toElmDefinition _ = DefPrim ElmString
 instance Elm LT.Text where toElmDefinition _ = DefPrim ElmString
 
-instance Elm Value where toElmDefinition _ = DefPrim ElmValue
-
--- TODO: should it be 'Bytes' from @bytes@ package?
--- https://package.elm-lang.org/packages/elm/bytes/latest/Bytes
--- instance Elm B.ByteString  where toElmDefinition _ = DefPrim ElmString
--- instance Elm LB.ByteString where toElmDefinition _ = DefPrim ElmString
-
-instance Elm UTCTime where toElmDefinition _ = DefPrim ElmTime
-
-instance Elm a => Elm (Maybe a) where
-    toElmDefinition _ = DefPrim $ ElmMaybe $ elmRef @a
-
-instance (Elm a, Elm b) => Elm (Either a b) where
-    toElmDefinition _ = DefPrim $ ElmResult (elmRef @a) (elmRef @b)
-
 instance (Elm a, Elm b) => Elm (a, b) where
     toElmDefinition _ = DefPrim $ ElmPair (elmRef @a) (elmRef @b)
 
 instance (Elm a, Elm b, Elm c) => Elm (a, b, c) where
     toElmDefinition _ = DefPrim $ ElmTriple (elmRef @a) (elmRef @b) (elmRef @c)
 
+-- TODO: should it be 'Bytes' from @bytes@ package?
+-- https://package.elm-lang.org/packages/elm/bytes/latest/Bytes
+-- instance Elm B.ByteString  where toElmDefinition _ = DefPrim ElmString
+-- instance Elm LB.ByteString where toElmDefinition _ = DefPrim ElmString
+
+----------------------------------------------------------------------------
+-- Builtin instances
+----------------------------------------------------------------------------
+
+instance Elm Value where
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "Value"
+        , builtinImplEncoder = "Basics.identity"
+        , builtinImplDecoder = "D.value"
+        , builtinImplParams = []
+        }
+
+instance Elm UTCTime where
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "Posix"
+        , builtinImplEncoder = "Iso.encode"
+        , builtinImplDecoder = "Iso.decoder"
+        , builtinImplParams = []
+        }
+
+instance Elm a => Elm (Maybe a) where
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "Maybe"
+        , builtinImplEncoder = "elmStreetEncodeMaybe"
+        , builtinImplDecoder = "nullable"
+        , builtinImplParams = [elmRef @a]
+        }
+
+instance (Elm a, Elm b) => Elm (Either a b) where
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "Result"
+        , builtinImplEncoder = "elmStreetEncodeEither"
+        , builtinImplDecoder = "elmStreetDecodeEither"
+        , builtinImplParams = [elmRef @a, elmRef @b]
+        }
+
 instance Elm a => Elm [a] where
-    toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "List"
+        , builtinImplEncoder = "E.list"
+        , builtinImplDecoder = "D.list"
+        , builtinImplParams = [elmRef @a]
+        }
 
 -- Overlapping instance to ensure that Haskell @String@ is represented as Elm @String@
 -- and not as @List Char@ based based on @Elm a => Elm [a]@ instance
@@ -148,7 +180,12 @@ instance {-# OVERLAPPING #-} Elm String where
     toElmDefinition _ = DefPrim ElmString
 
 instance Elm a => Elm (NonEmpty a) where
-    toElmDefinition _ = DefPrim $ ElmNonEmptyPair (elmRef @a)
+    toElmDefinition _ = DefBuiltin $ ElmBuiltin
+        { builtinImplType = "ElmStreetNonEmptyList"
+        , builtinImplEncoder = "elmStreetEncodeNonEmpty"
+        , builtinImplDecoder = "elmStreetDecodeNonEmpty"
+        , builtinImplParams = [elmRef @a]
+        }
 
 ----------------------------------------------------------------------------
 -- Smart constructors

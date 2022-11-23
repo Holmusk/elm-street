@@ -14,13 +14,16 @@ module Elm.Print.Decoder
        , decodeNonEmpty
        ) where
 
+import Data.List (intersperse)
 import Data.List.NonEmpty (toList)
 import Data.Text (Text)
 import Internal.Prettyprinter.Compat (Doc, colon, concatWith, dquotes, emptyDoc, equals, line, nest,
                                   parens, pretty, surround, vsep, (<+>))
+import Prettyprinter.Util (reflow)
 
-import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),
-                ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), isEnum)
+import Elm.Ast (ElmBuiltin (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
+                ElmRecord (..), ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..),
+                isEnum)
 import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc, wrapParens)
 
 import qualified Data.List.NonEmpty as NE
@@ -73,6 +76,7 @@ prettyShowDecoder def = showDoc $ case def of
     DefRecord elmRecord -> recordDecoderDoc elmRecord
     DefType elmType     -> typeDecoderDoc elmType
     DefPrim _           -> emptyDoc
+    DefBuiltin _        -> emptyDoc
 
 recordDecoderDoc :: ElmRecord -> Doc ann
 recordDecoderDoc ElmRecord{..} =
@@ -106,11 +110,11 @@ recordDecoderDoc ElmRecord{..} =
             <+> wrapParens (typeRefDecoder t)
 
 typeDecoderDoc :: ElmType -> Doc ann
-typeDecoderDoc  t@ElmType{..} =
+typeDecoderDoc  ElmType{..} =
     -- function defenition: @encodeTypeName : TypeName -> Value@.
        decoderDef elmTypeName elmTypeVars
     <> line
-    <> if isEnum t
+    <> if isEnum ElmType{..}
        -- if this is Enum just using the read instance we wrote.
        then enumDecoder
        else if elmTypeIsNewtype
@@ -190,13 +194,6 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
     ElmInt          -> "D.int"
     ElmFloat        -> "D.float"
     ElmString       -> "D.string"
-    ElmTime         -> "Iso.decoder"
-    ElmValue        -> "D.value"
-    ElmMaybe t      -> "nullable"
-        <+> wrapParens (typeRefDecoder t)
-    ElmResult l r     -> "elmStreetDecodeEither"
-        <+> wrapParens (typeRefDecoder l)
-        <+> wrapParens (typeRefDecoder r)
     ElmPair a b       -> "elmStreetDecodePair"
         <+> wrapParens (typeRefDecoder a)
         <+> wrapParens (typeRefDecoder b)
@@ -204,8 +201,8 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
         <+> wrapParens (typeRefDecoder a)
         <+> wrapParens (typeRefDecoder b)
         <+> wrapParens (typeRefDecoder c)
-    ElmList l         -> "D.list" <+> wrapParens (typeRefDecoder l)
-    ElmNonEmptyPair a -> "elmStreetDecodeNonEmpty" <+> wrapParens (typeRefDecoder a)
+typeRefDecoder (RefBuiltin ElmBuiltin{..}) =
+    reflow builtinImplDecoder <+> mconcat (intersperse " " (fmap (wrapParens . typeRefDecoder) builtinImplParams))
 
 -- | The definition of the @decodeTYPENAME@ function.
 decoderDef

@@ -3,6 +3,8 @@ module Core.Types exposing (..)
 import Time exposing (Posix)
 import Json.Decode exposing (Value)
 
+type alias ElmStreetNonEmptyList a = (a, List a)
+
 
 type alias Prims =
     { unit : ()
@@ -11,14 +13,14 @@ type alias Prims =
     , int : Int
     , float : Float
     , text : String
-    , time : Posix
-    , value : Value
+    , time : Posix 
+    , value : Value 
     , maybe : Maybe Int
     , result : Result Int String
     , pair : (Char, Bool)
     , triple : (Char, Bool, List Int)
     , list : List Int
-    , nonEmpty : (Int, List Int)
+    , nonEmpty : ElmStreetNonEmptyList Int
     }
 
 type MyUnit
@@ -116,5 +118,5 @@ type alias OneType =
     , user : User
     , guests : List Guest
     , userRequest : UserRequest
-    , nonEmpty : (MyUnit, List MyUnit)
+    , nonEmpty : ElmStreetNonEmptyList MyUnit
     }

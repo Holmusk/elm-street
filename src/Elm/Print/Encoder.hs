@@ -13,14 +13,17 @@ module Elm.Print.Encoder
        , encodeNonEmpty
        ) where
 
+import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text (Text)
 import Internal.Prettyprinter.Compat (Doc, brackets, colon, comma, concatWith, dquotes, emptyDoc,
                                   equals, lbracket, line, nest, parens, pretty, rbracket, surround,
                                   vsep, (<+>))
+import Prettyprinter.Util (reflow)
 
-import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),
-                ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), isEnum)
+import Elm.Ast (ElmBuiltin (..), ElmConstructor (..), ElmDefinition (..), ElmPrim (..),
+                ElmRecord (..), ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..),
+                isEnum)
 import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc, wrapParens)
 
 import qualified Data.List.NonEmpty as NE
@@ -44,14 +47,15 @@ prettyShowEncoder def = showDoc $ case def of
     DefRecord elmRecord -> recordEncoderDoc elmRecord
     DefType elmType     -> typeEncoderDoc elmType
     DefPrim _           -> emptyDoc
+    DefBuiltin _        -> emptyDoc
 
 -- | Encoder for 'ElmType' (which is either enum or the Sum type).
 typeEncoderDoc :: ElmType -> Doc ann
-typeEncoderDoc t@ElmType{..} =
+typeEncoderDoc ElmType{..} =
     -- function definition: @encodeTypeName : TypeName -> Value@.
        encoderDef elmTypeName elmTypeVars
     <> line
-    <> if isEnum t
+    <> if isEnum ElmType{..}
        -- if this is Enum just using the show instance we wrote.
        then enumEncoder
        else if elmTypeIsNewtype
@@ -182,13 +186,6 @@ typeRefEncoder (RefPrim elmPrim) = case elmPrim of
     ElmInt          -> "E.int"
     ElmFloat        -> "E.float"
     ElmString       -> "E.string"
-    ElmTime         -> "Iso.encode"
-    ElmValue        -> "Basics.identity"
-    ElmMaybe t      -> "elmStreetEncodeMaybe"
-        <+> wrapParens (typeRefEncoder t)
-    ElmResult l r   -> "elmStreetEncodeEither"
-        <+> wrapParens (typeRefEncoder l)
-        <+> wrapParens (typeRefEncoder r)
     ElmPair a b     -> "elmStreetEncodePair"
         <+> wrapParens (typeRefEncoder a)
         <+> wrapParens (typeRefEncoder b)
@@ -196,9 +193,8 @@ typeRefEncoder (RefPrim elmPrim) = case elmPrim of
         <+> wrapParens (typeRefEncoder a)
         <+> wrapParens (typeRefEncoder b)
         <+> wrapParens (typeRefEncoder c)
-    ElmList l       -> "E.list" <+> wrapParens (typeRefEncoder l)
-    ElmNonEmptyPair a -> "elmStreetEncodeNonEmpty"
-        <+> wrapParens (typeRefEncoder a)
+typeRefEncoder (RefBuiltin ElmBuiltin{..}) =
+    reflow builtinImplEncoder <+> mconcat (intersperse " " (fmap (wrapParens . typeRefEncoder) builtinImplParams))
 
 -- | @JSON@ encoder Elm help function for 'Maybe's.
 encodeMaybe :: Text
