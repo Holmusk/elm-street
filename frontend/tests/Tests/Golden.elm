@@ -104,6 +104,7 @@ goldenOneTypeJson =
                 "tag": "MyUnit",
                 "contents": []
             }
-        ]
+        ],
+        "recordUnit": []
     }
     """

@@ -24,13 +24,14 @@ module Types
        , UserRequest (..)
        ) where
 
-import Data.Aeson (FromJSON (..), ToJSON (..), Value(..), object, (.=))
-import Data.List.NonEmpty (NonEmpty(..))
+import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), object, (.=))
+import Data.List.NonEmpty (NonEmpty (..))
 import Data.Text (Text)
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Clock (UTCTime (..))
 import Data.Word (Word32)
-import Elm (Elm (..), ElmStreet (..), elmNewtype, elmStreetParseJson, elmStreetToJson)
+import Elm (Elm (..), ElmDefinition (..), ElmRecord (..), ElmStreet (..), elmNewtype,
+            elmStreetParseJson, elmStreetToJson)
 import GHC.Generics (Generic)
 
 
@@ -134,11 +135,23 @@ data MyUnit = MyUnit ()
 data MyResult
     = Ok
     | Err Text
-    deriving (Generic, Eq, Show)
+    deriving stock (Generic, Eq, Show)
     deriving anyclass (Elm)
 
 instance ToJSON   MyResult where toJSON = elmStreetToJson
 instance FromJSON MyResult where parseJSON = elmStreetParseJson
+
+data RecordUnit = RecordUnit
+    deriving stock (Generic, Eq, Show)
+    deriving anyclass (FromJSON, ToJSON)
+
+instance Elm RecordUnit where
+    toElmDefinition _ = DefRecord $ ElmRecord
+                            { elmRecordName = "RecordUnit"
+                            , elmRecordFields = []
+                            , elmRecordIsNewtype = False
+                            }
+
 
 -- | All test types together in one type to play with.
 data OneType = OneType
@@ -155,6 +168,7 @@ data OneType = OneType
     , oneTypeGuests         :: ![Guest]
     , oneTypeUserRequest    :: !UserRequest
     , oneTypeNonEmpty       :: !(NonEmpty MyUnit)
+    , oneTypeRecordUnit     :: !RecordUnit
     } deriving (Generic, Eq, Show)
       deriving anyclass (Elm)
 
@@ -176,6 +190,7 @@ type Types =
     , Guest
     , UserRequest
     , OneType
+    , RecordUnit
     ]
 
 
@@ -194,6 +209,7 @@ defaultOneType = OneType
     , oneTypeGuests = [guestRegular, guestVisitor, guestBlocked]
     , oneTypeUserRequest = defaultUserRequest
     , oneTypeNonEmpty = MyUnit () :| [ MyUnit () ]
+    , oneTypeRecordUnit = RecordUnit
     }
   where
     defaultPrims :: Prims
