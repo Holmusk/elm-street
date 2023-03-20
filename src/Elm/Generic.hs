@@ -83,7 +83,7 @@ class Elm a where
         :: (ElmStreetGenericConstraints a, Typeable a)
         => Proxy a
         -> ElmDefinition
-    toElmDefinition _ = genericToElmDefinition (defaultCodeGenSettings (Proxy :: Proxy a))
+    toElmDefinition _ = genericToElmDefinition (defaultCodeGenSettings @a)
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
 {- | Returns 'TypeRef' for the existing type. This function always returns the
@@ -313,8 +313,8 @@ newtype CodeGenSettings = CodeGenSettings
 
 -- | Default settings modify record field names by stripping type name prefix
 -- (if present)
-defaultCodeGenSettings :: forall a. Typeable a => Proxy a -> CodeGenSettings
-defaultCodeGenSettings _ = CodeGenSettings (stripTypeNamePrefix typeName)
+defaultCodeGenSettings :: forall a. Typeable a => CodeGenSettings
+defaultCodeGenSettings = CodeGenSettings (stripTypeNamePrefix typeName)
   where
     typeName :: TypeName
     typeName = TypeName $ T.pack $ show $ typeRep @a

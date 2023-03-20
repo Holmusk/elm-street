@@ -19,7 +19,6 @@ module Elm.Aeson
 import Data.Aeson (FromJSON (..), GFromJSON, GToJSON, Options (..), ToJSON (..), Value, Zero,
                    defaultOptions, genericParseJSON, genericToJSON)
 import Data.Aeson.Types (Parser)
-import Data.Proxy (Proxy(Proxy))
 import GHC.Generics (Generic, Rep)
 import Type.Reflection (Typeable)
 
@@ -87,7 +86,7 @@ elmStreetParseJson
        (Typeable a, Generic a, GFromJSON Zero (Rep a))
     => Value
     -> Parser a
-elmStreetParseJson = elmStreetParseJsonSettings (defaultCodeGenSettings (Proxy :: Proxy a))
+elmStreetParseJson = elmStreetParseJsonSettings (defaultCodeGenSettings @a)
 
 elmStreetParseJsonSettings
     :: forall a .
@@ -120,7 +119,7 @@ elmStreetToJson
        (Typeable a, Generic a, GToJSON Zero (Rep a))
     => a
     -> Value
-elmStreetToJson = elmStreetToJsonSettings (defaultCodeGenSettings (Proxy :: Proxy a))
+elmStreetToJson = elmStreetToJsonSettings (defaultCodeGenSettings @a)
 
 elmStreetToJsonSettings
     :: forall a .
@@ -164,7 +163,7 @@ newtype ElmStreet a = ElmStreet
     }
 
 instance (ElmStreetGenericConstraints a, Typeable a) => Elm (ElmStreet a) where
-    toElmDefinition _ = genericToElmDefinition (defaultCodeGenSettings (Proxy :: Proxy a))
+    toElmDefinition _ = genericToElmDefinition (defaultCodeGenSettings @a)
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
 instance (Typeable a, Generic a, GToJSON Zero (Rep a)) => ToJSON (ElmStreet a) where
