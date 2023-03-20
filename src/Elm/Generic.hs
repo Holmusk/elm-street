@@ -45,6 +45,7 @@ module Elm.Generic
        , NamedSumError
        , CheckNamedSum
        , CheckConst
+       , ElmStreetGenericConstraints
 
          -- * Internals
        , stripTypeNamePrefix
@@ -81,13 +82,7 @@ class Elm a where
     toElmDefinition :: Proxy a -> ElmDefinition
 
     default toElmDefinition
-        :: ( HasNoTypeVars a
-           , HasLessThanEightUnnamedFields a
-           , HasNoNamedSum a
-           , Generic a
-           , GenericElmDefinition (Rep a)
-           , Typeable a
-           )
+        :: (ElmStreetGenericConstraints a, Typeable a)
         => Proxy a
         -> ElmDefinition
     toElmDefinition _ = genericToElmDefinition (defaultCodeGenSettings (Proxy :: Proxy a))
@@ -405,3 +400,13 @@ type family NamedSumError (t :: k) :: ErrorMessage where
     NamedSumError t =
              'Text "'elm-street' doesn't support Sum types with records."
         ':$$: 'Text "But '" ':<>: 'ShowType t ':<>: 'Text "' has records."
+
+-- | Convenience grouping of constraints that type has to satisfy
+-- in order to be eligible for automatic derivation of Elm via generics
+type ElmStreetGenericConstraints a =
+    (HasNoTypeVars a
+    , HasLessThanEightUnnamedFields a
+    , HasNoNamedSum a
+    , Generic a
+    , GenericElmDefinition (Rep a)
+    )

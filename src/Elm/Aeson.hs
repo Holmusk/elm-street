@@ -10,7 +10,9 @@ comply to @elm-street@ rules regarding names.
 
 module Elm.Aeson
        ( elmStreetParseJson
+       , elmStreetParseJsonSettings
        , elmStreetToJson
+       , elmStreetToJsonSettings
        , elmStreetJsonOptions
 
        , ElmStreet (..)
@@ -23,8 +25,7 @@ import Data.Proxy (Proxy(Proxy))
 import GHC.Generics (Generic, Rep)
 import Type.Reflection (Typeable)
 
-import Elm.Generic (Elm (..), CodeGenSettings (..), GenericElmDefinition (..), HasLessThanEightUnnamedFields,
-                    HasNoNamedSum, HasNoTypeVars, defaultCodeGenSettings)
+import Elm.Generic (Elm (..), CodeGenSettings (..), GenericElmDefinition (..), ElmStreetGenericConstraints, defaultCodeGenSettings)
 
 import qualified Data.Text as T
 import qualified GHC.Generics as Generic (from)
@@ -164,13 +165,7 @@ newtype ElmStreet a = ElmStreet
     { unElmStreet :: a
     }
 
-instance ( HasNoTypeVars a
-         , HasLessThanEightUnnamedFields a
-         , HasNoNamedSum a
-         , Generic a
-         , GenericElmDefinition (Rep a)
-         , Typeable a
-         ) => Elm (ElmStreet a) where
+instance (ElmStreetGenericConstraints a, Typeable a) => Elm (ElmStreet a) where
     toElmDefinition _ = genericToElmDefinition (defaultCodeGenSettings (Proxy :: Proxy a))
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
