@@ -28,6 +28,9 @@ module Elm.Generic
 
        , GenericConstructor (..)
        , toElmConstructor
+         -- * Customizing generated elm code and JSON instances
+       , CodeGenSettings (..)
+       , defaultCodeGenSettings
 
          -- * Type families for compile-time checks
        , HasNoTypeVars
@@ -54,6 +57,7 @@ import Data.Kind (Constraint, Type)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Proxy (Proxy (..))
 import Data.Text (Text)
+import Type.Reflection (Typeable, typeRep)
 import Data.Time.Clock (UTCTime)
 import Data.Type.Bool (If, type (||))
 import Data.Void (Void)
@@ -82,10 +86,11 @@ class Elm a where
            , HasNoNamedSum a
            , Generic a
            , GenericElmDefinition (Rep a)
+           , Typeable a
            )
         => Proxy a
         -> ElmDefinition
-    toElmDefinition _ = genericToElmDefinition
+    toElmDefinition _ = genericToElmDefinition (defaultCodeGenSettings (Proxy :: Proxy a))
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
 {- | Returns 'TypeRef' for the existing type. This function always returns the
@@ -182,10 +187,10 @@ data type like @data type name@. Then it collects all constructors of the data
 type and decides what to generate.
 -}
 class GenericElmDefinition (f :: k -> Type) where
-    genericToElmDefinition :: f a -> ElmDefinition
+    genericToElmDefinition :: CodeGenSettings -> f a -> ElmDefinition
 
 instance (Datatype d, GenericElmConstructors f) => GenericElmDefinition (D1 d f) where
-    genericToElmDefinition datatype = case genericToElmConstructors (TypeName typeName) (unM1 datatype) of
+    genericToElmDefinition settings datatype = case genericToElmConstructors settings (unM1 datatype) of
         c :| [] -> case toElmConstructor c of
             Left fields -> DefRecord $ ElmRecord typeName fields elmIsNewtype
             Right ctor  -> DefType $ ElmType typeName [] elmIsNewtype (ctor :| [])
@@ -232,34 +237,34 @@ toElmConstructor GenericConstructor{..} = case genericConstructorFields of
 {- | Typeclass to collect all constructors of the Haskell data type generically. -}
 class GenericElmConstructors (f :: k -> Type) where
     genericToElmConstructors
-        :: TypeName  -- ^ Name of the data type; to be stripped
+        :: CodeGenSettings 
         -> f a  -- ^ Generic value
         -> NonEmpty GenericConstructor  -- ^ List of the data type constructors
 
 -- | If it's a sum type then just combine constructors
 instance (GenericElmConstructors f, GenericElmConstructors g) => GenericElmConstructors (f :+: g) where
-    genericToElmConstructors name _ =
-        genericToElmConstructors name (error "'f :+:' is evaluated" :: f p)
-     <> genericToElmConstructors name (error "':+: g' is evaluated" :: g p)
+    genericToElmConstructors settings _ =
+        genericToElmConstructors settings (error "'f :+:' is evaluated" :: f p)
+     <> genericToElmConstructors settings (error "':+: g' is evaluated" :: g p)
 
 -- | Create singleton list for case of a one constructor.
 instance (Constructor c, GenericElmFields f) => GenericElmConstructors (C1 c f) where
-    genericToElmConstructors name constructor = pure $ GenericConstructor
+    genericToElmConstructors settings constructor = pure $ GenericConstructor
         (T.pack $ conName constructor)
-        (genericToElmFields name $ unM1 constructor)
+        (genericToElmFields settings $ unM1 constructor)
 
 -- | Collect all fields when inside constructor.
 class GenericElmFields (f :: k -> Type) where
     genericToElmFields
-        :: TypeName  -- ^ Name of the data type; to be stripped
+        :: CodeGenSettings
         -> f a  -- ^ Generic value
         -> [(TypeRef, Maybe Text)]
 
 -- | If multiple fields then just combine all results.
 instance (GenericElmFields f, GenericElmFields g) => GenericElmFields (f :*: g) where
-    genericToElmFields name _ =
-        genericToElmFields name (error "'f :*:' is evaluated" :: f p)
-     <> genericToElmFields name (error "':*: g' is evaluated" :: g p)
+    genericToElmFields settings _ =
+        genericToElmFields settings (error "'f :*:' is evaluated" :: f p)
+     <> genericToElmFields settings (error "':*: g' is evaluated" :: g p)
 
 -- | Constructor without fields.
 instance GenericElmFields U1 where
@@ -267,9 +272,9 @@ instance GenericElmFields U1 where
 
 -- | Single constructor field.
 instance (Selector s, Elm a) => GenericElmFields (S1 s (Rec0 a)) where
-    genericToElmFields typeName selector = case selName selector of
+    genericToElmFields settings selector = case selName selector of
         ""   -> [(elmRef @a, Nothing)]
-        name -> [(elmRef @a, Just $ stripTypeNamePrefix typeName $ T.pack name)]
+        name -> [(elmRef @a, Just $ cgsFieldLabelModifier settings $ T.pack name)]
 
 {- | Strips name of the type name from field name prefix.
 
@@ -302,6 +307,22 @@ stripTypeNamePrefix (TypeName typeName) fieldName =
     -- if all lower case then leave field as it is
     leaveIfEmpty :: Text -> Text
     leaveIfEmpty rest = if T.null rest then fieldName else headToLower rest
+
+-- | Settings allow for customizing generated Elm code as well as
+-- ToJSON and FromJSON instances derived generically.
+--
+-- Note that for Generated Elm encoders / decoders to be compatible
+-- with ToJSON / FromJSON instances for given type, the same 
+-- CodeGenSettings should be used to generate Elm / ToJSON / FromJSON.
+data CodeGenSettings = CodeGenSettings
+    { cgsFieldLabelModifier :: Text -> Text
+    }
+
+defaultCodeGenSettings :: forall a. Typeable a => Proxy a -> CodeGenSettings
+defaultCodeGenSettings _ = CodeGenSettings (stripTypeNamePrefix typeName)
+  where
+    typeName :: TypeName
+    typeName = TypeName $ T.pack $ show $ typeRep @a
 
 ----------------------------------------------------------------------------
 -- ~Magic~

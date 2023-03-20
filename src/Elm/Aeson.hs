@@ -19,12 +19,12 @@ module Elm.Aeson
 import Data.Aeson (FromJSON (..), GFromJSON, GToJSON, Options (..), ToJSON (..), Value, Zero,
                    defaultOptions, genericParseJSON, genericToJSON)
 import Data.Aeson.Types (Parser)
+import Data.Proxy (Proxy(Proxy))
 import GHC.Generics (Generic, Rep)
-import Type.Reflection (Typeable, typeRep)
+import Type.Reflection (Typeable)
 
-import Elm.Ast (TypeName (..))
-import Elm.Generic (Elm (..), GenericElmDefinition (..), HasLessThanEightUnnamedFields,
-                    HasNoNamedSum, HasNoTypeVars, stripTypeNamePrefix)
+import Elm.Generic (Elm (..), CodeGenSettings (..), GenericElmDefinition (..), HasLessThanEightUnnamedFields,
+                    HasNoNamedSum, HasNoTypeVars, defaultCodeGenSettings)
 
 import qualified Data.Text as T
 import qualified GHC.Generics as Generic (from)
@@ -88,7 +88,15 @@ elmStreetParseJson
        (Typeable a, Generic a, GFromJSON Zero (Rep a))
     => Value
     -> Parser a
-elmStreetParseJson = genericParseJSON (elmStreetJsonOptions @a)
+elmStreetParseJson = elmStreetParseJsonSettings (defaultCodeGenSettings (Proxy :: Proxy a))
+
+elmStreetParseJsonSettings
+    :: forall a .
+       (Generic a, GFromJSON Zero (Rep a))
+    => CodeGenSettings
+    -> Value
+    -> Parser a
+elmStreetParseJsonSettings settings = genericParseJSON (elmStreetJsonOptions settings)
 
 {- | Allows to create 'Data.Aeson.ToJSON' instance that strips the supported by
 @elm-street@ data type name prefix from every field.
@@ -113,7 +121,15 @@ elmStreetToJson
        (Typeable a, Generic a, GToJSON Zero (Rep a))
     => a
     -> Value
-elmStreetToJson = genericToJSON (elmStreetJsonOptions @a)
+elmStreetToJson = elmStreetToJsonSettings (defaultCodeGenSettings (Proxy :: Proxy a))
+
+elmStreetToJsonSettings
+    :: forall a .
+       (Generic a, GToJSON Zero (Rep a))
+    => CodeGenSettings
+    -> a
+    -> Value
+elmStreetToJsonSettings settings = genericToJSON (elmStreetJsonOptions settings)
 
 {- | Options to strip type name from the field names.
 
@@ -130,15 +146,11 @@ elmStreetToJson = genericToJSON (elmStreetJsonOptions @a)
 +----------------+----------------+---------------------+
 
 -}
-elmStreetJsonOptions :: forall a . Typeable a => Options
-elmStreetJsonOptions = defaultOptions
-    { fieldLabelModifier = T.unpack . stripTypeNamePrefix typeName . T.pack
+elmStreetJsonOptions :: CodeGenSettings -> Options
+elmStreetJsonOptions settings = defaultOptions
+    { fieldLabelModifier = T.unpack . cgsFieldLabelModifier settings . T.pack
     , tagSingleConstructors = True
     }
-  where
-    typeName :: TypeName
-    typeName = TypeName $ T.pack $ show $ typeRep @a
-
 
 {- | Newtype for reusing in @DerivingVia@.
 
@@ -157,8 +169,9 @@ instance ( HasNoTypeVars a
          , HasNoNamedSum a
          , Generic a
          , GenericElmDefinition (Rep a)
+         , Typeable a
          ) => Elm (ElmStreet a) where
-    toElmDefinition _ = genericToElmDefinition
+    toElmDefinition _ = genericToElmDefinition (defaultCodeGenSettings (Proxy :: Proxy a))
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
 instance (Typeable a, Generic a, GToJSON Zero (Rep a)) => ToJSON (ElmStreet a) where
