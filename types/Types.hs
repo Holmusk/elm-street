@@ -37,7 +37,7 @@ import Elm (Elm (..), ElmStreet (..), elmNewtype, elmStreetParseJson, elmStreetT
 import Elm.Generic (CodeGenSettings (..), ElmStreetGenericConstraints, GenericElmDefinition(..))
 import Elm.Aeson (elmStreetParseJsonSettings, elmStreetToJsonSettings)
 import GHC.Generics (Generic, Rep)
-import Type.Reflection (Typeable)
+
 import qualified GHC.Generics as Generic (from)
 import qualified Data.Text as Text
 
@@ -171,7 +171,7 @@ instance FromJSON OneType where parseJSON = elmStreetParseJson
 data CustomCodeGen = CustomCodeGen
     { customCodeGenString :: String
     , customCodeGenInt :: Int
-    } deriving (Generic, Eq, Show)
+    } deriving stock (Generic, Eq, Show)
       deriving (Elm, FromJSON, ToJSON) via MyElm CustomCodeGen
 
 -- Settings which do some custom modifications of record filed names
@@ -184,10 +184,10 @@ instance ElmStreetGenericConstraints a => Elm (MyElm a) where
     toElmDefinition _ = genericToElmDefinition customCodeGenSettings
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
-instance (Typeable a, Generic a, GToJSON Zero (Rep a)) => ToJSON (MyElm a) where
+instance (Generic a, GToJSON Zero (Rep a)) => ToJSON (MyElm a) where
     toJSON = elmStreetToJsonSettings customCodeGenSettings . unMyElm
 
-instance (Typeable a, Generic a, GFromJSON Zero (Rep a)) => FromJSON (MyElm a) where
+instance (Generic a, GFromJSON Zero (Rep a)) => FromJSON (MyElm a) where
     parseJSON = fmap MyElm . elmStreetParseJsonSettings customCodeGenSettings
 
 -- | Type level list of all test types.

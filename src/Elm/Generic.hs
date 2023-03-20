@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
-
 {-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DefaultSignatures    #-}
@@ -303,16 +301,18 @@ stripTypeNamePrefix (TypeName typeName) fieldName =
     leaveIfEmpty :: Text -> Text
     leaveIfEmpty rest = if T.null rest then fieldName else headToLower rest
 
--- | Settings allow for customizing generated Elm code as well as
+-- | CodeGenSettings allow for customizing generated Elm code as well as
 -- ToJSON and FromJSON instances derived generically.
 --
 -- Note that for Generated Elm encoders / decoders to be compatible
 -- with ToJSON / FromJSON instances for given type, the same 
 -- CodeGenSettings should be used to generate Elm / ToJSON / FromJSON.
-data CodeGenSettings = CodeGenSettings
+newtype CodeGenSettings = CodeGenSettings
     { cgsFieldLabelModifier :: Text -> Text
     }
 
+-- | Default settings modify record field names by stripping type name prefix
+-- (if present)
 defaultCodeGenSettings :: forall a. Typeable a => Proxy a -> CodeGenSettings
 defaultCodeGenSettings _ = CodeGenSettings (stripTypeNamePrefix typeName)
   where
@@ -402,9 +402,9 @@ type family NamedSumError (t :: k) :: ErrorMessage where
         ':$$: 'Text "But '" ':<>: 'ShowType t ':<>: 'Text "' has records."
 
 -- | Convenience grouping of constraints that type has to satisfy
--- in order to be eligible for automatic derivation of Elm via generics
+-- in order to be eligible for automatic derivation of Elm instance via generics
 type ElmStreetGenericConstraints a =
-    (HasNoTypeVars a
+    ( HasNoTypeVars a
     , HasLessThanEightUnnamedFields a
     , HasNoNamedSum a
     , Generic a

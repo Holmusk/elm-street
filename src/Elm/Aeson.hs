@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
-
 {-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE UndecidableInstances #-}
