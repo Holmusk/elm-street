@@ -18,17 +18,17 @@ category:            Language, Compiler, Elm
 build-type:          Simple
 extra-doc-files:     README.md
                      CHANGELOG.md
-tested-with:         GHC == 8.8.4
-                     GHC == 8.10.7
+tested-with:         GHC == 8.10.7
                      GHC == 9.0.2
-                     GHC == 9.2.4
+                     GHC == 9.2.7
+                     GHC == 9.4.4
 
 source-repository head
   type:                git
   location:            https://github.com/Holmusk/elm-street.git
 
 common common-options
-  build-depends:       base >= 4.11.1.0 && < 4.17
+  build-depends:       base >= 4.11.1.0 && < 4.18
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns

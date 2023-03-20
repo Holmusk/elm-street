@@ -15,32 +15,31 @@ jobs:
           - ubuntu-latest
           - macOS-latest
           - windows-latest
-        cabal: [3.6]
+        cabal: [3.10]
         ghc:
-          - 8.8.4
           - 8.10.7
           - 9.0.2
-          - 9.2.4
+          - 9.2.7
+          - 9.4.4
         exclude:
           # Test only with latest GHC on windows and macOS
           - os: macOS-latest
-            ghc: 8.8.4
-          - os: macOS-latest
             ghc: 8.10.7
           - os: macOS-latest
             ghc: 9.0.2
-          - os: windows-latest
-            ghc: 8.8.4
+          - os: macOS-latest
+            ghc: 9.2.7
           - os: windows-latest
             ghc: 8.10.7
           - os: windows-latest
             ghc: 9.0.2
-
+          - os: windows-latest
+            ghc: 9.2.7
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/master'
 
-      - uses: haskell/actions/setup@v1
+      - uses: haskell/actions/setup@v2
         id: setup-haskell-cabal
         name: Setup Haskell
         with:
@@ -53,7 +52,7 @@ jobs:
       - name: Freeze
         run: cabal freeze
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         name: Cache ~/.cabal/store
         with:
           path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
@@ -73,20 +72,20 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        stack: [2.7.5]
-        ghc: [8.10.7]
+        stack: [2.9.3]
+        ghc: [9.2.7]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/master'
 
-      - uses: haskell/actions/setup@v1
+      - uses: haskell/actions/setup@v2
         name: Setup Haskell Stack
         with:
           ghc-version: ${{ matrix.ghc }}
           stack-version: ${{ matrix.stack }}
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         name: Cache ~/.stack
         with:
           path: ~/.stack
@@ -105,7 +104,7 @@ jobs:
     name: frontend
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
