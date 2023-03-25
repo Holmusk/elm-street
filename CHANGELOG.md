@@ -6,6 +6,7 @@ The changelog is available [on GitHub][2].
 ## Unreleased
 
 * Add GHC 9.4.5 and 9.6.2 to CI / tested-with
+* Introduce CodeGenOptions that allow customizing how record field names are modified.
 
 ## 0.2.0.0 - Mar 29, 2022
 

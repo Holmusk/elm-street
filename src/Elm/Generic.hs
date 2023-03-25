@@ -308,8 +308,8 @@ They can be passed to 'elmStreetParseJsonWith', 'elmStreetToJsonWith' and 'gener
 to influence the behavior of FromJSON \/ ToJSON and Elm instances respectively.
 
 Note that for Generated Elm encoders \/ decoders to be compatible
-with ToJSON \/ FromJSON instances for given type, the same 
-CodeGenOptions must be used in Elm \/ ToJSON \/ FromJSON instance declarations.
+with ToJSON \/ FromJSON instances for given type,
+__the same CodeGenOptions must be used in Elm \/ ToJSON \/ FromJSON instance declarations__.
 
 Example: Say you don't like the default behavior (stripping type name prefix from all record fields)
 and you would like to keep all record field names unmodified instead.
