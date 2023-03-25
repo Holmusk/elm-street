@@ -349,6 +349,7 @@ data MyType = MyType
 @
 
 We can check that type name prefix is no longer stripped from record field names:
+
 >>> encode (MyType "Hello" 10)
 "{\"myTypeFieldOne\":\"Hello\",\"myTypeFieldTwo\":10,\"tag\":\"MyType\"}"
 -}

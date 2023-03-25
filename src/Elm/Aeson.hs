@@ -131,7 +131,7 @@ elmStreetToJsonWith
     => CodeGenOptions
     -> a
     -> Value
-elmStreetToJsonWith settings = genericToJSON (elmStreetJsonOptions settings)
+elmStreetToJsonWith options = genericToJSON (elmStreetJsonOptions options)
 
 -- | Build @elm-street@ compatible 'Data.Aeson.Options' from 'CodeGenOptions'.
 elmStreetJsonOptions :: CodeGenOptions -> Options
