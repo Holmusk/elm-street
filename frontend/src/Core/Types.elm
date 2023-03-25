@@ -11,6 +11,7 @@ type alias Prims =
     , int : Int
     , float : Float
     , text : String
+    , string : String
     , time : Posix
     , value : Value
     , maybe : Maybe Int

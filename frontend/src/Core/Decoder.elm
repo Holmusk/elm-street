@@ -16,6 +16,7 @@ decodePrims = D.succeed T.Prims
     |> required "int" D.int
     |> required "float" D.float
     |> required "text" D.string
+    |> required "string" D.string
     |> required "time" Iso.decoder
     |> required "value" D.value
     |> required "maybe" (nullable D.int)
