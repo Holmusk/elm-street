@@ -27,8 +27,8 @@ module Elm.Generic
        , GenericConstructor (..)
        , toElmConstructor
          -- * Customizing generated elm code and JSON instances
-       , CodeGenSettings (..)
-       , defaultCodeGenSettings
+       , CodeGenOptions (..)
+       , defaultCodeGenOptions
 
          -- * Type families for compile-time checks
        , HasNoTypeVars
@@ -83,7 +83,7 @@ class Elm a where
         :: (ElmStreetGenericConstraints a, Typeable a)
         => Proxy a
         -> ElmDefinition
-    toElmDefinition _ = genericToElmDefinition (defaultCodeGenSettings @a)
+    toElmDefinition _ = genericToElmDefinition (defaultCodeGenOptions @a)
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
 {- | Returns 'TypeRef' for the existing type. This function always returns the
@@ -180,10 +180,10 @@ data type like @data type name@. Then it collects all constructors of the data
 type and decides what to generate.
 -}
 class GenericElmDefinition (f :: k -> Type) where
-    genericToElmDefinition :: CodeGenSettings -> f a -> ElmDefinition
+    genericToElmDefinition :: CodeGenOptions -> f a -> ElmDefinition
 
 instance (Datatype d, GenericElmConstructors f) => GenericElmDefinition (D1 d f) where
-    genericToElmDefinition settings datatype = case genericToElmConstructors settings (unM1 datatype) of
+    genericToElmDefinition options datatype = case genericToElmConstructors options (unM1 datatype) of
         c :| [] -> case toElmConstructor c of
             Left fields -> DefRecord $ ElmRecord typeName fields elmIsNewtype
             Right ctor  -> DefType $ ElmType typeName [] elmIsNewtype (ctor :| [])
@@ -230,34 +230,34 @@ toElmConstructor GenericConstructor{..} = case genericConstructorFields of
 {- | Typeclass to collect all constructors of the Haskell data type generically. -}
 class GenericElmConstructors (f :: k -> Type) where
     genericToElmConstructors
-        :: CodeGenSettings 
+        :: CodeGenOptions 
         -> f a  -- ^ Generic value
         -> NonEmpty GenericConstructor  -- ^ List of the data type constructors
 
 -- | If it's a sum type then just combine constructors
 instance (GenericElmConstructors f, GenericElmConstructors g) => GenericElmConstructors (f :+: g) where
-    genericToElmConstructors settings _ =
-        genericToElmConstructors settings (error "'f :+:' is evaluated" :: f p)
-     <> genericToElmConstructors settings (error "':+: g' is evaluated" :: g p)
+    genericToElmConstructors options _ =
+        genericToElmConstructors options (error "'f :+:' is evaluated" :: f p)
+     <> genericToElmConstructors options (error "':+: g' is evaluated" :: g p)
 
 -- | Create singleton list for case of a one constructor.
 instance (Constructor c, GenericElmFields f) => GenericElmConstructors (C1 c f) where
-    genericToElmConstructors settings constructor = pure $ GenericConstructor
+    genericToElmConstructors options constructor = pure $ GenericConstructor
         (T.pack $ conName constructor)
-        (genericToElmFields settings $ unM1 constructor)
+        (genericToElmFields options $ unM1 constructor)
 
 -- | Collect all fields when inside constructor.
 class GenericElmFields (f :: k -> Type) where
     genericToElmFields
-        :: CodeGenSettings
+        :: CodeGenOptions
         -> f a  -- ^ Generic value
         -> [(TypeRef, Maybe Text)]
 
 -- | If multiple fields then just combine all results.
 instance (GenericElmFields f, GenericElmFields g) => GenericElmFields (f :*: g) where
-    genericToElmFields settings _ =
-        genericToElmFields settings (error "'f :*:' is evaluated" :: f p)
-     <> genericToElmFields settings (error "':*: g' is evaluated" :: g p)
+    genericToElmFields options _ =
+        genericToElmFields options (error "'f :*:' is evaluated" :: f p)
+     <> genericToElmFields options (error "':*: g' is evaluated" :: g p)
 
 -- | Constructor without fields.
 instance GenericElmFields U1 where
@@ -265,9 +265,9 @@ instance GenericElmFields U1 where
 
 -- | Single constructor field.
 instance (Selector s, Elm a) => GenericElmFields (S1 s (Rec0 a)) where
-    genericToElmFields settings selector = case selName selector of
+    genericToElmFields options selector = case selName selector of
         ""   -> [(elmRef @a, Nothing)]
-        name -> [(elmRef @a, Just $ cgsFieldLabelModifier settings $ T.pack name)]
+        name -> [(elmRef @a, Just $ cgoFieldLabelModifier options $ T.pack name)]
 
 {- | Strips name of the type name from field name prefix.
 
@@ -301,20 +301,78 @@ stripTypeNamePrefix (TypeName typeName) fieldName =
     leaveIfEmpty :: Text -> Text
     leaveIfEmpty rest = if T.null rest then fieldName else headToLower rest
 
--- | CodeGenSettings allow for customizing generated Elm code as well as
--- ToJSON and FromJSON instances derived generically.
---
--- Note that for Generated Elm encoders / decoders to be compatible
--- with ToJSON / FromJSON instances for given type, the same 
--- CodeGenSettings should be used to generate Elm / ToJSON / FromJSON.
-newtype CodeGenSettings = CodeGenSettings
-    { cgsFieldLabelModifier :: Text -> Text
+{- | CodeGenOptions allow for customizing some aspects of generated Elm code as well as
+ ToJSON and FromJSON instances derived generically.
+
+They can be passed to 'elmStreetParseJsonWith', 'elmStreetToJsonWith' and 'genericToElmDefinition'
+to influence the behavior of FromJSON \/ ToJSON and Elm instances respectively.
+
+Note that for Generated Elm encoders \/ decoders to be compatible
+with ToJSON \/ FromJSON instances for given type, the same 
+CodeGenOptions must be used in Elm \/ ToJSON \/ FromJSON instance declarations.
+
+Example: Say you don't like the default behavior (stripping type name prefix from all record fields)
+and you would like to keep all record field names unmodified instead.
+You can achieve that by declaring custom options:
+
+@
+myCodeGenOptions :: CodeGenOptions
+myCodeGenOptions = CodeGenOptions { cgoFieldLabelModifier = id }
+@
+
+And then pass these options when defining Elm \/ ToJSON \/ FromJSON instances.
+It is recommended to use DerivingVia to reduce the amount of boilerplate needed.
+First declare a newtype whose Elm \/ ToJSON \/ FromJSON instances use your custom CodeGenOptions:
+
+@
+newtype CustomElm a = CustomElm {unCustomElm :: a}
+
+instance ElmStreetGenericConstraints a => Elm (CustomElm a) where
+    toElmDefinition _ = genericToElmDefinition myCodeGenOptions $
+        GHC.Generics.from (error "Proxy for generic elm was evaluated" :: a)
+
+instance (Generic a, GToJSON Zero (Rep a)) => ToJSON (CustomElm a) where
+    toJSON = elmStreetToJsonWith myCodeGenOptions . unCustomElm
+
+instance (Generic a, GFromJSON Zero (Rep a)) => FromJSON (CustomElm a) where
+    parseJSON = fmap CustomElm . elmStreetParseJsonWith myCodeGenOptions
+@
+
+Then derive Elm \/ ToJSON \/ FromJSON instance via that newtype:
+
+@
+data MyType = MyType
+    { myTypeFieldOne :: String
+    , myTypeFieldTwo :: Int
+    } deriving stock (Show, Generic)
+      deriving (Elm, ToJSON, FromJSON) via CustomElm MyType
+@
+
+We can check that type name prefix is no longer stripped from record field names:
+>>> encode (MyType "Hello" 10)
+"{\"myTypeFieldOne\":\"Hello\",\"myTypeFieldTwo\":10,\"tag\":\"MyType\"}"
+-}
+newtype CodeGenOptions = CodeGenOptions
+    { cgoFieldLabelModifier :: Text -> Text -- ^ Function that modifies record field names (e.g. by dropping type name prefix)
     }
 
--- | Default settings modify record field names by stripping type name prefix
--- (if present)
-defaultCodeGenSettings :: forall a. Typeable a => CodeGenSettings
-defaultCodeGenSettings = CodeGenSettings (stripTypeNamePrefix typeName)
+{- | Options to strip type name from the field names.
+
++----------------+----------------+---------------------+
+| Data type name | Field name     | Stripped field name |
++================+================+=====================+
+| @User@         | @userName@     | @name@              |
++----------------+----------------+---------------------+
+| @AaaBbbCcc@    | @abcFieldName@ | @fieldName@         |
++----------------+----------------+---------------------+
+| @Foo@          | @field@        | @field@             |
++----------------+----------------+---------------------+
+| @Field@        | @field@        | @field@             |
++----------------+----------------+---------------------+
+
+-}
+defaultCodeGenOptions :: forall a. Typeable a => CodeGenOptions
+defaultCodeGenOptions = CodeGenOptions (stripTypeNamePrefix typeName)
   where
     typeName :: TypeName
     typeName = TypeName $ T.pack $ show $ typeRep @a

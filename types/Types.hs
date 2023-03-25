@@ -34,8 +34,8 @@ import Data.Time.Calendar (fromGregorian)
 import Data.Time.Clock (UTCTime (..))
 import Data.Word (Word32)
 import Elm (Elm (..), ElmStreet (..), elmNewtype, elmStreetParseJson, elmStreetToJson)
-import Elm.Generic (CodeGenSettings (..), ElmStreetGenericConstraints, GenericElmDefinition(..))
-import Elm.Aeson (elmStreetParseJsonSettings, elmStreetToJsonSettings)
+import Elm.Generic (CodeGenOptions (..), ElmStreetGenericConstraints, GenericElmDefinition(..))
+import Elm.Aeson (elmStreetParseJsonWith, elmStreetToJsonWith)
 import GHC.Generics (Generic, Rep)
 
 import qualified GHC.Generics as Generic (from)
@@ -172,23 +172,25 @@ data CustomCodeGen = CustomCodeGen
     { customCodeGenString :: String
     , customCodeGenInt :: Int
     } deriving stock (Generic, Eq, Show)
-      deriving (Elm, FromJSON, ToJSON) via MyElm CustomCodeGen
+      deriving (Elm, FromJSON, ToJSON) via CustomElm CustomCodeGen
 
 -- Settings which do some custom modifications of record filed names
-customCodeGenSettings :: CodeGenSettings
-customCodeGenSettings = CodeGenSettings (Text.replace "CodeGen" "FunTest")
+customCodeGenOptions :: CodeGenOptions
+customCodeGenOptions = CodeGenOptions (Text.replace "CodeGen" "FunTest")
 
-newtype MyElm a = MyElm {unMyElm :: a}
 
-instance ElmStreetGenericConstraints a => Elm (MyElm a) where
-    toElmDefinition _ = genericToElmDefinition customCodeGenSettings
+-- Newtype whose Elm/ToJSON/FromJSON instance use custom CodeGenOptions
+newtype CustomElm a = CustomElm {unCustomElm :: a}
+
+instance ElmStreetGenericConstraints a => Elm (CustomElm a) where
+    toElmDefinition _ = genericToElmDefinition customCodeGenOptions
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
-instance (Generic a, GToJSON Zero (Rep a)) => ToJSON (MyElm a) where
-    toJSON = elmStreetToJsonSettings customCodeGenSettings . unMyElm
+instance (Generic a, GToJSON Zero (Rep a)) => ToJSON (CustomElm a) where
+    toJSON = elmStreetToJsonWith customCodeGenOptions . unCustomElm
 
-instance (Generic a, GFromJSON Zero (Rep a)) => FromJSON (MyElm a) where
-    parseJSON = fmap MyElm . elmStreetParseJsonSettings customCodeGenSettings
+instance (Generic a, GFromJSON Zero (Rep a)) => FromJSON (CustomElm a) where
+    parseJSON = fmap CustomElm . elmStreetParseJsonWith customCodeGenOptions
 
 -- | Type level list of all test types.
 type Types =
