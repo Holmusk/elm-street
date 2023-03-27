@@ -119,3 +119,8 @@ type alias OneType =
     , userRequest : UserRequest
     , nonEmpty : (MyUnit, List MyUnit)
     }
+
+type alias CustomCodeGen =
+    { customFunTestString : String
+    , customFunTestInt : Int
+    }

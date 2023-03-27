@@ -33,7 +33,7 @@ import Data.Text (Text)
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Clock (UTCTime (..))
 import Data.Word (Word32)
-import Elm (Elm (..), ElmStreet (..), elmNewtype, elmStreetParseJson, elmStreetToJson)
+import Elm (Elm (..), ElmStreet (..), elmNewtype)
 import Elm.Generic (CodeGenOptions (..), ElmStreetGenericConstraints, GenericElmDefinition(..))
 import Elm.Aeson (elmStreetParseJsonWith, elmStreetToJsonWith)
 import GHC.Generics (Generic, Rep)
@@ -86,20 +86,14 @@ newtype NewtypeList = NewtypeList [Int]
 
 data OneConstructor = OneConstructor
     deriving stock (Generic, Eq, Show)
-    deriving anyclass (Elm)
-
-instance ToJSON   OneConstructor where toJSON = elmStreetToJson
-instance FromJSON OneConstructor where parseJSON = elmStreetParseJson
+    deriving (Elm, FromJSON, ToJSON) via ElmStreet OneConstructor
 
 data RequestStatus
     = Approved
     | Rejected
     | Reviewing
     deriving (Generic, Eq, Show)
-    deriving anyclass (Elm)
-
-instance ToJSON   RequestStatus where toJSON = elmStreetToJson
-instance FromJSON RequestStatus where parseJSON = elmStreetParseJson
+    deriving (Elm, FromJSON, ToJSON) via ElmStreet RequestStatus
 
 data User = User
     { userId     :: !(Id User)
@@ -107,10 +101,7 @@ data User = User
     , userAge    :: !Age
     , userStatus :: !RequestStatus
     } deriving (Generic, Eq, Show)
-      deriving anyclass (Elm)
-
-instance ToJSON   User where toJSON = elmStreetToJson
-instance FromJSON User where parseJSON = elmStreetParseJson
+      deriving (Elm, FromJSON, ToJSON) via ElmStreet User
 
 data Guest
     = Regular Text Int
@@ -118,20 +109,14 @@ data Guest
     | Special (Maybe [Int])
     | Blocked
     deriving (Generic, Eq, Show)
-    deriving anyclass (Elm)
-
-instance ToJSON   Guest where toJSON = elmStreetToJson
-instance FromJSON Guest where parseJSON = elmStreetParseJson
+    deriving (Elm, FromJSON, ToJSON) via ElmStreet Guest
 
 data UserRequest = UserRequest
     { userRequestIds     :: ![Id User]
     , userRequestLimit   :: !Word32
     , userRequestExample :: !(Maybe (Either User Guest))
     } deriving (Generic, Eq, Show)
-      deriving anyclass (Elm)
-
-instance ToJSON   UserRequest where toJSON = elmStreetToJson
-instance FromJSON UserRequest where parseJSON = elmStreetParseJson
+      deriving (Elm, FromJSON, ToJSON) via ElmStreet UserRequest
 
 data MyUnit = MyUnit ()
     deriving stock (Show, Eq, Ord, Generic)
@@ -142,10 +127,7 @@ data MyResult
     = Ok
     | Err Text
     deriving (Generic, Eq, Show)
-    deriving anyclass (Elm)
-
-instance ToJSON   MyResult where toJSON = elmStreetToJson
-instance FromJSON MyResult where parseJSON = elmStreetParseJson
+    deriving (Elm, FromJSON, ToJSON) via ElmStreet MyResult
 
 -- | All test types together in one type to play with.
 data OneType = OneType
@@ -163,10 +145,7 @@ data OneType = OneType
     , oneTypeUserRequest    :: !UserRequest
     , oneTypeNonEmpty       :: !(NonEmpty MyUnit)
     } deriving (Generic, Eq, Show)
-      deriving anyclass (Elm)
-
-instance ToJSON   OneType where toJSON = elmStreetToJson
-instance FromJSON OneType where parseJSON = elmStreetParseJson
+      deriving (Elm, FromJSON, ToJSON) via ElmStreet OneType
 
 data CustomCodeGen = CustomCodeGen
     { customCodeGenString :: String
@@ -177,7 +156,6 @@ data CustomCodeGen = CustomCodeGen
 -- Settings which do some custom modifications of record filed names
 customCodeGenOptions :: CodeGenOptions
 customCodeGenOptions = CodeGenOptions (Text.replace "CodeGen" "FunTest")
-
 
 -- Newtype whose Elm/ToJSON/FromJSON instance use custom CodeGenOptions
 newtype CustomElm a = CustomElm {unCustomElm :: a}
@@ -207,6 +185,7 @@ type Types =
     , Guest
     , UserRequest
     , OneType
+    , CustomCodeGen
     ]
 
 

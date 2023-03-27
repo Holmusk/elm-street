@@ -100,3 +100,8 @@ decodeOneType = D.succeed T.OneType
     |> required "guests" (D.list decodeGuest)
     |> required "userRequest" decodeUserRequest
     |> required "nonEmpty" (elmStreetDecodeNonEmpty decodeMyUnit)
+
+decodeCustomCodeGen : Decoder T.CustomCodeGen
+decodeCustomCodeGen = D.succeed T.CustomCodeGen
+    |> required "customFunTestString" D.string
+    |> required "customFunTestInt" D.int

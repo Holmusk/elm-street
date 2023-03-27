@@ -95,3 +95,10 @@ encodeOneType x = E.object
     , ("userRequest", encodeUserRequest x.userRequest)
     , ("nonEmpty", (elmStreetEncodeNonEmpty encodeMyUnit) x.nonEmpty)
     ]
+
+encodeCustomCodeGen : T.CustomCodeGen -> Value
+encodeCustomCodeGen x = E.object
+    [ ("tag", E.string "CustomCodeGen")
+    , ("customFunTestString", E.string x.customFunTestString)
+    , ("customFunTestInt", E.int x.customFunTestInt)
+    ]
