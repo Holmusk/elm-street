@@ -19,8 +19,8 @@ jobs:
         ghc:
           - 8.10.7
           - 9.0.2
-          - 9.2.7
-          - 9.4.4
+          - 9.2.8
+          - 9.4.5
         exclude:
           # Test only with latest GHC on windows and macOS
           - os: macOS-latest
@@ -28,13 +28,13 @@ jobs:
           - os: macOS-latest
             ghc: 9.0.2
           - os: macOS-latest
-            ghc: 9.2.7
+            ghc: 9.2.8
           - os: windows-latest
             ghc: 8.10.7
           - os: windows-latest
             ghc: 9.0.2
           - os: windows-latest
-            ghc: 9.2.7
+            ghc: 9.2.8
     steps:
       - uses: actions/checkout@v3
         if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/master'
@@ -72,8 +72,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        stack: [2.9.3]
-        ghc: [9.2.7]
+        stack: [2.11.1]
+        ghc: [9.4.5]
 
     steps:
       - uses: actions/checkout@v3
