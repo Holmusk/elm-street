@@ -4,7 +4,8 @@
 The changelog is available [on GitHub][2].
 
 ## Unreleased
-* Support GHC 9.4.5
+
+* Add GHC 9.4.5 and 9.6.2 to CI / tested-with
 
 ## 0.2.0.0 - Mar 29, 2022
 
