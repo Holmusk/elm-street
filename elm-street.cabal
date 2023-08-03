@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                elm-street
-version:             0.2.1.0
+version:             0.2.1.1
 synopsis:            Crossing the road between Haskell and Elm
 description:
     `Elm-street` allows you to generate automatically derived from Haskell types
@@ -18,6 +18,7 @@ category:            Language, Compiler, Elm
 build-type:          Simple
 extra-doc-files:     README.md
                      CHANGELOG.md
+extra-source-files:  test/golden/oneType.json
 tested-with:         GHC == 8.10.7
                      GHC == 9.0.2
                      GHC == 9.2.8
