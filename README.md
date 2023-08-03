@@ -9,9 +9,8 @@ Crossing the road between Haskell and Elm.
 
 ## What is this library about?
 
-`Elm-street` allows you to generate automatically derived from Haskell types
-definitions of Elm data types, JSON encoders and decoders. This helps to avoid
-writing and maintaining huge chunk of boilerplate code when developing full-stack
+`elm-street` allows you to automatically generate definitions of Elm data types and compatible JSON encoders and decoders
+ from Haskell types. This helps to avoid writing and maintaining huge chunk of boilerplate code when developing full-stack
 applications.
 
 ## Getting started
@@ -56,13 +55,13 @@ In order to use `elm-street` features, you need to perform the following steps:
    > **NOTE:** This requires extension `-XDataKinds`.
 4. Use `generateElm` function to output definitions to specified directory under
    specified module prefix.
-   ```
+   ```haskell
    main :: IO ()
    main = generateElm @Types $ defaultSettings "frontend/src" ["Core", "Generated"]
    ```
    > **NOTE:** This requires extension `-XTypeApplications`.
 
-   The above command when called generates the following files:
+   When executed, the above program generates the following files:
 
      + `frontend/src/Core/Generated/Types.elm`: `Core.Generated.Types` module with the definitions of all types
      + `frontend/src/Core/Generated/Encoder.elm`: `Core.Generated.Encoder` module with the JSON encoders for the types
@@ -102,7 +101,7 @@ limitations, specifically:
        }
    ```
 2. Data types with type variables are not supported (see [issue #45](https://github.com/Holmusk/elm-street/issues/45) for more details).
-   Though, if type variables are phantom, you still can implement `Elm` instance which
+   Though, if type variables are phantom, you can still implement `Elm` instance which
    will generate valid Elm defintions. Here is how you can create `Elm` instance for
    `newtype`s with phantom type variables:
    ```haskell

@@ -47,6 +47,7 @@ defaultOneType =
         , int      = 42
         , float    = 36.6
         , text     = "heh"
+        , string   = "bye"
         , value    = E.object
             [ ("nullField", E.null)
             , ("boolField", E.bool True)

@@ -1,7 +1,8 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {- | Haskell types used for testing `elm-street` generated Elm types.
 -}
@@ -10,6 +11,7 @@ module Types
        ( Types
        , OneType (..)
        , defaultOneType
+       , defaultCustomCodeGen
 
          -- * All test types
        , Prims (..)
@@ -22,17 +24,22 @@ module Types
        , User (..)
        , Guest (..)
        , UserRequest (..)
+       , CustomCodeGen (..)
        ) where
 
-import Data.Aeson (FromJSON (..), ToJSON (..), Value(..), object, (.=))
+import Data.Aeson (FromJSON(..), ToJSON(..), Value(..), object, (.=), GFromJSON, GToJSON, Zero)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Text (Text)
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Clock (UTCTime (..))
 import Data.Word (Word32)
-import Elm (Elm (..), ElmStreet (..), elmNewtype, elmStreetParseJson, elmStreetToJson)
-import GHC.Generics (Generic)
+import Elm (Elm (..), ElmStreet (..), elmNewtype)
+import Elm.Generic (CodeGenOptions (..), ElmStreetGenericConstraints, GenericElmDefinition(..))
+import Elm.Aeson (elmStreetParseJsonWith, elmStreetToJsonWith)
+import GHC.Generics (Generic, Rep)
 
+import qualified GHC.Generics as Generic (from)
+import qualified Data.Text as Text
 
 data Prims = Prims
     { primsUnit     :: !()
@@ -79,20 +86,14 @@ newtype NewtypeList = NewtypeList [Int]
 
 data OneConstructor = OneConstructor
     deriving stock (Generic, Eq, Show)
-    deriving anyclass (Elm)
-
-instance ToJSON   OneConstructor where toJSON = elmStreetToJson
-instance FromJSON OneConstructor where parseJSON = elmStreetParseJson
+    deriving (Elm, FromJSON, ToJSON) via ElmStreet OneConstructor
 
 data RequestStatus
     = Approved
     | Rejected
     | Reviewing
     deriving (Generic, Eq, Show)
-    deriving anyclass (Elm)
-
-instance ToJSON   RequestStatus where toJSON = elmStreetToJson
-instance FromJSON RequestStatus where parseJSON = elmStreetParseJson
+    deriving (Elm, FromJSON, ToJSON) via ElmStreet RequestStatus
 
 data User = User
     { userId     :: !(Id User)
@@ -100,10 +101,7 @@ data User = User
     , userAge    :: !Age
     , userStatus :: !RequestStatus
     } deriving (Generic, Eq, Show)
-      deriving anyclass (Elm)
-
-instance ToJSON   User where toJSON = elmStreetToJson
-instance FromJSON User where parseJSON = elmStreetParseJson
+      deriving (Elm, FromJSON, ToJSON) via ElmStreet User
 
 data Guest
     = Regular Text Int
@@ -111,20 +109,14 @@ data Guest
     | Special (Maybe [Int])
     | Blocked
     deriving (Generic, Eq, Show)
-    deriving anyclass (Elm)
-
-instance ToJSON   Guest where toJSON = elmStreetToJson
-instance FromJSON Guest where parseJSON = elmStreetParseJson
+    deriving (Elm, FromJSON, ToJSON) via ElmStreet Guest
 
 data UserRequest = UserRequest
     { userRequestIds     :: ![Id User]
     , userRequestLimit   :: !Word32
     , userRequestExample :: !(Maybe (Either User Guest))
     } deriving (Generic, Eq, Show)
-      deriving anyclass (Elm)
-
-instance ToJSON   UserRequest where toJSON = elmStreetToJson
-instance FromJSON UserRequest where parseJSON = elmStreetParseJson
+      deriving (Elm, FromJSON, ToJSON) via ElmStreet UserRequest
 
 data MyUnit = MyUnit ()
     deriving stock (Show, Eq, Ord, Generic)
@@ -135,10 +127,7 @@ data MyResult
     = Ok
     | Err Text
     deriving (Generic, Eq, Show)
-    deriving anyclass (Elm)
-
-instance ToJSON   MyResult where toJSON = elmStreetToJson
-instance FromJSON MyResult where parseJSON = elmStreetParseJson
+    deriving (Elm, FromJSON, ToJSON) via ElmStreet MyResult
 
 -- | All test types together in one type to play with.
 data OneType = OneType
@@ -156,10 +145,30 @@ data OneType = OneType
     , oneTypeUserRequest    :: !UserRequest
     , oneTypeNonEmpty       :: !(NonEmpty MyUnit)
     } deriving (Generic, Eq, Show)
-      deriving anyclass (Elm)
+      deriving (Elm, FromJSON, ToJSON) via ElmStreet OneType
 
-instance ToJSON   OneType where toJSON = elmStreetToJson
-instance FromJSON OneType where parseJSON = elmStreetParseJson
+data CustomCodeGen = CustomCodeGen
+    { customCodeGenString :: String
+    , customCodeGenInt :: Int
+    } deriving stock (Generic, Eq, Show)
+      deriving (Elm, FromJSON, ToJSON) via CustomElm CustomCodeGen
+
+-- Settings which do some custom modifications of record filed names
+customCodeGenOptions :: CodeGenOptions
+customCodeGenOptions = CodeGenOptions (Text.replace "CodeGen" "FunTest")
+
+-- Newtype whose Elm/ToJSON/FromJSON instance use custom CodeGenOptions
+newtype CustomElm a = CustomElm {unCustomElm :: a}
+
+instance ElmStreetGenericConstraints a => Elm (CustomElm a) where
+    toElmDefinition _ = genericToElmDefinition customCodeGenOptions
+        $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
+
+instance (Generic a, GToJSON Zero (Rep a)) => ToJSON (CustomElm a) where
+    toJSON = elmStreetToJsonWith customCodeGenOptions . unCustomElm
+
+instance (Generic a, GFromJSON Zero (Rep a)) => FromJSON (CustomElm a) where
+    parseJSON = fmap CustomElm . elmStreetParseJsonWith customCodeGenOptions
 
 -- | Type level list of all test types.
 type Types =
@@ -176,6 +185,7 @@ type Types =
     , Guest
     , UserRequest
     , OneType
+    , CustomCodeGen
     ]
 
 
@@ -233,3 +243,9 @@ defaultOneType = OneType
         , userRequestLimit   = 123
         , userRequestExample = Just (Right Blocked)
         }
+
+defaultCustomCodeGen :: CustomCodeGen
+defaultCustomCodeGen = CustomCodeGen
+    { customCodeGenString = "Hello"
+    , customCodeGenInt = 78
+    }

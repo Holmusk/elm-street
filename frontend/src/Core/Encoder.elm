@@ -16,6 +16,7 @@ encodePrims x = E.object
     , ("int", E.int x.int)
     , ("float", E.float x.float)
     , ("text", E.string x.text)
+    , ("string", E.string x.string)
     , ("time", Iso.encode x.time)
     , ("value", Basics.identity x.value)
     , ("maybe", (elmStreetEncodeMaybe E.int) x.maybe)
@@ -93,4 +94,11 @@ encodeOneType x = E.object
     , ("guests", (E.list encodeGuest) x.guests)
     , ("userRequest", encodeUserRequest x.userRequest)
     , ("nonEmpty", (elmStreetEncodeNonEmpty encodeMyUnit) x.nonEmpty)
+    ]
+
+encodeCustomCodeGen : T.CustomCodeGen -> Value
+encodeCustomCodeGen x = E.object
+    [ ("tag", E.string "CustomCodeGen")
+    , ("customFunTestString", E.string x.customFunTestString)
+    , ("customFunTestInt", E.int x.customFunTestInt)
     ]

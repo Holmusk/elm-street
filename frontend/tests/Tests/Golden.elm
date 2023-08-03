@@ -36,7 +36,7 @@ goldenOneTypeJson =
             "bool": true,
             "unit": [],
             "nonEmpty": [1],
-            "value" : {
+            "value": {
                 "boolField": true,
                 "numberField": 1,
                 "stringField": "hi",
@@ -67,9 +67,9 @@ goldenOneTypeJson =
             "limit": 123
         },
         "age": 18,
-        "newtype":  666,
+        "newtype": 666,
         "newtypeList": [123],
-        "oneConstructor":  "OneConstructor",
+        "oneConstructor": "OneConstructor",
         "user": {
             "status": "Approved",
             "tag": "User",

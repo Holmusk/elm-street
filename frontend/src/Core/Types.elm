@@ -11,6 +11,7 @@ type alias Prims =
     , int : Int
     , float : Float
     , text : String
+    , string : String
     , time : Posix
     , value : Value
     , maybe : Maybe Int
@@ -117,4 +118,9 @@ type alias OneType =
     , guests : List Guest
     , userRequest : UserRequest
     , nonEmpty : (MyUnit, List MyUnit)
+    }
+
+type alias CustomCodeGen =
+    { customFunTestString : String
+    , customFunTestInt : Int
     }
