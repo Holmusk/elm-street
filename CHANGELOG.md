@@ -3,10 +3,10 @@
 `elm-street` uses [PVP Versioning][1].
 The changelog is available [on GitHub][2].
 
-## Unreleased
+## 0.2.1.0 - Aug 3, 2023
 
 * Add GHC 9.4.5 and 9.6.2 to CI / tested-with
-* Introduce CodeGenOptions that allow customizing how record field names are modified.
+* Introduce CodeGenOptions to allow customizing record field names.
 
 ## 0.2.0.0 - Mar 29, 2022
 
