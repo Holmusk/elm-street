@@ -3,6 +3,11 @@
 `elm-street` uses [PVP Versioning][1].
 The changelog is available [on GitHub][2].
 
+## 0.2.2.0 - Jan 4, 2024
+
+* Version bumps to allow building with GHC 9.8.1
+* Remove GHC 8.10.7 from CI
+
 ## 0.2.1.1 - Aug 3, 2023
 * Add missing extra-source-files: test/golden/oneType.json to cabal
 
