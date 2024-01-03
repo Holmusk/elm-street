@@ -14,17 +14,17 @@ jobs:
         os: [ubuntu-latest]
         cabal: ["3.10.1.0"]
         ghc:
-          - 8.10.7
           - 9.0.2
           - 9.2.8
-          - 9.4.6
-          - 9.6.2
+          - 9.4.8
+          - 9.6.3
+          - 9.8.1
         include:
           # Test only with latest GHC on windows and macOS
           - os: macOS-latest
-            ghc: 9.6.2
+            ghc: 9.8.1
           - os: windows-latest
-            ghc: 9.6.2
+            ghc: 9.8.1
 
     steps:
       - uses: actions/checkout@v3
@@ -63,8 +63,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        stack: [2.11.1]
-        ghc: [9.4.6]
+        stack: [2.13.1]
+        ghc: [9.6.3]
 
     steps:
       - uses: actions/checkout@v3
