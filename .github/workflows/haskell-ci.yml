@@ -64,7 +64,7 @@ jobs:
     strategy:
       matrix:
         stack: [2.13.1]
-        ghc: [9.4.8]
+        ghc: [9.6.3]
 
     steps:
       - uses: actions/checkout@v3
