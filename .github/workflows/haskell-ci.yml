@@ -17,20 +17,20 @@ jobs:
           - 9.0.2
           - 9.2.8
           - 9.4.8
-          - 9.6.3
-          - 9.8.1
+          - 9.6.4
+          - 9.8.2
         include:
           # Test only with latest GHC on windows and macOS
           - os: macOS-latest
-            ghc: 9.8.1
+            ghc: 9.8.2
           - os: windows-latest
-            ghc: 9.8.1
+            ghc: 9.8.2
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/master'
 
-      - uses: haskell/actions/setup@v2
+      - uses: haskell-actions/setup@v2
         id: setup-haskell-cabal
         name: Setup Haskell
         with:
@@ -43,7 +43,7 @@ jobs:
       - name: Freeze
         run: cabal freeze
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Cache ~/.cabal/store
         with:
           path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
@@ -63,14 +63,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        stack: [2.13.1]
-        ghc: [9.6.3]
+        stack: [2.15.5]
+        ghc: [9.6.4]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/master'
 
-      - uses: haskell/actions/setup@v2
+      - uses: haskell-actions/setup@v2
         name: Setup Haskell Stack
         with:
           ghc-version: ${{ matrix.ghc }}
@@ -95,10 +95,10 @@ jobs:
     name: frontend
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16
 
