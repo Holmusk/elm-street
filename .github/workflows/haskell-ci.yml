@@ -17,7 +17,7 @@ jobs:
           - 9.0.2
           - 9.2.8
           - 9.4.8
-          - 9.6.4
+          - 9.6.5
           - 9.8.2
         include:
           # Test only with latest GHC on windows and macOS
@@ -64,7 +64,7 @@ jobs:
     strategy:
       matrix:
         stack: [2.15.5]
-        ghc: [9.6.4]
+        ghc: [9.6.5]
 
     steps:
       - uses: actions/checkout@v4
