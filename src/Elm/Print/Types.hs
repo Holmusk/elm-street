@@ -110,6 +110,7 @@ elmPrimDoc = \case
     ElmResult l r     -> "Result" <+> elmTypeParenDoc l <+> elmTypeParenDoc r
     ElmPair a b       -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> rparen
     ElmTriple a b c   -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> comma <+> elmTypeRefDoc c <> rparen
+    ElmQuadruplet a b c d -> lparen <> elmTypeRefDoc a <> comma <+> elmTypeRefDoc b <> comma <+> elmTypeRefDoc c <> comma <+> elmTypeRefDoc d <> rparen
     ElmList l         -> "List" <+> elmTypeParenDoc l
     ElmNonEmptyPair a -> lparen <> elmTypeRefDoc a <> comma <+> "List" <+> elmTypeRefDoc a <> rparen
 

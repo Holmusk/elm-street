@@ -196,6 +196,11 @@ typeRefEncoder (RefPrim elmPrim) = case elmPrim of
         <+> wrapParens (typeRefEncoder a)
         <+> wrapParens (typeRefEncoder b)
         <+> wrapParens (typeRefEncoder c)
+    ElmQuadruplet a b c d -> "elmStreetEncodeQuadruplet"
+        <+> wrapParens (typeRefEncoder a)
+        <+> wrapParens (typeRefEncoder b)
+        <+> wrapParens (typeRefEncoder c)
+        <+> wrapParens (typeRefEncoder d)
     ElmList l       -> "E.list" <+> wrapParens (typeRefEncoder l)
     ElmNonEmptyPair a -> "elmStreetEncodeNonEmpty"
         <+> wrapParens (typeRefEncoder a)

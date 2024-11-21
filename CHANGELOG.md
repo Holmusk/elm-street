@@ -3,6 +3,10 @@
 `elm-street` uses [PVP Versioning][1].
 The changelog is available [on GitHub][2].
 
+## 0.2.2.2 - Nov 21, 2024
+
+* Add quadruplet to primitive elm types
+
 ## 0.2.2.1 - May 16, 2024
 
 * Relax version bounds of warp, text and filepath

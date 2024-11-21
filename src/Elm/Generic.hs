@@ -137,6 +137,9 @@ instance (Elm a, Elm b) => Elm (a, b) where
 instance (Elm a, Elm b, Elm c) => Elm (a, b, c) where
     toElmDefinition _ = DefPrim $ ElmTriple (elmRef @a) (elmRef @b) (elmRef @c)
 
+instance (Elm a, Elm b, Elm c, Elm d) => Elm (a, b, c, d) where
+    toElmDefinition _ = DefPrim $ ElmQuadruplet (elmRef @a) (elmRef @b) (elmRef @c) (elmRef @d)
+
 instance Elm a => Elm [a] where
     toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
 
@@ -230,7 +233,7 @@ toElmConstructor GenericConstructor{..} = case genericConstructorFields of
 {- | Typeclass to collect all constructors of the Haskell data type generically. -}
 class GenericElmConstructors (f :: k -> Type) where
     genericToElmConstructors
-        :: CodeGenOptions 
+        :: CodeGenOptions
         -> f a  -- ^ Generic value
         -> NonEmpty GenericConstructor  -- ^ List of the data type constructors
 

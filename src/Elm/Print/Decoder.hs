@@ -204,6 +204,11 @@ typeRefDecoder (RefPrim elmPrim) = case elmPrim of
         <+> wrapParens (typeRefDecoder a)
         <+> wrapParens (typeRefDecoder b)
         <+> wrapParens (typeRefDecoder c)
+    ElmQuadruplet a b c d -> "elmStreetDecodeQuadruplet"
+        <+> wrapParens (typeRefDecoder a)
+        <+> wrapParens (typeRefDecoder b)
+        <+> wrapParens (typeRefDecoder c)
+        <+> wrapParens (typeRefDecoder d)
     ElmList l         -> "D.list" <+> wrapParens (typeRefDecoder l)
     ElmNonEmptyPair a -> "elmStreetDecodeNonEmpty" <+> wrapParens (typeRefDecoder a)
 
