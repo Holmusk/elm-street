@@ -63,7 +63,7 @@ In order to use `elm-street` features, you need to perform the following steps:
 
    When executed, the above program generates the following files:
 
-     + `frontend/src/Core/Generated/Types.elm`: `Core.Generated.Types` module with the definitions of all types
+     + `frontend/src/Core/Generated/Types.elm`: `Core.Generated.Types` module with the definitions for the types, as well as show*, read*, un*, and universe* functions as specified in [src/Elm/Print/Types.hs](./src/Elm/Print/Types.hs)
      + `frontend/src/Core/Generated/Encoder.elm`: `Core.Generated.Encoder` module with the JSON encoders for the types
      + `frontend/src/Core/Generated/Decoder.elm`: `Core.Generated.Decoder` module with the JSON decoders for the types
      + `frontend/src/Core/Generated/ElmStreet.elm`: `Core.Generated.ElmStreet` module with bundled helper functions
