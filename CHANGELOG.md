@@ -3,6 +3,9 @@
 `elm-street` uses [PVP Versioning][1].
 The changelog is available [on GitHub][2].
 
+## 0.2.2.2 - Dec 15, 2024
+* Relax version bounds on base, to allow building with GHC 9.10 and 9.12
+
 ## 0.2.2.1 - May 16, 2024
 
 * Relax version bounds of warp, text and filepath
