@@ -16,6 +16,7 @@ module Types
          -- * All test types
        , Prims (..)
        , Id (..)
+       , Ref (..)
        , Age (..)
        , Newtype (..)
        , NewtypeList (..)
@@ -67,6 +68,12 @@ newtype Id a = Id
 
 instance Elm (Id a) where
     toElmDefinition _ = elmNewtype @Text "Id" "unId"
+
+newtype Ref a = Ref
+    { refValue :: Text
+    } deriving (Show, Eq, Generic)
+      deriving newtype (FromJSON, ToJSON)
+      deriving anyclass (Elm)
 
 newtype Age = Age
     { unAge :: Int
@@ -155,7 +162,10 @@ data CustomCodeGen = CustomCodeGen
 
 -- Settings which do some custom modifications of record filed names
 customCodeGenOptions :: CodeGenOptions
-customCodeGenOptions = CodeGenOptions (Text.replace "CodeGen" "FunTest")
+customCodeGenOptions = CodeGenOptions
+    { cgoFieldLabelModifier = Text.replace "CodeGen" "FunTest"
+    , cgoTypeVars = []
+    }
 
 -- Newtype whose Elm/ToJSON/FromJSON instance use custom CodeGenOptions
 newtype CustomElm a = CustomElm {unCustomElm :: a}
@@ -176,6 +186,7 @@ type Types =
     , MyUnit
     , MyResult
     , Id ()
+    , Ref ()
     , Age
     , Newtype
     , NewtypeList

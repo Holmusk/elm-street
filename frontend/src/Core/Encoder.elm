@@ -39,6 +39,9 @@ encodeMyResult x = E.object <| case x of
 encodeId : T.Id -> Value
 encodeId x = E.string x.unId
 
+encodeRef : T.Ref a -> Value
+encodeRef x = E.string x.value
+
 encodeAge : T.Age -> Value
 encodeAge x = E.int x.age
 

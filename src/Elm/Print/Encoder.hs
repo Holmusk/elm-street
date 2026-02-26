@@ -117,7 +117,7 @@ typeEncoderDoc t@ElmType{..} =
 
 recordEncoderDoc :: ElmRecord -> Doc ann
 recordEncoderDoc ElmRecord{..} =
-    encoderDef elmRecordName []
+    encoderDef elmRecordName elmRecordTypeVars
     <> line
     <> if elmRecordIsNewtype
        then newtypeEncoder

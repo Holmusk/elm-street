@@ -76,7 +76,7 @@ prettyShowDecoder def = showDoc $ case def of
 
 recordDecoderDoc :: ElmRecord -> Doc ann
 recordDecoderDoc ElmRecord{..} =
-    decoderDef elmRecordName []
+    decoderDef elmRecordName elmRecordTypeVars
     <> line
     <> if elmRecordIsNewtype
        then newtypeDecoder

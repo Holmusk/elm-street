@@ -46,6 +46,9 @@ decodeMyResult =
 decodeId : Decoder T.Id
 decodeId = D.map T.Id D.string
 
+decodeRef : Decoder (T.Ref a)
+decodeRef = D.map T.Ref D.string
+
 decodeAge : Decoder T.Age
 decodeAge = D.map T.Age D.int
 

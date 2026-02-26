@@ -106,4 +106,5 @@ goldenOneTypeJson =
             }
         ]
     }
+    
     """

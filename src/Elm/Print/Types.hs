@@ -130,9 +130,14 @@ type alias User =
 -}
 elmRecordDoc :: ElmRecord -> Doc ann
 elmRecordDoc ElmRecord{..} = nest 4 $
-    vsep $ ("type alias" <+> pretty elmRecordName <+> equals)
+    vsep $ ("type alias" <+> pretty elmRecordName <> sepVars <+> equals)
          : fieldsDoc elmRecordFields
   where
+    sepVars :: Doc ann
+    sepVars = case elmRecordTypeVars of
+        []   -> emptyDoc
+        vars -> space <> sep (map pretty vars)
+
     fieldsDoc :: NonEmpty ElmRecordField -> [Doc ann]
     fieldsDoc (fstR :| rest) =
         lbrace <+> recordFieldDoc fstR

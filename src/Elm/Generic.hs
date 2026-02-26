@@ -18,6 +18,7 @@ module Elm.Generic
 
          -- * Smart constructors
        , elmNewtype
+       , elmNewtypeWithVars
 
          -- * Generic utilities
        , GenericElmDefinition (..)
@@ -31,6 +32,7 @@ module Elm.Generic
        , defaultCodeGenOptions
 
          -- * Type families for compile-time checks
+       , CountTypeVars
        , HasNoTypeVars
        , TypeVarsError
 
@@ -63,7 +65,7 @@ import Data.Void (Void)
 import Data.Word (Word16, Word32, Word8)
 import GHC.Generics (C1, Constructor (..), D1, Datatype (..), Generic (..), M1 (..), Meta (..),
                      Rec0, S1, Selector (..), U1, (:*:), (:+:))
-import GHC.TypeLits (ErrorMessage (..), Nat, TypeError)
+import GHC.TypeLits (ErrorMessage (..), KnownNat, Nat, TypeError, natVal)
 import GHC.TypeNats (type (+), type (<=?))
 
 import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),
@@ -164,10 +166,23 @@ __instance__ Elm (Id a) __where__
 @
 -}
 elmNewtype :: forall a . Elm a => Text -> Text -> ElmDefinition
-elmNewtype typeName fieldName = DefRecord $ ElmRecord
+elmNewtype = elmNewtypeWithVars @a []
+
+{- | Like 'elmNewtype' but allows specifying type variables for phantom types.
+
+@
+__newtype__ Id a = Id { unId :: Text }
+
+__instance__ Elm (Id a) __where__
+    toElmDefinition _ = elmNewtypeWithVars @Text ["a"] "Id" "unId"
+@
+-}
+elmNewtypeWithVars :: forall a . Elm a => [Text] -> Text -> Text -> ElmDefinition
+elmNewtypeWithVars typeVars typeName fieldName = DefRecord $ ElmRecord
     { elmRecordName      = typeName
     , elmRecordFields    = ElmRecordField (elmRef @a) fieldName :| []
     , elmRecordIsNewtype = True
+    , elmRecordTypeVars  = typeVars
     }
 
 ----------------------------------------------------------------------------
@@ -185,18 +200,21 @@ class GenericElmDefinition (f :: k -> Type) where
 instance (Datatype d, GenericElmConstructors f) => GenericElmDefinition (D1 d f) where
     genericToElmDefinition options datatype = case genericToElmConstructors options (unM1 datatype) of
         c :| [] -> case toElmConstructor c of
-            Left fields -> DefRecord $ ElmRecord typeName fields elmIsNewtype
-            Right ctor  -> DefType $ ElmType typeName [] elmIsNewtype (ctor :| [])
+            Left fields -> DefRecord $ ElmRecord typeName fields elmIsNewtype typeVars
+            Right ctor  -> DefType $ ElmType typeName typeVars elmIsNewtype (ctor :| [])
         c :| cs -> case traverse (rightToMaybe . toElmConstructor) (c :| cs) of
             -- TODO: this should be error but dunno what to do here
             Nothing    -> DefType $ ElmType ("ERROR_" <> typeName) [] False (ElmConstructor "ERROR" [] :| [])
-            Just ctors -> DefType $ ElmType typeName [] elmIsNewtype ctors
+            Just ctors -> DefType $ ElmType typeName typeVars elmIsNewtype ctors
       where
         typeName :: Text
         typeName = T.pack $ datatypeName datatype
 
         elmIsNewtype :: Bool
         elmIsNewtype = isNewtype datatype
+
+        typeVars :: [Text]
+        typeVars = cgoTypeVars options
 
 rightToMaybe :: Either l r -> Maybe r
 rightToMaybe = either (const Nothing) Just
@@ -353,8 +371,9 @@ We can check that type name prefix is no longer stripped from record field names
 >>> encode (MyType "Hello" 10)
 "{\"myTypeFieldOne\":\"Hello\",\"myTypeFieldTwo\":10,\"tag\":\"MyType\"}"
 -}
-newtype CodeGenOptions = CodeGenOptions
+data CodeGenOptions = CodeGenOptions
     { cgoFieldLabelModifier :: Text -> Text -- ^ Function that modifies record field names (e.g. by dropping type name prefix)
+    , cgoTypeVars           :: [Text]       -- ^ List of phantom type variable names (e.g. @["a", "b"]@)
     }
 
 {- | Options to strip type name from the field names.
@@ -372,20 +391,46 @@ newtype CodeGenOptions = CodeGenOptions
 +----------------+----------------+---------------------+
 
 -}
-defaultCodeGenOptions :: forall a. Typeable a => CodeGenOptions
-defaultCodeGenOptions = CodeGenOptions (stripTypeNamePrefix typeName)
+defaultCodeGenOptions :: forall a. (Typeable a, KnownNat (CountTypeVars a)) => CodeGenOptions
+defaultCodeGenOptions = CodeGenOptions
+    { cgoFieldLabelModifier = stripTypeNamePrefix typeName
+    , cgoTypeVars = typeVarNames (fromIntegral $ natVal (Proxy @(CountTypeVars a)))
+    }
   where
     typeName :: TypeName
     typeName = TypeName $ T.pack $ show $ typeRep @a
+
+-- | Generate type variable names @["a", "b", "c", ...]@ for the given count.
+typeVarNames :: Int -> [Text]
+typeVarNames n = take n $ map T.singleton ['a'..'z']
 
 ----------------------------------------------------------------------------
 -- ~Magic~
 ----------------------------------------------------------------------------
 
+{- | This type family counts how many type parameters a type has. This is used
+to generate phantom type variable names in the Elm output.
+
+Since there's no generic way to get all type variables, the current
+implementation is limited to 6 variables. This looks like a reasonable number.
+-}
+type family CountTypeVars (f :: k) :: Nat where
+    CountTypeVars (t a b c d e f) = 6
+    CountTypeVars (t a b c d e)   = 5
+    CountTypeVars (t a b c d)     = 4
+    CountTypeVars (t a b c)       = 3
+    CountTypeVars (t a b)         = 2
+    CountTypeVars (t a)           = 1
+    CountTypeVars t               = 0
+
 {- | This type family checks whether data type has type variables and throws
 custom compiler error if it has. Since there's no generic way to get all type
 variables, current implementation is limited only to 6 variables. This looks
 like a reasonable number.
+
+__Deprecated:__ This constraint is no longer used by 'ElmStreetGenericConstraints'.
+Phantom type parameters are now supported via 'CountTypeVars'. This is kept for
+backward compatibility.
 -}
 type family HasNoTypeVars (f :: k) :: Constraint where
     HasNoTypeVars (t a b c d e f) = TypeError (TypeVarsError t 6)
@@ -463,7 +508,7 @@ type family NamedSumError (t :: k) :: ErrorMessage where
 -- | Convenience grouping of constraints that type has to satisfy
 -- in order to be eligible for automatic derivation of Elm instance via generics
 type ElmStreetGenericConstraints a =
-    ( HasNoTypeVars a
+    ( KnownNat (CountTypeVars a)
     , HasLessThanEightUnnamedFields a
     , HasNoNamedSum a
     , Generic a

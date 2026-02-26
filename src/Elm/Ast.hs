@@ -35,6 +35,7 @@ data ElmRecord = ElmRecord
     { elmRecordName      :: !Text  -- ^ Name of the record
     , elmRecordFields    :: !(NonEmpty ElmRecordField)  -- ^ List of fields
     , elmRecordIsNewtype :: !Bool  -- ^ 'True' if Haskell type is a @newtype@
+    , elmRecordTypeVars  :: ![Text]  -- ^ List of type variables; currently only phantom variables
     } deriving (Show)
 
 -- | Single field of @record type alias@.

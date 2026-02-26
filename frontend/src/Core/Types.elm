@@ -33,6 +33,10 @@ type alias Id =
     { unId : String
     }
 
+type alias Ref a =
+    { value : String
+    }
+
 type alias Age =
     { age : Int
     }

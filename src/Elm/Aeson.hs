@@ -20,9 +20,10 @@ import Data.Aeson (FromJSON (..), GFromJSON, GToJSON, Options (..), ToJSON (..),
                    defaultOptions, genericParseJSON, genericToJSON)
 import Data.Aeson.Types (Parser)
 import GHC.Generics (Generic, Rep)
+import GHC.TypeLits (KnownNat)
 import Type.Reflection (Typeable)
 
-import Elm.Generic (Elm (..), CodeGenOptions (..), GenericElmDefinition (..), ElmStreetGenericConstraints, defaultCodeGenOptions)
+import Elm.Generic (Elm (..), CodeGenOptions (..), CountTypeVars, GenericElmDefinition (..), ElmStreetGenericConstraints, defaultCodeGenOptions)
 
 import qualified Data.Text as T
 import qualified GHC.Generics as Generic (from)
@@ -83,7 +84,7 @@ Just (VeryLongType {vltName = "John", vltAge = 42})
 -}
 elmStreetParseJson
     :: forall a .
-       (Typeable a, Generic a, GFromJSON Zero (Rep a))
+       (Typeable a, Generic a, GFromJSON Zero (Rep a), KnownNat (CountTypeVars a))
     => Value
     -> Parser a
 elmStreetParseJson = elmStreetParseJsonWith (defaultCodeGenOptions @a)
@@ -118,7 +119,7 @@ Strips type name prefix from every record field.
 -}
 elmStreetToJson
     :: forall a .
-       (Typeable a, Generic a, GToJSON Zero (Rep a))
+       (Typeable a, Generic a, GToJSON Zero (Rep a), KnownNat (CountTypeVars a))
     => a
     -> Value
 elmStreetToJson = elmStreetToJsonWith (defaultCodeGenOptions @a)
@@ -156,8 +157,8 @@ instance (ElmStreetGenericConstraints a, Typeable a) => Elm (ElmStreet a) where
     toElmDefinition _ = genericToElmDefinition (defaultCodeGenOptions @a)
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
-instance (Typeable a, Generic a, GToJSON Zero (Rep a)) => ToJSON (ElmStreet a) where
+instance (Typeable a, Generic a, GToJSON Zero (Rep a), KnownNat (CountTypeVars a)) => ToJSON (ElmStreet a) where
     toJSON = elmStreetToJson . unElmStreet
 
-instance (Typeable a, Generic a, GFromJSON Zero (Rep a)) => FromJSON (ElmStreet a) where
+instance (Typeable a, Generic a, GFromJSON Zero (Rep a), KnownNat (CountTypeVars a)) => FromJSON (ElmStreet a) where
     parseJSON = fmap ElmStreet . elmStreetParseJson
