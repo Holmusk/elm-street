@@ -174,11 +174,11 @@ generated types are used. To play with this project, do:
 
 1. Build and execute the `generate-elm` binary:
    ```
-   cabal new-run generate-elm
+   cabal run generate-elm
    ```
 2. Run Haskell backend:
    ```
-   cabal new-run run-backend
+   cabal run run-backend
    ```
 3. In separate terminal tab go to the `frontend` folder:
    ```

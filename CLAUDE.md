@@ -24,10 +24,10 @@ cabal test elm-street-test --test-options "--match /golden"
 stylish-haskell -r src/
 
 # Run the Elm code generator (outputs to frontend/src/Core/)
-cabal new-run generate-elm
+cabal run generate-elm
 
 # Run the example backend (Warp on port 8080)
-cabal new-run run-backend
+cabal run run-backend
 
 # Run the example frontend (in separate terminal)
 cd frontend && elm-app start
