@@ -33,9 +33,11 @@ type alias Id =
     { unId : String
     }
 
-type alias Ref a =
-    { value : String
-    }
+type Ref a
+    = Ref String
+
+unRef : Ref a -> String
+unRef (Ref x) = x
 
 type alias Age =
     { age : Int

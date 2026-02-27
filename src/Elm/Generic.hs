@@ -55,7 +55,7 @@ import Data.Aeson (Value)
 import Data.Char (isLower, toLower)
 import Data.Int (Int16, Int32, Int8)
 import Data.Kind (Constraint, Type)
-import Data.List.NonEmpty (NonEmpty (..))
+import Data.List.NonEmpty (NonEmpty (..), toList)
 import Data.Proxy (Proxy (..))
 import Data.Text (Text)
 import Type.Reflection (Typeable, typeRep)
@@ -178,11 +178,20 @@ __instance__ Elm (Id a) __where__
 @
 -}
 elmNewtypeWithVars :: forall a . Elm a => [Text] -> Text -> Text -> ElmDefinition
-elmNewtypeWithVars typeVars typeName fieldName = DefRecord $ ElmRecord
+elmNewtypeWithVars typeVars typeName _fieldName
+    -- Elm doesn't allow unused type variables in type aliases,
+    -- so phantom-typed newtypes must be rendered as single-constructor types.
+    | not (null typeVars) = DefType $ ElmType
+        { elmTypeName         = typeName
+        , elmTypeVars         = typeVars
+        , elmTypeIsNewtype    = True
+        , elmTypeConstructors = ElmConstructor typeName [elmRef @a] :| []
+        }
+elmNewtypeWithVars _typeVars typeName fieldName = DefRecord $ ElmRecord
     { elmRecordName      = typeName
     , elmRecordFields    = ElmRecordField (elmRef @a) fieldName :| []
     , elmRecordIsNewtype = True
-    , elmRecordTypeVars  = typeVars
+    , elmRecordTypeVars  = []
     }
 
 ----------------------------------------------------------------------------
@@ -200,7 +209,13 @@ class GenericElmDefinition (f :: k -> Type) where
 instance (Datatype d, GenericElmConstructors f) => GenericElmDefinition (D1 d f) where
     genericToElmDefinition options datatype = case genericToElmConstructors options (unM1 datatype) of
         c :| [] -> case toElmConstructor c of
-            Left fields -> DefRecord $ ElmRecord typeName fields elmIsNewtype typeVars
+            Left fields
+                -- Elm doesn't allow unused type variables in type aliases,
+                -- so phantom-typed records must be rendered as single-constructor types.
+                | not (null typeVars) ->
+                    let ctor = ElmConstructor typeName (map elmRecordFieldType $ toList fields)
+                    in DefType $ ElmType typeName typeVars elmIsNewtype (ctor :| [])
+                | otherwise -> DefRecord $ ElmRecord typeName fields elmIsNewtype typeVars
             Right ctor  -> DefType $ ElmType typeName typeVars elmIsNewtype (ctor :| [])
         c :| cs -> case traverse (rightToMaybe . toElmConstructor) (c :| cs) of
             -- TODO: this should be error but dunno what to do here

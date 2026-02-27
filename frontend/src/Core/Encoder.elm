@@ -40,7 +40,7 @@ encodeId : T.Id -> Value
 encodeId x = E.string x.unId
 
 encodeRef : T.Ref a -> Value
-encodeRef x = E.string x.value
+encodeRef = E.string << T.unRef
 
 encodeAge : T.Age -> Value
 encodeAge x = E.int x.age
