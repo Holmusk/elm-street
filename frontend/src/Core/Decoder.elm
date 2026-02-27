@@ -43,7 +43,7 @@ decodeMyResult =
             c -> D.fail <| "MyResult doesn't have such constructor: " ++ c
     in D.andThen decide (D.field "tag" D.string)
 
-decodeId : Decoder T.Id
+decodeId : Decoder (T.Id a)
 decodeId = D.map T.Id D.string
 
 decodeRef : Decoder (T.Ref a)

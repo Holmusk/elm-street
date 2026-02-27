@@ -181,7 +181,7 @@ typeDecoderDoc  t@ElmType{..} =
 
 -- | Converts the reference to the existing type to the corresponding decoder.
 typeRefDecoder :: TypeRef -> Doc ann
-typeRefDecoder (RefCustom TypeName{..}) = "decode" <> pretty (T.takeWhile (/= ' ') unTypeName)
+typeRefDecoder (RefCustom TypeName{..} _args) = "decode" <> pretty (T.takeWhile (/= ' ') unTypeName)
 typeRefDecoder (RefPrim elmPrim) = case elmPrim of
     ElmUnit         -> "D.map (always ()) (D.list D.string)"
     ElmNever        -> "D.fail \"Never is not possible\""

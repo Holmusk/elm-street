@@ -93,12 +93,12 @@ data ElmPrim
 -- | Reference to another existing type.
 data TypeRef
     = RefPrim !ElmPrim
-    | RefCustom !TypeName
+    | RefCustom !TypeName ![TypeRef]
     deriving (Show)
 
 -- | Extracts reference to the existing data type type from some other type elm defintion.
 definitionToRef :: ElmDefinition -> TypeRef
 definitionToRef = \case
-    DefRecord ElmRecord{..} -> RefCustom $ TypeName elmRecordName
-    DefType ElmType{..} -> RefCustom $ TypeName elmTypeName
+    DefRecord ElmRecord{..} -> RefCustom (TypeName elmRecordName) []
+    DefType ElmType{..} -> RefCustom (TypeName elmTypeName) []
     DefPrim elmPrim -> RefPrim elmPrim

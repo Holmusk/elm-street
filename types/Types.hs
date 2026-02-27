@@ -34,7 +34,7 @@ import Data.Text (Text)
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Clock (UTCTime (..))
 import Data.Word (Word32)
-import Elm (Elm (..), ElmStreet (..), elmNewtype)
+import Elm (Elm (..), ElmStreet (..), elmNewtypeWithVars)
 import Elm.Generic (CodeGenOptions (..), ElmStreetGenericConstraints, GenericElmDefinition(..))
 import Elm.Aeson (elmStreetParseJsonWith, elmStreetToJsonWith)
 import GHC.Generics (Generic, Rep)
@@ -67,7 +67,7 @@ newtype Id a = Id
       deriving newtype (FromJSON, ToJSON)
 
 instance Elm (Id a) where
-    toElmDefinition _ = elmNewtype @Text "Id" "unId"
+    toElmDefinition _ = elmNewtypeWithVars @Text ["a"] "Id" "unId"
 
 newtype Ref a = Ref
     { refValue :: Text

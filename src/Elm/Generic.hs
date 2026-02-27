@@ -3,6 +3,7 @@
 {-# LANGUAGE DefaultSignatures    #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE PatternSynonyms      #-}
 {-# LANGUAGE PolyKinds            #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
@@ -58,7 +59,8 @@ import Data.Kind (Constraint, Type)
 import Data.List.NonEmpty (NonEmpty (..), toList)
 import Data.Proxy (Proxy (..))
 import Data.Text (Text)
-import Type.Reflection (Typeable, typeRep)
+import qualified Type.Reflection
+import Type.Reflection (Typeable, typeRep, typeRepTyCon, tyConName, pattern App, SomeTypeRep (..))
 import Data.Time.Clock (UTCTime)
 import Data.Type.Bool (If, type (||))
 import Data.Void (Void)
@@ -69,7 +71,7 @@ import GHC.TypeLits (ErrorMessage (..), KnownNat, Nat, TypeError, natVal)
 import GHC.TypeNats (type (+), type (<=?))
 
 import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),
-                ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), definitionToRef)
+                ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..))
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT (Text)
@@ -88,11 +90,53 @@ class Elm a where
     toElmDefinition _ = genericToElmDefinition (defaultCodeGenOptions @a)
         $ Generic.from (error "Proxy for generic elm was evaluated" :: a)
 
-{- | Returns 'TypeRef' for the existing type. This function always returns the
-name of the type without any type variables added.
+{- | Returns 'TypeRef' for the existing type. When the type is a type
+application (e.g. @Id User@), the phantom type arguments are preserved
+in the resulting 'RefCustom'.
 -}
-elmRef :: forall a . Elm a => TypeRef
-elmRef = definitionToRef $ toElmDefinition $ Proxy @a
+elmRef :: forall a . (Elm a, Typeable a) => TypeRef
+elmRef = case toElmDefinition (Proxy @a) of
+    DefPrim p -> RefPrim p
+    _         -> typeRepToRef (typeRep @a)
+
+-- | Recursively decompose a 'TypeRep' into a 'TypeRef', preserving type arguments.
+typeRepToRef :: Type.Reflection.TypeRep a -> TypeRef
+typeRepToRef tr = case tr of
+    App f x ->
+        let argRef = someTypeRepToRef (Type.Reflection.SomeTypeRep x)
+        in case typeRepToRef f of
+            RefCustom name args -> RefCustom name (args ++ [argRef])
+            other               -> other  -- primitives ignore args
+    _ -> case knownPrimByName (tyConName (typeRepTyCon tr)) of
+            Just p  -> RefPrim p
+            Nothing -> RefCustom (TypeName $ T.pack $ tyConName $ typeRepTyCon tr) []
+
+-- | Convert a 'SomeTypeRep' (existential) to a 'TypeRef'.
+someTypeRepToRef :: Type.Reflection.SomeTypeRep -> TypeRef
+someTypeRepToRef (Type.Reflection.SomeTypeRep tr) = typeRepToRef tr
+
+-- | Map well-known primitive type constructor names to their 'ElmPrim' values.
+knownPrimByName :: String -> Maybe ElmPrim
+knownPrimByName = \case
+    "Int"     -> Just ElmInt
+    "Int8"    -> Just ElmInt
+    "Int16"   -> Just ElmInt
+    "Int32"   -> Just ElmInt
+    "Word"    -> Just ElmInt
+    "Word8"   -> Just ElmInt
+    "Word16"  -> Just ElmInt
+    "Word32"  -> Just ElmInt
+    "Bool"    -> Just ElmBool
+    "Char"    -> Just ElmChar
+    "Float"   -> Just ElmFloat
+    "Double"  -> Just ElmFloat
+    "Text"    -> Just ElmString
+    "String"  -> Just ElmString
+    "Value"   -> Just ElmValue
+    "UTCTime" -> Just ElmTime
+    "()"      -> Just ElmUnit
+    "Void"    -> Just ElmNever
+    _         -> Nothing
 
 ----------------------------------------------------------------------------
 -- Primitive instances
@@ -127,19 +171,19 @@ instance Elm Value where toElmDefinition _ = DefPrim ElmValue
 
 instance Elm UTCTime where toElmDefinition _ = DefPrim ElmTime
 
-instance Elm a => Elm (Maybe a) where
+instance (Elm a, Typeable a) => Elm (Maybe a) where
     toElmDefinition _ = DefPrim $ ElmMaybe $ elmRef @a
 
-instance (Elm a, Elm b) => Elm (Either a b) where
+instance (Elm a, Elm b, Typeable a, Typeable b) => Elm (Either a b) where
     toElmDefinition _ = DefPrim $ ElmResult (elmRef @a) (elmRef @b)
 
-instance (Elm a, Elm b) => Elm (a, b) where
+instance (Elm a, Elm b, Typeable a, Typeable b) => Elm (a, b) where
     toElmDefinition _ = DefPrim $ ElmPair (elmRef @a) (elmRef @b)
 
-instance (Elm a, Elm b, Elm c) => Elm (a, b, c) where
+instance (Elm a, Elm b, Elm c, Typeable a, Typeable b, Typeable c) => Elm (a, b, c) where
     toElmDefinition _ = DefPrim $ ElmTriple (elmRef @a) (elmRef @b) (elmRef @c)
 
-instance Elm a => Elm [a] where
+instance (Elm a, Typeable a) => Elm [a] where
     toElmDefinition _ = DefPrim $ ElmList (elmRef @a)
 
 -- Overlapping instance to ensure that Haskell @String@ is represented as Elm @String@
@@ -147,7 +191,7 @@ instance Elm a => Elm [a] where
 instance {-# OVERLAPPING #-} Elm String where
     toElmDefinition _ = DefPrim ElmString
 
-instance Elm a => Elm (NonEmpty a) where
+instance (Elm a, Typeable a) => Elm (NonEmpty a) where
     toElmDefinition _ = DefPrim $ ElmNonEmptyPair (elmRef @a)
 
 ----------------------------------------------------------------------------
@@ -165,7 +209,7 @@ __instance__ Elm (Id a) __where__
     toElmDefinition _ = elmNewtype @Text "Id" "unId"
 @
 -}
-elmNewtype :: forall a . Elm a => Text -> Text -> ElmDefinition
+elmNewtype :: forall a . (Elm a, Typeable a) => Text -> Text -> ElmDefinition
 elmNewtype = elmNewtypeWithVars @a []
 
 {- | Like 'elmNewtype' but allows specifying type variables for phantom types.
@@ -177,7 +221,7 @@ __instance__ Elm (Id a) __where__
     toElmDefinition _ = elmNewtypeWithVars @Text ["a"] "Id" "unId"
 @
 -}
-elmNewtypeWithVars :: forall a . Elm a => [Text] -> Text -> Text -> ElmDefinition
+elmNewtypeWithVars :: forall a . (Elm a, Typeable a) => [Text] -> Text -> Text -> ElmDefinition
 elmNewtypeWithVars typeVars typeName _fieldName
     -- Elm doesn't allow unused type variables in type aliases,
     -- so phantom-typed newtypes must be rendered as single-constructor types.
@@ -297,7 +341,7 @@ instance GenericElmFields U1 where
     genericToElmFields _ _ = []
 
 -- | Single constructor field.
-instance (Selector s, Elm a) => GenericElmFields (S1 s (Rec0 a)) where
+instance (Selector s, Elm a, Typeable a) => GenericElmFields (S1 s (Rec0 a)) where
     genericToElmFields options selector = case selName selector of
         ""   -> [(elmRef @a, Nothing)]
         name -> [(elmRef @a, Just $ cgoFieldLabelModifier options $ T.pack name)]

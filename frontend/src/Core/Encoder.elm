@@ -36,8 +36,8 @@ encodeMyResult x = E.object <| case x of
     T.Ok  -> [("tag", E.string "Ok"), ("contents", E.list identity [])]
     T.Err x1 -> [("tag", E.string "Err"), ("contents", E.string x1)]
 
-encodeId : T.Id -> Value
-encodeId x = E.string x.unId
+encodeId : T.Id a -> Value
+encodeId = E.string << T.unId
 
 encodeRef : T.Ref a -> Value
 encodeRef = E.string << T.unRef

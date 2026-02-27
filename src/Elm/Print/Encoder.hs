@@ -173,7 +173,7 @@ encoderName typeName = "encode" <> pretty typeName
 
 -- | Converts the reference to the existing type to the corresponding encoder.
 typeRefEncoder :: TypeRef -> Doc ann
-typeRefEncoder (RefCustom TypeName{..}) = "encode" <> pretty (T.takeWhile (/= ' ') unTypeName)
+typeRefEncoder (RefCustom TypeName{..} _args) = "encode" <> pretty (T.takeWhile (/= ' ') unTypeName)
 typeRefEncoder (RefPrim elmPrim) = case elmPrim of
     ElmUnit         -> "always <| E.list identity []"
     ElmNever        -> "never"

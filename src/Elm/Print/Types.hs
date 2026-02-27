@@ -89,8 +89,18 @@ elmDoc = \case
 -- | Pretty printer for type reference.
 elmTypeRefDoc :: TypeRef -> Doc ann
 elmTypeRefDoc = \case
-    RefPrim elmPrim               -> elmPrimDoc elmPrim
-    RefCustom (TypeName typeName) -> pretty typeName
+    RefPrim elmPrim                     -> elmPrimDoc elmPrim
+    RefCustom (TypeName typeName) []    -> pretty typeName
+    RefCustom (TypeName typeName) args  -> pretty typeName <+> sep (map elmTypeArgDoc args)
+
+-- | Pretty printer for phantom type argument references.
+-- Custom types get a @_@ suffix to reference the stub type (e.g. @User_@).
+elmTypeArgDoc :: TypeRef -> Doc ann
+elmTypeArgDoc = \case
+    RefPrim elmPrim                     -> wrapParens (elmPrimDoc elmPrim)
+    RefCustom (TypeName typeName) []    -> pretty (typeName <> "_")
+    RefCustom (TypeName typeName) args  ->
+        parens (pretty (typeName <> "_") <+> sep (map elmTypeArgDoc args))
 
 {- | Pretty printer for primitive Elm types. This pretty printer is used only to
 display types of fields.

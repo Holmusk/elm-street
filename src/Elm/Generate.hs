@@ -19,6 +19,7 @@ import Data.Text (Text)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((<.>), (</>))
 
+import Elm.Ast (ElmDefinition (..), ElmRecord (..), ElmType (..))
 import Elm.Generic (Elm (..))
 import Elm.Print (decodeChar, decodeEither, decodeEnum, decodePair, decodeTriple, decodeNonEmpty, encodeEither, encodeMaybe, encodeNonEmpty,
                   encodePair, encodeTriple, prettyShowDecoder, prettyShowDefinition, prettyShowEncoder)
@@ -53,19 +54,28 @@ defaultSettings settingsDirectory settingsModule = Settings
 
 -- | Typeclass for generating elm definitions for the list of types.
 class RenderElm (types :: [Type]) where
-    renderType    :: [Text]
-    renderEncoder :: [Text]
-    renderDecoder :: [Text]
+    renderType         :: [Text]
+    renderEncoder      :: [Text]
+    renderDecoder      :: [Text]
+    renderPhantomStubs :: [Text]
 
 instance RenderElm '[] where
-    renderType    = []
-    renderEncoder = []
-    renderDecoder = []
+    renderType         = []
+    renderEncoder      = []
+    renderDecoder      = []
+    renderPhantomStubs = []
 
 instance (Elm t, RenderElm ts) => RenderElm (t ': ts) where
-    renderType    = "" : toElmTypeSource    @t : renderType    @ts
-    renderEncoder = "" : toElmEncoderSource @t : renderEncoder @ts
-    renderDecoder = "" : toElmDecoderSource @t : renderDecoder @ts
+    renderType         = "" : toElmTypeSource    @t : renderType    @ts
+    renderEncoder      = "" : toElmEncoderSource @t : renderEncoder @ts
+    renderDecoder      = "" : toElmDecoderSource @t : renderDecoder @ts
+    renderPhantomStubs = toPhantomStub @t ++ renderPhantomStubs @ts
+
+toPhantomStub :: forall a . Elm a => [Text]
+toPhantomStub = case toElmDefinition (Proxy @a) of
+    DefPrim _              -> []
+    DefRecord ElmRecord{..} -> ["type " <> elmRecordName <> "_ = " <> elmRecordName <> "_"]
+    DefType ElmType{..}     -> ["type " <> elmTypeName <> "_ = " <> elmTypeName <> "_"]
 
 toElmTypeSource :: forall a . Elm a => Text
 toElmTypeSource = prettyShowDefinition $ toElmDefinition $ Proxy @a
@@ -94,7 +104,7 @@ generateElm :: forall (ts :: [Type]) . RenderElm ts => Settings -> IO ()
 generateElm Settings{..} = do
     createDirectoryIfMissing True fullPath
 
-    writeElm settingsTypesFile   $ typesHeader   : renderType    @ts
+    writeElm settingsTypesFile   $ typesHeader   : renderPhantomStubs @ts ++ renderType @ts
     writeElm settingsEncoderFile $ encoderHeader : renderEncoder @ts
     writeElm settingsDecoderFile $ decoderHeader : renderDecoder @ts
 
