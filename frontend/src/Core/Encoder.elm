@@ -8,7 +8,7 @@ import Core.Types as T
 
 
 encodePrims : T.Prims -> Value
-encodePrims x = E.object
+encodePrims (T.Prims x) = E.object
     [ ("tag", E.string "Prims")
     , ("unit", (always <| E.list identity []) x.unit)
     , ("bool", E.bool x.bool)
@@ -43,7 +43,7 @@ encodeRef : T.Ref a -> Value
 encodeRef = E.string << T.unRef
 
 encodeAge : T.Age -> Value
-encodeAge x = E.int x.age
+encodeAge (T.Age x) = E.int x.age
 
 encodeNewtype : T.Newtype -> Value
 encodeNewtype = E.int << T.unNewtype
@@ -58,7 +58,7 @@ encodeRequestStatus : T.RequestStatus -> Value
 encodeRequestStatus = E.string << T.showRequestStatus
 
 encodeUser : T.User -> Value
-encodeUser x = E.object
+encodeUser (T.User x) = E.object
     [ ("tag", E.string "User")
     , ("id", encodeId x.id)
     , ("name", E.string x.name)
@@ -74,7 +74,7 @@ encodeGuest x = E.object <| case x of
     T.Blocked  -> [("tag", E.string "Blocked"), ("contents", E.list identity [])]
 
 encodeUserRequest : T.UserRequest -> Value
-encodeUserRequest x = E.object
+encodeUserRequest (T.UserRequest x) = E.object
     [ ("tag", E.string "UserRequest")
     , ("ids", (E.list encodeId) x.ids)
     , ("limit", E.int x.limit)
@@ -82,7 +82,7 @@ encodeUserRequest x = E.object
     ]
 
 encodeOneType : T.OneType -> Value
-encodeOneType x = E.object
+encodeOneType (T.OneType x) = E.object
     [ ("tag", E.string "OneType")
     , ("prims", encodePrims x.prims)
     , ("myUnit", encodeMyUnit x.myUnit)
@@ -100,7 +100,7 @@ encodeOneType x = E.object
     ]
 
 encodeCustomCodeGen : T.CustomCodeGen -> Value
-encodeCustomCodeGen x = E.object
+encodeCustomCodeGen (T.CustomCodeGen x) = E.object
     [ ("tag", E.string "CustomCodeGen")
     , ("customFunTestString", E.string x.customFunTestString)
     , ("customFunTestInt", E.int x.customFunTestInt)

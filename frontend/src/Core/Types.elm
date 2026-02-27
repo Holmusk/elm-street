@@ -3,23 +3,8 @@ module Core.Types exposing (..)
 import Time exposing (Posix)
 import Json.Decode exposing (Value)
 
-type Prims_ = Prims_
-type MyUnit_ = MyUnit_
-type MyResult_ = MyResult_
-type Id_ = Id_
-type Ref_ = Ref_
-type Age_ = Age_
-type Newtype_ = Newtype_
-type NewtypeList_ = NewtypeList_
-type OneConstructor_ = OneConstructor_
-type RequestStatus_ = RequestStatus_
-type User_ = User_
-type Guest_ = Guest_
-type UserRequest_ = UserRequest_
-type OneType_ = OneType_
-type CustomCodeGen_ = CustomCodeGen_
 
-type alias Prims =
+type alias PrimsRecord =
     { unit : ()
     , bool : Bool
     , char : Char
@@ -36,6 +21,9 @@ type alias Prims =
     , list : List Int
     , nonEmpty : (Int, List Int)
     }
+
+type Prims
+    = Prims PrimsRecord
 
 type MyUnit
     = MyUnit ()
@@ -56,9 +44,12 @@ type Ref a
 unRef : Ref a -> String
 unRef (Ref x) = x
 
-type alias Age =
+type alias AgeRecord =
     { age : Int
     }
+
+type Age
+    = Age AgeRecord
 
 type Newtype
     = Newtype Int
@@ -108,12 +99,15 @@ readRequestStatus x = case x of
 universeRequestStatus : List RequestStatus
 universeRequestStatus = [Approved, Rejected, Reviewing]
 
-type alias User =
-    { id : Id User_
+type alias UserRecord =
+    { id : Id User
     , name : String
     , age : Age
     , status : RequestStatus
     }
+
+type User
+    = User UserRecord
 
 type Guest
     = Regular String Int
@@ -121,17 +115,20 @@ type Guest
     | Special (Maybe (List Int))
     | Blocked
 
-type alias UserRequest =
-    { ids : List (Id User_)
+type alias UserRequestRecord =
+    { ids : List (Id User)
     , limit : Int
     , example : Maybe (Result User Guest)
     }
 
-type alias OneType =
+type UserRequest
+    = UserRequest UserRequestRecord
+
+type alias OneTypeRecord =
     { prims : Prims
     , myUnit : MyUnit
     , myResult : MyResult
-    , id : Id OneType_
+    , id : Id OneType
     , age : Age
     , newtype : Newtype
     , newtypeList : NewtypeList
@@ -143,7 +140,13 @@ type alias OneType =
     , nonEmpty : (MyUnit, List MyUnit)
     }
 
-type alias CustomCodeGen =
+type OneType
+    = OneType OneTypeRecord
+
+type alias CustomCodeGenRecord =
     { customFunTestString : String
     , customFunTestInt : Int
     }
+
+type CustomCodeGen
+    = CustomCodeGen CustomCodeGenRecord

@@ -133,7 +133,7 @@ recordEncoderDoc ElmRecord{..} =
         : fieldsEncode elmRecordFields
 
     leftPart :: Doc ann
-    leftPart = encoderName elmRecordName <+> "x" <+> equals
+    leftPart = encoderName elmRecordName <+> parens (mkQualified elmRecordName <+> "x") <+> equals
 
     fieldsEncode :: NonEmpty ElmRecordField -> [Doc ann]
     fieldsEncode fields =

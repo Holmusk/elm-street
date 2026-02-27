@@ -94,13 +94,14 @@ elmTypeRefDoc = \case
     RefCustom (TypeName typeName) args  -> pretty typeName <+> sep (map elmTypeArgDoc args)
 
 -- | Pretty printer for phantom type argument references.
--- Custom types get a @_@ suffix to reference the stub type (e.g. @User_@).
+-- Custom types are referenced directly (e.g. @User@) since records are now
+-- proper types via the wrapping pattern.
 elmTypeArgDoc :: TypeRef -> Doc ann
 elmTypeArgDoc = \case
     RefPrim elmPrim                     -> wrapParens (elmPrimDoc elmPrim)
-    RefCustom (TypeName typeName) []    -> pretty (typeName <> "_")
+    RefCustom (TypeName typeName) []    -> pretty typeName
     RefCustom (TypeName typeName) args  ->
-        parens (pretty (typeName <> "_") <+> sep (map elmTypeArgDoc args))
+        parens (pretty typeName <+> sep (map elmTypeArgDoc args))
 
 {- | Pretty printer for primitive Elm types. This pretty printer is used only to
 display types of fields.
@@ -129,25 +130,30 @@ consists of multiple words).
 elmTypeParenDoc :: TypeRef -> Doc ann
 elmTypeParenDoc = wrapParens . elmTypeRefDoc
 
-{- | Pretty printer for Elm records:
+{- | Pretty printer for Elm records. Generates a record alias and a wrapping type:
 
 @
-type alias User =
+type alias UserRecord =
     { userHeh : String
     , userMeh : Int
     }
+
+type User
+    = User UserRecord
 @
 -}
 elmRecordDoc :: ElmRecord -> Doc ann
-elmRecordDoc ElmRecord{..} = nest 4 $
-    vsep $ ("type alias" <+> pretty elmRecordName <> sepVars <+> equals)
-         : fieldsDoc elmRecordFields
+elmRecordDoc ElmRecord{..} =
+    -- type alias XRecord = { ... }
+    nest 4 (vsep $ ("type alias" <+> pretty (elmRecordName <> "Record") <+> equals)
+                  : fieldsDoc elmRecordFields)
+    <> line
+    -- type X = X XRecord
+    <> line
+    <> nest 4 (vsep [ "type" <+> pretty elmRecordName
+                    , equals <+> pretty elmRecordName <+> pretty (elmRecordName <> "Record")
+                    ])
   where
-    sepVars :: Doc ann
-    sepVars = case elmRecordTypeVars of
-        []   -> emptyDoc
-        vars -> space <> sep (map pretty vars)
-
     fieldsDoc :: NonEmpty ElmRecordField -> [Doc ann]
     fieldsDoc (fstR :| rest) =
         lbrace <+> recordFieldDoc fstR

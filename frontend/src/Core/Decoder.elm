@@ -9,7 +9,7 @@ import Core.Types as T
 
 
 decodePrims : Decoder T.Prims
-decodePrims = D.succeed T.Prims
+decodePrims = D.succeed T.PrimsRecord
     |> D.hardcoded ()
     |> required "bool" D.bool
     |> required "char" elmStreetDecodeChar
@@ -25,6 +25,7 @@ decodePrims = D.succeed T.Prims
     |> required "triple" (elmStreetDecodeTriple elmStreetDecodeChar D.bool (D.list D.int))
     |> required "list" (D.list D.int)
     |> required "nonEmpty" (elmStreetDecodeNonEmpty D.int)
+    |> D.map T.Prims
 
 decodeMyUnit : Decoder T.MyUnit
 decodeMyUnit =
@@ -50,7 +51,7 @@ decodeRef : Decoder (T.Ref a)
 decodeRef = D.map T.Ref D.string
 
 decodeAge : Decoder T.Age
-decodeAge = D.map T.Age D.int
+decodeAge = D.map (T.Age << T.AgeRecord) D.int
 
 decodeNewtype : Decoder T.Newtype
 decodeNewtype = D.map T.Newtype D.int
@@ -65,11 +66,12 @@ decodeRequestStatus : Decoder T.RequestStatus
 decodeRequestStatus = elmStreetDecodeEnum T.readRequestStatus
 
 decodeUser : Decoder T.User
-decodeUser = D.succeed T.User
+decodeUser = D.succeed T.UserRecord
     |> required "id" decodeId
     |> required "name" D.string
     |> required "age" decodeAge
     |> required "status" decodeRequestStatus
+    |> D.map T.User
 
 decodeGuest : Decoder T.Guest
 decodeGuest =
@@ -83,13 +85,14 @@ decodeGuest =
     in D.andThen decide (D.field "tag" D.string)
 
 decodeUserRequest : Decoder T.UserRequest
-decodeUserRequest = D.succeed T.UserRequest
+decodeUserRequest = D.succeed T.UserRequestRecord
     |> required "ids" (D.list decodeId)
     |> required "limit" D.int
     |> required "example" (nullable (elmStreetDecodeEither decodeUser decodeGuest))
+    |> D.map T.UserRequest
 
 decodeOneType : Decoder T.OneType
-decodeOneType = D.succeed T.OneType
+decodeOneType = D.succeed T.OneTypeRecord
     |> required "prims" decodePrims
     |> required "myUnit" decodeMyUnit
     |> required "myResult" decodeMyResult
@@ -103,8 +106,10 @@ decodeOneType = D.succeed T.OneType
     |> required "guests" (D.list decodeGuest)
     |> required "userRequest" decodeUserRequest
     |> required "nonEmpty" (elmStreetDecodeNonEmpty decodeMyUnit)
+    |> D.map T.OneType
 
 decodeCustomCodeGen : Decoder T.CustomCodeGen
-decodeCustomCodeGen = D.succeed T.CustomCodeGen
+decodeCustomCodeGen = D.succeed T.CustomCodeGenRecord
     |> required "customFunTestString" D.string
     |> required "customFunTestInt" D.int
+    |> D.map T.CustomCodeGen

@@ -7,6 +7,7 @@ module Elm.Print.Common
        , wrapParens
        , arrow
        , mkQualified
+       , mkQualifiedRecord
        , typeWithVarsDoc
        , qualifiedTypeWithVarsDoc
        ) where
@@ -46,6 +47,15 @@ for @Types as T@ module.
 -}
 mkQualified :: Text -> Doc ann
 mkQualified = pretty . ("T." <>)
+
+{- | Like 'mkQualified' but appends "Record" to the type name:
+
+@
+T.UserRecord
+@
+-}
+mkQualifiedRecord :: Text -> Doc ann
+mkQualifiedRecord t = mkQualified (t <> "Record")
 
 {- | Creates a 'Doc' of the type with its type variables (if any).
 -}

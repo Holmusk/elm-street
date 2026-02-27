@@ -21,7 +21,8 @@ import Internal.Prettyprinter.Compat (Doc, colon, concatWith, dquotes, emptyDoc,
 
 import Elm.Ast (ElmConstructor (..), ElmDefinition (..), ElmPrim (..), ElmRecord (..),
                 ElmRecordField (..), ElmType (..), TypeName (..), TypeRef (..), isEnum)
-import Elm.Print.Common (arrow, mkQualified, qualifiedTypeWithVarsDoc, showDoc, wrapParens)
+import Elm.Print.Common (arrow, mkQualified, mkQualifiedRecord, qualifiedTypeWithVarsDoc, showDoc,
+                         wrapParens)
 
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
@@ -83,20 +84,18 @@ recordDecoderDoc ElmRecord{..} =
        else recordDecoder
   where
     newtypeDecoder :: Doc ann
-    newtypeDecoder = name <+> "D.map" <+> qualifiedRecordName
+    newtypeDecoder = name <+> "D.map" <+> parens (mkQualified elmRecordName <+> "<<" <+> mkQualifiedRecord elmRecordName)
         <+> wrapParens (typeRefDecoder $ elmRecordFieldType $ NE.head elmRecordFields)
 
     recordDecoder :: Doc ann
     recordDecoder = nest 4
         $ vsep
-        $ (name <+> "D.succeed" <+> qualifiedRecordName)
+        $ (name <+> "D.succeed" <+> mkQualifiedRecord elmRecordName)
         : map fieldDecode (toList elmRecordFields)
+       ++ ["|> D.map" <+> mkQualified elmRecordName]
 
     name :: Doc ann
     name = decoderName elmRecordName <+> equals
-
-    qualifiedRecordName :: Doc ann
-    qualifiedRecordName = mkQualified elmRecordName
 
     fieldDecode :: ElmRecordField -> Doc ann
     fieldDecode ElmRecordField{..} = case elmRecordFieldType of
