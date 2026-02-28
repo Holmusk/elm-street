@@ -53,19 +53,19 @@ defaultSettings settingsDirectory settingsModule = Settings
 
 -- | Typeclass for generating elm definitions for the list of types.
 class RenderElm (types :: [Type]) where
-    renderType         :: [Text]
-    renderEncoder      :: [Text]
-    renderDecoder      :: [Text]
+    renderType    :: [Text]
+    renderEncoder :: [Text]
+    renderDecoder :: [Text]
 
 instance RenderElm '[] where
-    renderType         = []
-    renderEncoder      = []
-    renderDecoder      = []
+    renderType    = []
+    renderEncoder = []
+    renderDecoder = []
 
 instance (Elm t, RenderElm ts) => RenderElm (t ': ts) where
-    renderType         = "" : toElmTypeSource    @t : renderType    @ts
-    renderEncoder      = "" : toElmEncoderSource @t : renderEncoder @ts
-    renderDecoder      = "" : toElmDecoderSource @t : renderDecoder @ts
+    renderType    = "" : toElmTypeSource    @t : renderType    @ts
+    renderEncoder = "" : toElmEncoderSource @t : renderEncoder @ts
+    renderDecoder = "" : toElmDecoderSource @t : renderDecoder @ts
 
 toElmTypeSource :: forall a . Elm a => Text
 toElmTypeSource = prettyShowDefinition $ toElmDefinition $ Proxy @a
@@ -94,7 +94,7 @@ generateElm :: forall (ts :: [Type]) . RenderElm ts => Settings -> IO ()
 generateElm Settings{..} = do
     createDirectoryIfMissing True fullPath
 
-    writeElm settingsTypesFile   $ typesHeader   : renderType @ts
+    writeElm settingsTypesFile   $ typesHeader   : renderType    @ts
     writeElm settingsEncoderFile $ encoderHeader : renderEncoder @ts
     writeElm settingsDecoderFile $ decoderHeader : renderDecoder @ts
 

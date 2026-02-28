@@ -141,7 +141,7 @@ typeDecoderDoc  t@ElmType{..} =
     sumDecoder :: Doc ann
     sumDecoder = nest 4 $ vsep
         [ name
-        , nest 4 (vsep $ ("let decide : String -> Decoder" <+> qualifiedTypeName) :
+        , nest 4 (vsep $ ("let decide : String -> Decoder" <+> wrapParens (qualifiedTypeWithVarsDoc elmTypeName elmTypeVars)) :
             [ nest 4
                 ( vsep $ "decide x = case x of"
                 : map cases (toList elmTypeConstructors)
